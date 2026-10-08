@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>claude-tuning</title>
+<meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт удалить лишнее и не показывает ключи. Ставится одним сообщением агенту.">
+<meta name="theme-color" content="#050505">
+<style>
+:root{
+  --canvas:#050505; --surface:#141211; --ink:#F9F9F9; --muted:#A7A7A7;
+  --signal:#E85002; --signal-soft:#3A1606; --sand:#D9C3AB; --line:#333333;
+  --r-s:12px; --r-m:32px; --r-l:48px;
+  --sans:"Onest",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--canvas);color:var(--ink);font:400 17px/1.6 var(--sans);overflow-x:hidden;position:relative}
+body::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(40% 18% at 18% 6%,#000 0,transparent 100%),radial-gradient(35% 14% at 85% 30%,#000 0,transparent 100%),radial-gradient(45% 16% at 30% 62%,#000 0,transparent 100%),linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25));
+  mask-image:radial-gradient(40% 18% at 18% 6%,#000 0,transparent 100%),radial-gradient(35% 14% at 85% 30%,#000 0,transparent 100%),radial-gradient(45% 16% at 30% 62%,#000 0,transparent 100%),linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25));
+  -webkit-mask-size:100% 2100px;mask-size:100% 2100px;-webkit-mask-repeat:repeat-y;mask-repeat:repeat-y}
+main,footer{position:relative;z-index:1}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+section{padding:72px 0}
+h1,h2,h3{font-weight:700;letter-spacing:-.035em;line-height:1.08;margin:0}
+h1{font-size:clamp(38px,7.4vw,84px)}
+h2{font-size:clamp(28px,4.6vw,48px);margin-bottom:18px}
+h3{font-size:21px;letter-spacing:-.02em;margin-bottom:8px}
+p{margin:0 0 14px}
+.muted{color:var(--muted)}
+.accent{color:var(--signal)}
+.tag{font:500 13px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tag b{color:var(--signal);font-weight:500}
+.center{text-align:center}
+
+/* Шапка: оранжевый свет за рифлёным стеклом */
+.hero{padding:40px 0 64px}
+.stage{position:relative;border-radius:var(--r-l);overflow:hidden;min-height:540px;display:flex;align-items:flex-end;isolation:isolate;background:#0b0807}
+.stage .light{position:absolute;inset:-20%;z-index:-2;
+  background:radial-gradient(38% 46% at 70% 38%,#ff7a1a 0,#E85002 32%,rgba(232,80,2,0) 70%),radial-gradient(30% 34% at 28% 78%,rgba(217,195,171,.55) 0,rgba(217,195,171,0) 70%),radial-gradient(60% 60% at 50% 50%,#3A1606 0,#050505 80%);
+  animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(-6%,4%,0) scale(1.08)}}
+.stage .flutes{position:absolute;inset:0;z-index:-1;
+  -webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0,rgba(255,255,255,.02) 6px,rgba(0,0,0,.18) 22px,rgba(255,255,255,.06) 28px);
+}
+.stage .flutes::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,5,0) 30%,rgba(5,5,5,.78) 100%)}
+.hero-copy{padding:40px 36px 40px}
+.hero-copy h1 .accent{display:inline-block}
+.hero-copy .lead{font-size:clamp(17px,2.2vw,21px);max-width:620px;margin:18px 0 22px;color:#ECE6E1}
+.bullets{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:8px}
+.bullets li{display:flex;gap:10px;align-items:baseline}
+.bullets li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--signal);flex:none;transform:translateY(-1px)}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--signal);color:#050505;font-weight:700;text-decoration:none;padding:14px 22px;border-radius:999px;transition:transform .2s ease}
+.btn:hover{transform:translateY(-2px)}
+.btn .arr{display:inline-block;transition:transform .2s ease}
+.btn:hover .arr{transform:translateX(3px)}
+
+/* Тезис */
+.thesis{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.quote{border-left:3px solid var(--signal);padding:6px 0 6px 22px;font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.lock{position:relative;border-radius:var(--r-m);background:var(--surface);border:1px solid var(--line);padding:26px;overflow:hidden}
+.lock .row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #222;font-size:15px}
+.lock .row:last-child{border-bottom:0}
+.lock .row span:first-child{color:var(--muted)}
+.pill{font:500 12px/1 var(--mono);padding:7px 10px;border-radius:999px;white-space:nowrap}
+.pill.no{background:rgba(232,80,2,.14);color:#FF8A4C;border:1px solid rgba(232,80,2,.4)}
+.pill.ok{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid var(--line)}
+.pill.ask{background:rgba(217,195,171,.1);color:var(--sand);border:1px solid rgba(217,195,171,.35)}
+
+/* Боли: стеклянные карточки */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+.card{position:relative;border-radius:var(--r-m);padding:26px 24px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09);overflow:hidden;display:flex;flex-direction:column}
+.card::before{content:"";position:absolute;width:180px;height:180px;right:-60px;top:-70px;border-radius:50%;background:radial-gradient(circle,rgba(232,80,2,.35),rgba(232,80,2,0) 70%);pointer-events:none}
+.card .was{font:500 12.5px/1.4 var(--mono);color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+.card p{color:#D8D2CD;font-size:16px;margin:0}
+
+/* Процесс 01–04 */
+.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:40px}
+.steps .track{position:absolute;left:12.5%;right:12.5%;top:23px;height:2px;background:var(--line)}
+.steps .fill{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--signal);transform-origin:left;transform:scaleX(1)}
+.js .steps .fill{transform:scaleX(0);transition:transform 2.4s cubic-bezier(.2,.7,.2,1)}
+.js .steps.on .fill{transform:scaleX(1)}
+.step{text-align:center;position:relative}
+.step .dot{width:48px;height:48px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;font:600 14px var(--mono);background:var(--signal);color:#050505;transition:background .4s,color .4s}
+.js .steps .step .dot{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.js .steps .step.lit .dot{background:var(--signal);color:#050505;border-color:var(--signal)}
+.step p{font-size:15.5px;color:#D8D2CD;max-width:240px;margin:0 auto}
+
+/* Полки */
+.shelves{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:30px}
+.shelf{border-radius:var(--r-m);background:var(--surface);border:1px solid var(--line);padding:24px}
+.shelf .tag{display:block;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font:500 13px/1 var(--mono);padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid #2a2a2a;color:#E6E0DB}
+.shelf.hot{background:linear-gradient(150deg,#2a1206,#141211 70%);border-color:rgba(232,80,2,.45)}
+
+/* Промпт */
+.promptbox{border-radius:var(--r-m);border:1px solid rgba(232,80,2,.45);background:linear-gradient(180deg,rgba(232,80,2,.08),rgba(20,18,17,.9));padding:24px;margin-top:26px}
+.promptbox .cmd{font:400 14.5px/1.65 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#F1ECE8;background:#0b0a09;border:1px solid #262220;border-radius:var(--r-s);padding:18px;max-height:230px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 58px),transparent);mask-image:linear-gradient(#000 calc(100% - 58px),transparent);user-select:all;-webkit-user-select:all}
+.promptbox:target .cmd{max-height:none;-webkit-mask-image:none;mask-image:none}
+.promptbox .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:16px}
+.promptbox .pb-close{display:none}
+.promptbox:target .pb-open{display:none}
+.promptbox:target .pb-close{display:inline-flex}
+.ghost{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:11px 18px;border-radius:999px;font-weight:600;font-size:15px}
+.after{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.after div{border-radius:var(--r-s);background:rgba(255,255,255,.03);border:1px solid #222;padding:14px 16px;font-size:15px;color:#D8D2CD}
+.after b{color:var(--ink);display:block;margin-bottom:4px}
+
+/* Своё остаётся своим */
+.zones{font:500 15px/1.9 var(--mono);color:var(--muted);margin-top:18px}
+.zones span{color:var(--ink)}
+
+/* FAQ */
+details{border-bottom:1px solid #222;padding:18px 0}
+summary{cursor:pointer;list-style:none;font-weight:700;font-size:19px;letter-spacing:-.01em;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--signal);font:400 26px/1 var(--mono);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:12px 0 0;color:#D0CAC5;max-width:760px}
+
+.final{border-radius:var(--r-l);padding:44px 36px;background:radial-gradient(70% 120% at 85% 0%,rgba(232,80,2,.32),rgba(232,80,2,0) 60%),var(--surface);border:1px solid var(--line)}
+.final ul{margin:14px 0 26px;padding-left:20px;color:#D8D2CD}
+footer{padding:36px 0 48px;color:var(--muted);font:500 13px/1 var(--mono);text-align:center}
+footer a{color:var(--muted)}
+
+/* Появление */
+.js .rise{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.js .rise.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .stage .light{animation:none}
+  .js .rise{opacity:1;transform:none;transition:none}
+  .js .steps .fill{transition:none;transform:scaleX(1)}
+}
+
+@media (max-width:900px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .thesis{grid-template-columns:1fr}
+  .after{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  section{padding:52px 0}
+  .wrap{padding:0 16px}
+  .stage{min-height:520px;border-radius:var(--r-m)}
+  .hero-copy{padding:28px 20px}
+  .grid,.shelves{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:26px}
+  .steps .track{left:23px;right:auto;top:24px;bottom:24px;width:2px;height:auto}
+  .steps .fill{transform-origin:top}
+  .js .steps .fill{transform:scaleY(0)}
+  .js .steps.on .fill{transform:scaleY(1)}
+  .step{display:grid;grid-template-columns:48px 1fr;gap:16px;text-align:left;align-items:start}
+  .step .dot{margin:0}
+  .step p{margin:0;max-width:none}
+  .step h3{margin-top:10px}
+  .promptbox{padding:16px}
+  .final{padding:30px 20px}
+}
+</style>
+</head>
+<body>
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="stage">
+      <div class="light"></div>
+      <div class="flutes"></div>
+      <div class="hero-copy">
+        <div class="tag">[ <b>claude-tuning</b> ] для Claude Code</div>
+        <h1 style="margin-top:16px">Claude, который <span class="accent">помнит</span> и&nbsp;не&nbsp;сносит лишнего</h1>
+        <p class="lead">Одно сообщение агенту, и вокруг модели появляется порядок: задача переживает ночь и сжатие контекста, лимиты не тают к обеду, опасная команда упирается в замок.</p>
+        <ul class="bullets">
+          <li>Ставит сам агент, разбираться в настройках не нужно</li>
+          <li>Сначала показывает план и ждёт твоего «да»</li>
+          <li>Бесплатно, весь код открыт</li>
+        </ul>
+        <a class="btn" href="#prompt">Взять промпт <span class="arr">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap thesis">
+    <div class="rise">
+      <div class="tag">почему так</div>
+      <h2 style="margin-top:12px">Модель у всех одна. Разница в&nbsp;том, что вокруг неё</h2>
+      <p class="muted">Ты пишешь в инструкции «никогда не удаляй базу». Claude читает, соглашается и в длинной сессии всё равно может это сделать. Инструкция для него как совет коллеги, а не запертая дверь.</p>
+      <p class="muted">Запираем мы по-другому: маленькие сторожа проверяют каждую команду до того, как она выполнится. Память тоже держится не на честном слове, а на файлах, которые агент сам ведёт и сам читает утром.</p>
+      <div class="quote" style="margin-top:26px">Просьбу можно забыть. Замок забыть нельзя.</div>
+    </div>
+    <div class="lock rise" aria-label="Что делает сторож с командами">
+      <div class="tag" style="margin-bottom:8px">сторож проверяет команду</div>
+      <div class="row"><span>стереть домашнюю папку</span><span class="pill no">стоп</span></div>
+      <div class="row"><span>удалить базу данных</span><span class="pill no">стоп</span></div>
+      <div class="row"><span>показать ключи из .env</span><span class="pill no">стоп</span></div>
+      <div class="row"><span>переписать историю в git</span><span class="pill ask">спросит тебя</span></div>
+      <div class="row"><span>запустить тесты</span><span class="pill ok">дальше</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="rise">
+      <div class="tag">что меняется</div>
+      <h2 style="margin-top:12px">Шесть вещей, которые бесят в&nbsp;Claude Code</h2>
+    </div>
+    <div class="grid">
+      <div class="card rise"><div class="was">было: каждое утро с нуля</div><h3>Утром он помнит, на чём вы остановились</h3><p>Вечером агент записывает, что сделано и что дальше. Утром читает и продолжает, а не спрашивает заново.</p></div>
+      <div class="card rise"><div class="was">было: забыл после сжатия</div><h3>Длинная сессия не теряет задачу</h3><p>У каждой задачи свой список дел. Когда контекст сжимается, агент получает его обратно и идёт со следующего пункта.</p></div>
+      <div class="card rise"><div class="was">было: лимит к обеду</div><h3>Лимиты живут до вечера</h3><p>Короткая карта вместо простыни инструкций, старые заметки сворачиваются. Каждая сессия читает меньше.</p></div>
+      <div class="card rise"><div class="was">было: страшно отойти</div><h3>Опасное упирается в стоп</h3><p>Удалить папку целиком, базу или чужую работу нельзя. Рискованное он сначала спросит у тебя.</p></div>
+      <div class="card rise"><div class="was">было: ключи в чате</div><h3>Пароли остаются в своих файлах</h3><p>Агент не открывает файлы с ключами и не печатает их в переписку, даже если очень хочется помочь.</p></div>
+      <div class="card rise"><div class="was">было: ходит по кругу</div><h3>Ловит себя на повторе</h3><p>Пятый одинаковый шаг подряд, и он получает сигнал остановиться: искать причину, а не жать ту же кнопку снова.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="center rise">Как это ставится</h2>
+    <div class="steps" id="steps">
+      <div class="track"><div class="fill"></div></div>
+      <div class="step"><div class="dot">01</div><div><h3>Копируешь промпт</h3><p>И отправляешь его Claude Code на своём компьютере.</p></div></div>
+      <div class="step"><div class="dot">02</div><div><h3>Агент смотрит</h3><p>Что у тебя уже настроено, чего не хватает, что трогать не надо.</p></div></div>
+      <div class="step"><div class="dot">03</div><div><h3>Ты говоришь «да»</h3><p>Он показал план простыми словами. Без твоего ответа ничего не меняется.</p></div></div>
+      <div class="step"><div class="dot">04</div><div><h3>Проверка</h3><p>Агент сам пробует опасную команду и показывает, что замок сработал.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="rise">
+      <div class="tag">что внутри</div>
+      <h2 style="margin-top:12px">Четыре полки в&nbsp;одном наборе</h2>
+    </div>
+    <div class="shelves">
+      <div class="shelf rise"><span class="tag">01 · память</span><h3>Агент помнит дела</h3><p class="muted">Передача дел между сессиями, утренний разбор, итог дня и список дел у каждой задачи.</p><div class="chips"><span class="chip">/morning</span><span class="chip">/endday</span><span class="chip">session-handoff</span><span class="chip">memory-consolidate</span></div></div>
+      <div class="shelf rise"><span class="tag">02 · защита</span><h3>Замки на опасное</h3><p class="muted">Стоп на необратимое, вопрос на рискованное, ключи закрыты от чтения.</p><div class="chips"><span class="chip">стоп</span><span class="chip">спросить</span><span class="chip">ключи</span><span class="chip">повтор</span></div></div>
+      <div class="shelf rise"><span class="tag">03 · экономия</span><h3>Меньше чтения каждый раз</h3><p class="muted">Короткая карта вместо длинной инструкции, свёрнутые старые записи, сжатие контекста пораньше.</p><div class="chips"><span class="chip">карта</span><span class="chip">свёртка заметок</span><span class="chip">автосжатие</span></div></div>
+      <div class="shelf hot rise"><span class="tag">04 · порядок</span><h3>Чистые ветки и честный разбор ошибок</h3><p class="muted">Уборка старых копий проекта, поиск по прошлым разговорам, разбор бага от причины к исправлению.</p><div class="chips"><span class="chip">worktree-cleanup</span><span class="chip">session-search</span><span class="chip">systematic-debugging</span><span class="chip">review-triage</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="rise">
+      <div class="tag">твоё остаётся твоим</div>
+      <h2 style="margin-top:12px">Ничего не перезаписывает</h2>
+      <p class="muted" style="max-width:720px">Если у тебя уже есть свой вариант чего-то, агент его не тронет и скажет «у тебя своя версия». Перед правкой настроек делает копию. Передумал: одна просьба, и он уберёт ровно то, что поставил.</p>
+      <div class="zones">/ <span>набор</span> / общий, обновляется отдельно<br>/ <span>твои настройки</span> / не трогаются<br>/ <span>твоё личное</span> / подключается поверх отдельной папкой</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="rise">
+      <div class="tag">промпт установки</div>
+      <h2 style="margin-top:12px">Скопируй и отправь агенту</h2>
+      <p class="muted">Открой на компьютере, где стоит Claude Code. Выдели текст целиком и вставь в чат.</p>
+    </div>
+    <div class="promptbox rise" id="prompt">
+<!--prompt--><div class="cmd">Поставь мне набор claude-tuning для Claude Code.
+
+1. Скачай https://github.com/veeskelad/claude-tuning в папку ~/.claude/skills/claude-tuning (git clone; если git нет, архив ветки main). Если папка уже есть, обнови её и ничего в ней не удаляй.
+2. Прочитай ~/.claude/skills/claude-tuning/SKILL.md и дальше действуй по нему.
+3. Сначала посмотри, как у меня всё настроено сейчас, и сделай сухой прогон установщика. Покажи простыми словами: что поставишь, что у меня уже есть, что оставишь как моё. Ничего не меняй, пока я не скажу «да».
+4. После установки запусти проверку и коротко скажи, что теперь работает и что нужно поставить вручную.
+
+Ключи, пароли и файлы .env не читай и не показывай.
+</div><!--/prompt-->
+      <div class="bar">
+        <span class="muted" style="font-size:15px">Агент сам скачает набор и расскажет, что нашёл.</span>
+        <a class="ghost pb-open" href="#prompt">Показать целиком ↓</a>
+        <a class="ghost pb-close" href="#mini">Свернуть ↑</a>
+      </div>
+    </div>
+    <div class="after rise" id="mini">
+      <div><b>Один разговор</b>Промпт, план, твоё «да», проверка.</div>
+      <div><b>План до изменений</b>Сначала видишь, что поменяется, потом решаешь.</div>
+      <div><b>Можно убрать</b>Попроси снять набор, твои настройки останутся.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="rise">Вопросы</h2>
+    <div class="rise">
+      <details><summary>Я не программист. Мне это нужно?</summary><p>Особенно нужно. Ты не обязан знать, где лежат настройки: агент их найдёт, объяснит и спросит разрешения. От тебя одно слово «да».</p></details>
+      <details><summary>Он не сломает то, что у меня уже работает?</summary><p>Свои файлы агент не перезаписывает. Если что-то совпало по имени, оставляет твою версию и говорит об этом. Перед правкой настроек делает копию.</p></details>
+      <details><summary>Агент увидит мои пароли и ключи?</summary><p>Наоборот: после установки он не может открыть файлы с ключами и вывести их в чат. Значения остаются только у тебя.</p></details>
+      <details><summary>А если мне не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
+      <details><summary>Работает с Codex?</summary><p>Да, скиллы становятся видны и Codex, если он у тебя стоит. Замки и автоматические проверки работают в Claude Code.</p></details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="final rise">
+      <h2>После установки</h2>
+      <p class="muted">Агент сам предложит, с чего начать. Например:</p>
+      <ul>
+        <li>«Наведи порядок в моей инструкции, она слишком длинная»</li>
+        <li>«Проверь, что замок ловит опасные команды»</li>
+        <li>«Вечером запиши итог дня, утром продолжим»</li>
+      </ul>
+      <a class="btn" href="#prompt">К промпту <span class="arr">→</span></a>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer>claude-tuning 2.0.0 · <a href="https://github.com/veeskelad/claude-tuning">github.com/veeskelad/claude-tuning</a></footer>
+
+<script>
+try{
+  document.documentElement.classList.add("js");
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var all=[].slice.call(document.querySelectorAll(".rise"));
+  var steps=document.getElementById("steps");
+  var dots=[].slice.call(steps.querySelectorAll(".step"));
+  function lightSteps(){
+    steps.classList.add("on");
+    dots.forEach(function(d,i){setTimeout(function(){d.classList.add("lit")},reduce?0:i*600)});
+  }
+  function showAll(){all.forEach(function(e){e.classList.add("on")});lightSteps()}
+  if(reduce||!("IntersectionObserver" in window)){showAll()}
+  else{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting)return;
+        if(e.target===steps)lightSteps();else e.target.classList.add("on");
+        io.unobserve(e.target);
+      });
+    },{threshold:.15});
+    all.forEach(function(e){io.observe(e)});
+    io.observe(steps);
+    var seen=false;all.forEach(function(e){e.addEventListener("transitionend",function(){seen=true},{once:true})});
+    setTimeout(function(){if(!seen)showAll()},4000);
+  }
+}catch(e){
+  document.documentElement.classList.remove("js");
+}
+</script>
+</body>
+</html>

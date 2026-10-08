@@ -1,0 +1,4 @@
+interface:
+  display_name: "Worktree Cleanup"
+  short_description: "Safely clean merged git worktrees (shared with Claude)"
+  default_prompt: "Use $worktree-cleanup to audit and clean merged git worktrees."

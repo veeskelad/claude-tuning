@@ -1,0 +1,31 @@
+{
+  "_comment": "Что install-kit.py вливает в ~/.claude/settings.json. Существующие ключи и хуки не перезаписываются: хук добавляется, только если такой команды в событии ещё нет.",
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60",
+    "ENABLE_TOOL_SEARCH": "auto:5"
+  },
+  "worktree": {"baseRef": "fresh"},
+  "attribution": {"commit": "", "pr": ""},
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/safety-guard.sh\"", "timeout": 10}]},
+      {"matcher": "Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-read.sh\"", "timeout": 10}]}
+    ],
+    "PostToolUse": [
+      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/agents-md-drift.sh\"", "timeout": 10}]},
+      {"matcher": "*", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/loop-detector.sh\"", "timeout": 5}]}
+    ],
+    "SessionStart": [
+      {"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/open-tasks.sh\"", "timeout": 15}]},
+      {"matcher": "compact", "hooks": [{"type": "command", "command": "python3 \"$HOME/.claude/hooks/compact-context.py\"", "timeout": 15}]},
+      {"matcher": "startup", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/repo-freshness.sh\" \"$CLAUDE_PROJECT_DIR\"", "timeout": 30}]},
+      {"matcher": "startup", "hooks": [{"type": "command", "command": "bash \"$HOME/.agents/skills/worktree-cleanup/scripts/worktree-cleanup\" scan --no-fetch --ready-only", "timeout": 30}]}
+    ],
+    "SessionEnd": [
+      {"hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/session-autosave.sh\"", "timeout": 10}]}
+    ],
+    "PreCompact": [
+      {"hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/session-autosave.sh\"", "timeout": 10}]}
+    ]
+  }
+}

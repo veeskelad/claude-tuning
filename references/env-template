@@ -1,0 +1,26 @@
+# Общие токены для всех проектов: ~/.claude/.env
+#
+# Зачем отдельный файл: ~/.claude/settings.json читает любой процесс пользователя, он попадает в
+# бэкапы и в чат, когда агент правит настройки. Здесь ключи лежат один раз и подгружаются профилем шелла.
+#
+# Права: chmod 600 ~/.claude/.env
+# Подгрузка — одна строка в ~/.bash_profile или ~/.zshrc:
+#   [ -f ~/.claude/.env ] && { set -a; . ~/.claude/.env; set +a; }
+# Проверить, что ключ задан, не показывая значение:
+#   [ -n "$GITHUB_TOKEN" ] && echo задан
+# Имена ключей без значений:
+#   grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ~/.claude/.env
+
+# === AI/LLM ===
+# ANTHROPIC_API_KEY=
+# OPENROUTER_API_KEY=
+
+# === GitHub ===
+# GITHUB_TOKEN=
+
+# === Мессенджеры ===
+# TELEGRAM_BOT_TOKEN=
+
+# === Базы данных ===
+# DATABASE_URL=
+# REDIS_URL=

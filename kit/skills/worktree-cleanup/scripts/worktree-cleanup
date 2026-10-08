@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# Уборка git worktree после мержа. Общий скрипт Claude и Codex.
+set -uo pipefail
+
+usage() {
+  cat <<'EOF'
+worktree-cleanup [scan|clean] [--pushed] [--no-fetch] [--ready-only] [REPO ...]
+
+  scan          сухой прогон (по умолчанию)
+  clean         удалить READY; с --pushed ещё и PUSHED
+  --pushed      удалять и незамерженные, чей HEAD лежит на origin.
+                Только после проверки, что MR смержен или закрыт
+  --no-fetch    без fetch и без сетевых проверок (хук SessionStart)
+  --ready-only  печатать только READY
+
+  REPO — основные чекауты. Без них: репо в $PWD, иначе репо на глубину 1.
+
+  READY    чистый, смержен в origin/main|master (предок или patch-эквивалент),
+           без активных процессов. Удаляется вместе с локальной веткой
+  PUSHED   чистый, не смержен, HEAD есть на origin — удаление ничего не теряет.
+           Локальная ветка остаётся
+  REFUSE   всё остальное, не удаляется никогда
+EOF
+}
+
+mode=scan pushed=0 fetch=1 ready_only=0
+repos=()
+for a in "$@"; do
+  case "$a" in
+    scan|clean) mode=$a ;;
+    --pushed) pushed=1 ;;
+    --no-fetch) fetch=0 ;;
+    --ready-only) ready_only=1 ;;
+    -h|--help|help) usage; exit 0 ;;
+    -*) usage >&2; exit 2 ;;
+    *) repos+=("$a") ;;
+  esac
+done
+
+if [ ${#repos[@]} -eq 0 ]; then
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    repos=("$PWD")
+  else
+    for d in "$PWD"/*/; do [ -e "$d.git" ] && repos+=("${d%/}"); done
+  fi
+fi
+
+hsize() { awk -v kb="$1" 'BEGIN { if (kb >= 1048576) printf "%.1f ГиБ", kb/1048576; else printf "%d МиБ", kb/1024 }'; }
+
+say() { [ "$ready_only" = 1 ] && [ "$1" != READY ] && return; printf '%-8s %s  %s\n' "$1" "$2" "$3"; }
+
+busy() {
+  # ponytail: cwd всех процессов один раз на прогон; lsof по каталогу видит только корень, не подкаталоги
+  [ -n "${cwds+x}" ] || cwds=$(lsof -nP -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')
+  printf '%s\n' "$cwds" | awk -v p="$1" '$0 == p || index($0, p "/") == 1 { f = 1 } END { exit !f }' && return 0
+  pgrep -f -- "$1" >/dev/null 2>&1
+}
+
+on_origin() { # repo branch sha
+  local r
+  r=$(timeout 15 git -C "$1" ls-remote origin "refs/heads/$2" 2>/dev/null | cut -f1)
+  [ -n "$r" ] && { [ "$r" = "$3" ] || git -C "$1" merge-base --is-ancestor "$3" "$r" 2>/dev/null; }
+}
+
+ready=0 pushed_n=0 removed=0 total_kb=0
+for repo in "${repos[@]}"; do
+  main_wt=$(git -C "$repo" worktree list --porcelain 2>/dev/null | awk '/^worktree /{ print substr($0, 10); exit }')
+  [ -z "$main_wt" ] && continue
+
+  ref=""
+  for c in main master; do
+    [ "$fetch" = 1 ] && timeout 20 git -C "$main_wt" fetch --quiet origin "$c" 2>/dev/null
+    git -C "$main_wt" show-ref --verify --quiet "refs/remotes/origin/$c" && { ref="origin/$c"; break; }
+  done
+
+  while IFS=$'\t' read -r wt br; do
+    [ "$wt" = "$main_wt" ] && continue
+    [ -z "$ref" ] && { say REFUSE "$wt" "в $main_wt нет origin/main и origin/master"; continue; }
+    name=${br#refs/heads/}
+    [ -d "$wt" ] || { say STALE "$wt" "каталога нет, метаданные уберёт clean"; continue; }
+    case "$wt" in *worktrees/*) ;; *) say REFUSE "$wt" "вне каталога *worktrees/ — возможно, worktree пользователя"; continue ;; esac
+    [ -z "$(git -C "$wt" status --porcelain --untracked-files=all 2>/dev/null)" ] ||
+      { say REFUSE "$wt" "есть незакоммиченное или неотслеживаемое"; continue; }
+    # .tasks/ обычно в .gitignore: status его не видит, а remove унёс бы чек-лист с открытыми пунктами
+    grep -qs '^[[:space:]]*- \[ \]' "$wt"/.tasks/*.md &&
+      { say REFUSE "$wt" "в .tasks/ открытые пункты чек-листа — перенести или закрыть"; continue; }
+
+    head=$(git -C "$wt" rev-parse HEAD)
+    if git -C "$main_wt" merge-base --is-ancestor "$head" "$ref"; then
+      # свежий worktree от main — тоже «предок main»; отличаем по пустому reflog и возрасту
+      if [ "$name" = "-" ]; then n=$(git -C "$wt" reflog show HEAD 2>/dev/null | wc -l)
+      else n=$(git -C "$main_wt" reflog show "refs/heads/$name" 2>/dev/null | wc -l); fi
+      admin=$(git -C "$wt" rev-parse --absolute-git-dir)
+      if [ "$n" -le 1 ] && [ -n "$(find "$admin/commondir" -mtime -7 2>/dev/null)" ]; then
+        say REFUSE "$wt" "своих коммитов нет, создан меньше 7 дней назад — похоже на начатую задачу"; continue
+      fi
+      state=READY why="смержен в $ref"
+    elif ch=$(git -C "$main_wt" cherry "$ref" "$head" 2>/dev/null) && [ -n "$ch" ] && ! grep -q '^+' <<<"$ch"; then
+      # rebase при мерже: коммиты другие, патчи те же
+      state=READY why="patch-эквивалентен $ref"
+    elif [ "$fetch" = 1 ] && [ "$name" != "-" ] && on_origin "$main_wt" "$name" "$head"; then
+      state=PUSHED why="не в $ref, HEAD есть на origin/$name"
+    else
+      say REFUSE "$wt" "не смержен в $ref$([ "$fetch" = 1 ] && echo ' и нет на origin')"; continue
+    fi
+    busy "$wt" && { say REFUSE "$wt" "активный процесс в каталоге"; continue; }
+
+    kb=$(du -sk "$wt" 2>/dev/null | cut -f1)
+    if [ "$mode" = clean ] && { [ "$state" = READY ] || [ "$pushed" = 1 ]; }; then
+      git -C "$main_wt" worktree remove "$wt" || { say REFUSE "$wt" "git worktree remove отказал"; continue; }
+      removed=$((removed + 1)) total_kb=$((total_kb + kb))
+      # ponytail: -D, а не -d — -d сверяет с локальным main, который отстаёт; смерженность уже проверена по origin
+      case "$state:$name" in
+        READY:main|READY:master|READY:-|PUSHED:*) ;;
+        READY:*) git -C "$main_wt" branch -D "$name" >/dev/null 2>&1 && why="$why, ветка удалена" ;;
+      esac
+      say REMOVED "$wt" "$(hsize "$kb"), $why"
+    else
+      [ "$state" = READY ] && ready=$((ready + 1)) || pushed_n=$((pushed_n + 1))
+      total_kb=$((total_kb + kb))
+      say "$state" "$wt" "$(hsize "$kb"), $why"
+    fi
+  done < <(git -C "$main_wt" worktree list --porcelain | awk '
+    /^worktree / { wt = substr($0, 10); br = "-" }
+    /^branch /   { br = substr($0, 8) }
+    /^$/         { if (wt != "") print wt "\t" br; wt = "" }
+    END          { if (wt != "") print wt "\t" br }')
+
+  [ "$mode" = clean ] && git -C "$main_wt" worktree prune
+done
+
+cmd='~/.agents/skills/worktree-cleanup/scripts/worktree-cleanup'
+if [ "$mode" = clean ]; then
+  echo "Удалено: $removed, освобождено $(hsize "$total_kb")"
+elif [ "$ready_only" = 1 ]; then
+  [ "$ready" -gt 0 ] && echo "↑ смерженные worktree, убрать: $cmd clean"
+else
+  echo "Сухой прогон: READY $ready, PUSHED $pushed_n, $(hsize "$total_kb"). Удалить: $cmd clean$([ "$pushed_n" -gt 0 ] && echo ' [--pushed]')"
+fi
+exit 0
