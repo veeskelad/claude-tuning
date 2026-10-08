@@ -37,18 +37,19 @@ p{margin:0 0 14px}
 .tag b{color:var(--signal);font-weight:500}
 .center{text-align:center}
 
-/* Шапка: оранжевый свет за рифлёным стеклом */
+/* Шапка: блок — градиент света, стекло — небольшой лист внутри блока, над самым ярким пятном */
 .hero{padding:40px 0 64px}
-.stage{position:relative;border-radius:var(--r-l);overflow:hidden;min-height:540px;display:flex;align-items:flex-end;isolation:isolate;background:#0b0807}
+.stage{position:relative;border-radius:var(--r-l);overflow:hidden;min-height:540px;display:grid;grid-template-columns:1.3fr .7fr;align-items:end;isolation:isolate;background:#0b0807}
+.stage::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(5,5,5,.72) 0,rgba(5,5,5,.25) 55%,rgba(5,5,5,0) 75%),linear-gradient(0deg,rgba(5,5,5,.55) 0,rgba(5,5,5,0) 45%)}
+.pane{position:relative;align-self:center;aspect-ratio:3/4;margin:40px 44px 40px 0;border-radius:var(--r-m);
+  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0,rgba(255,255,255,.03) 5px,rgba(0,0,0,.16) 20px,rgba(255,255,255,.07) 26px),linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 60%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 40px 70px -24px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.28)}
 .stage .light{position:absolute;inset:-20%;z-index:-2;
   background:radial-gradient(38% 46% at 70% 38%,#ff7a1a 0,#E85002 32%,rgba(232,80,2,0) 70%),radial-gradient(30% 34% at 28% 78%,rgba(217,195,171,.55) 0,rgba(217,195,171,0) 70%),radial-gradient(60% 60% at 50% 50%,#3A1606 0,#050505 80%);
   animation:drift 14s ease-in-out infinite alternate}
 @keyframes drift{to{transform:translate3d(-6%,4%,0) scale(1.08)}}
-.stage .flutes{position:absolute;inset:0;z-index:-1;
-  -webkit-backdrop-filter:blur(18px) saturate(1.25);backdrop-filter:blur(18px) saturate(1.25);
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0,rgba(255,255,255,.02) 6px,rgba(0,0,0,.18) 22px,rgba(255,255,255,.06) 28px);
-}
-.stage .flutes::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,5,0) 30%,rgba(5,5,5,.78) 100%)}
 .hero-copy{padding:40px 36px 40px}
 .hero-copy h1 .accent{display:inline-block}
 .hero-copy .lead{font-size:clamp(17px,2.2vw,21px);max-width:620px;margin:18px 0 22px;color:#ECE6E1}
@@ -74,8 +75,7 @@ p{margin:0 0 14px}
 
 /* Боли: стеклянные карточки */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
-.card{position:relative;border-radius:var(--r-m);padding:26px 24px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09);overflow:hidden;display:flex;flex-direction:column}
-.card::before{content:"";position:absolute;width:180px;height:180px;right:-60px;top:-70px;border-radius:50%;background:radial-gradient(circle,rgba(232,80,2,.35),rgba(232,80,2,0) 70%);pointer-events:none}
+.card{position:relative;border-radius:var(--r-m);padding:26px 24px;background:radial-gradient(120% 85% at 100% 0%,rgba(232,80,2,.26) 0,rgba(58,22,6,.5) 38%,rgba(20,18,17,0) 70%),var(--surface);border:1px solid #262220;overflow:hidden;display:flex;flex-direction:column}
 .card .was{font:500 12.5px/1.4 var(--mono);color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
 .card p{color:#D8D2CD;font-size:16px;margin:0}
 
@@ -148,8 +148,10 @@ footer a{color:var(--muted)}
   body{font-size:16px}
   section{padding:52px 0}
   .wrap{padding:0 16px}
-  .stage{min-height:520px;border-radius:var(--r-m)}
-  .hero-copy{padding:28px 20px}
+  .stage{min-height:0;border-radius:var(--r-m);grid-template-columns:1fr}
+  .stage::before{background:linear-gradient(0deg,rgba(5,5,5,.8) 0,rgba(5,5,5,.3) 55%,rgba(5,5,5,0) 80%)}
+  .pane{order:-1;justify-self:end;width:46%;margin:22px 22px 0 0}
+  .hero-copy{padding:20px 20px 28px}
   .grid,.shelves{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr;gap:26px}
   .steps .track{left:23px;right:auto;top:24px;bottom:24px;width:2px;height:auto}
@@ -172,7 +174,6 @@ footer a{color:var(--muted)}
   <div class="wrap">
     <div class="stage">
       <div class="light"></div>
-      <div class="flutes"></div>
       <div class="hero-copy">
         <div class="tag">[ <b>claude-tuning</b> ] для Claude Code</div>
         <h1 style="margin-top:16px">Claude, который <span class="accent">помнит</span> и&nbsp;не&nbsp;сносит лишнего</h1>
@@ -184,6 +185,7 @@ footer a{color:var(--muted)}
         </ul>
         <a class="btn" href="#prompt">Взять промпт <span class="arr">→</span></a>
       </div>
+      <div class="pane" aria-hidden="true"></div>
     </div>
   </div>
 </section>
