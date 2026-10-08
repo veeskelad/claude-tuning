@@ -81,7 +81,7 @@ RM_ROOT='rm +(-[a-zA-Z-]+ +)+([^;&|]* +)?["'"'"']?(/|~|\$\{?HOME\}?)[A-Za-z0-9._
 
 # === Высокий риск — DENY (жёсткий блок) ===
 if printf '%s' "$SCAN" | grep -qiE "($RM_ROOT|drop database|drop table|drop schema|truncate table|terraform destroy|drizzle-kit push.*--force|prisma migrate reset|prisma db push.*--accept-data-loss|git reset --hard.*origin|kubectl delete|kubectl drain|docker rm -f|docker system prune|aws s3 rb|aws s3 rm.*--recursive|gcloud.*delete|heroku destroy|npm publish|pip install.*--break-system-packages|chmod 777)"; then
-  emit deny "⛔ Необратимая команда заблокирована. Если она нужна — запусти вручную в терминале."
+  emit deny "⛔ Необратимая команда заблокирована. Если она нужна, запусти вручную в терминале."
 fi
 
 # === Средний риск — ASK (запрос подтверждения) ===

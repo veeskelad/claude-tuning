@@ -2,278 +2,448 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>claude-tuning</title>
-<meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт удалить лишнее и не показывает ключи. Ставится одним сообщением агенту.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>claude-tuning: Claude Code с памятью и замком</title>
+<meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт стереть лишнее и не показывает ключи. Ставится одним сообщением агенту.">
 <meta name="theme-color" content="#050505">
+<meta property="og:title" content="claude-tuning: гениальный стажёр получает блокнот">
+<meta property="og:description" content="Память между сессиями, замок на опасные команды, ключи вне чата. Одно сообщение агенту.">
+<link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:Onest;src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:Onest;src:url(fonts/onest-latin-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-cyrillic-wght-normal.woff2) format("woff2");font-weight:100 800;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-latin-wght-normal.woff2) format("woff2");font-weight:100 800;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215}
+
 :root{
-  --canvas:#050505; --surface:#141211; --ink:#F9F9F9; --muted:#A7A7A7;
-  --signal:#E85002; --signal-soft:#3A1606; --sand:#D9C3AB; --line:#333333;
-  --r-s:12px; --r-m:32px; --r-l:48px;
-  --sans:"Onest",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --canvas:#050505; --surface:#100e0d; --surface-2:#171412; --ink:#F9F9F9; --ink-2:#DCD5CF; --muted:#9C958F;
+  --signal:#E85002; --signal-hot:#FF7A1A; --signal-soft:#3A1606; --sand:#D9C3AB; --line:#2A2624; --bad:#FF5A4E;
+  --sans:Onest,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"JetBrains Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--canvas);color:var(--ink);font:400 17px/1.6 var(--sans);overflow-x:hidden;position:relative}
-body::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
-  background-size:44px 44px;
-  -webkit-mask-image:radial-gradient(40% 18% at 18% 6%,#000 0,transparent 100%),radial-gradient(35% 14% at 85% 30%,#000 0,transparent 100%),radial-gradient(45% 16% at 30% 62%,#000 0,transparent 100%),linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25));
-  mask-image:radial-gradient(40% 18% at 18% 6%,#000 0,transparent 100%),radial-gradient(35% 14% at 85% 30%,#000 0,transparent 100%),radial-gradient(45% 16% at 30% 62%,#000 0,transparent 100%),linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.25));
-  -webkit-mask-size:100% 2100px;mask-size:100% 2100px;-webkit-mask-repeat:repeat-y;mask-repeat:repeat-y}
-main,footer{position:relative;z-index:1}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-section{padding:72px 0}
-h1,h2,h3{font-weight:700;letter-spacing:-.035em;line-height:1.08;margin:0}
-h1{font-size:clamp(38px,7.4vw,84px)}
-h2{font-size:clamp(28px,4.6vw,48px);margin-bottom:18px}
-h3{font-size:21px;letter-spacing:-.02em;margin-bottom:8px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;background:var(--canvas)}
+body{margin:0;background:var(--canvas);color:var(--ink);font:400 17px/1.6 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--signal);color:#050505}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-weight:700;letter-spacing:-.035em;line-height:1.02;margin:0}
+h2{font-size:clamp(34px,5.4vw,64px)}
+h3{font-size:clamp(26px,3vw,36px);letter-spacing:-.03em}
 p{margin:0 0 14px}
-.muted{color:var(--muted)}
-.accent{color:var(--signal)}
-.tag{font:500 13px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.tag b{color:var(--signal);font-weight:500}
-.center{text-align:center}
+.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono b{color:var(--signal);font-weight:500}
+.lead{font-size:clamp(17px,1.9vw,20px);color:var(--ink-2);max-width:620px}
+section{position:relative}
 
-/* Шапка: блок — градиент света, стекло — небольшой лист внутри блока, над самым ярким пятном */
-.hero{padding:40px 0 64px}
-.stage{position:relative;border-radius:var(--r-l);overflow:hidden;min-height:540px;display:grid;grid-template-columns:1.3fr .7fr;align-items:end;isolation:isolate;background:#0b0807}
-.stage::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(5,5,5,.72) 0,rgba(5,5,5,.25) 55%,rgba(5,5,5,0) 75%),linear-gradient(0deg,rgba(5,5,5,.55) 0,rgba(5,5,5,0) 45%)}
-.pane{position:relative;align-self:center;aspect-ratio:3/4;margin:40px 44px 40px 0;border-radius:var(--r-m);
-  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0,rgba(255,255,255,.03) 5px,rgba(0,0,0,.16) 20px,rgba(255,255,255,.07) 26px),linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 60%);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 40px 70px -24px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.28)}
-.stage .light{position:absolute;inset:-20%;z-index:-2;
-  background:radial-gradient(38% 46% at 70% 38%,#ff7a1a 0,#E85002 32%,rgba(232,80,2,0) 70%),radial-gradient(30% 34% at 28% 78%,rgba(217,195,171,.55) 0,rgba(217,195,171,0) 70%),radial-gradient(60% 60% at 50% 50%,#3A1606 0,#050505 80%);
-  animation:drift 14s ease-in-out infinite alternate}
-@keyframes drift{to{transform:translate3d(-6%,4%,0) scale(1.08)}}
-.hero-copy{padding:40px 36px 40px}
-.hero-copy h1 .accent{display:inline-block}
-.hero-copy .lead{font-size:clamp(17px,2.2vw,21px);max-width:620px;margin:18px 0 22px;color:#ECE6E1}
-.bullets{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:8px}
-.bullets li{display:flex;gap:10px;align-items:baseline}
-.bullets li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--signal);flex:none;transform:translateY(-1px)}
-.btn{display:inline-flex;align-items:center;gap:10px;background:var(--signal);color:#050505;font-weight:700;text-decoration:none;padding:14px 22px;border-radius:999px;transition:transform .2s ease}
-.btn:hover{transform:translateY(-2px)}
-.btn .arr{display:inline-block;transition:transform .2s ease}
-.btn:hover .arr{transform:translateX(3px)}
+/* ---------- навигация ---------- */
+.nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;border-radius:999px;
+  background:rgba(20,17,15,.55);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 10px 30px -10px rgba(0,0,0,.6);transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.nav .logo{display:flex;align-items:center;gap:8px;font:600 14px var(--mono);letter-spacing:.02em;text-decoration:none;margin-right:8px;white-space:nowrap}
+.nav .logo svg{width:16px;height:16px;color:var(--signal)}
+.nav a.l{font-size:14px;text-decoration:none;color:var(--ink-2);padding:8px 12px;border-radius:999px;transition:background .2s}
+.nav a.l:hover{background:rgba(255,255,255,.06)}
+.nav .go{font-size:14px;font-weight:700;text-decoration:none;background:var(--signal);color:#050505;padding:9px 16px;border-radius:999px;white-space:nowrap}
 
-/* Тезис */
-.thesis{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
-.quote{border-left:3px solid var(--signal);padding:6px 0 6px 22px;font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.25}
-.lock{position:relative;border-radius:var(--r-m);background:var(--surface);border:1px solid var(--line);padding:26px;overflow:hidden}
-.lock .row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #222;font-size:15px}
-.lock .row:last-child{border-bottom:0}
-.lock .row span:first-child{color:var(--muted)}
-.pill{font:500 12px/1 var(--mono);padding:7px 10px;border-radius:999px;white-space:nowrap}
-.pill.no{background:rgba(232,80,2,.14);color:#FF8A4C;border:1px solid rgba(232,80,2,.4)}
-.pill.ok{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid var(--line)}
-.pill.ask{background:rgba(217,195,171,.1);color:var(--sand);border:1px solid rgba(217,195,171,.35)}
+/* ---------- шапка ---------- */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;isolation:isolate}
+#gl{position:absolute;inset:0;width:100%;height:100%;z-index:-2;display:block}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(5,5,5,.78) 0,rgba(5,5,5,.42) 38%,rgba(5,5,5,0) 62%),linear-gradient(0deg,var(--canvas) 0,rgba(5,5,5,0) 22%)}
+.hero.nogl{background:radial-gradient(40% 55% at 74% 46%,#FF7A1A 0,#E85002 30%,rgba(232,80,2,0) 70%),radial-gradient(40% 40% at 10% 100%,rgba(163,58,5,.8),rgba(163,58,5,0) 70%),#0a0605}
+.hero.nogl .cssPane{display:block}
+.cssPane{display:none;position:absolute;right:12%;top:18%;width:28%;height:62%;border-radius:28px;z-index:-1;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0,rgba(255,255,255,.03) 5px,rgba(0,0,0,.16) 20px,rgba(255,255,255,.07) 26px);box-shadow:0 40px 70px -24px rgba(0,0,0,.7)}
+.hero-in{width:100%;padding:120px 0 90px}
+.hero h1{font-size:clamp(46px,8.4vw,118px);line-height:.94;max-width:780px}
+.hero h1 .w{display:inline-block;will-change:transform,filter,opacity}
+.hero h1 .accent{color:var(--signal-hot)}
+.hero .lead{margin:26px 0 34px;text-shadow:0 2px 24px rgba(5,5,5,.6)}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;background:var(--signal);color:#050505;font-weight:700;font-size:16px;text-decoration:none;padding:16px 26px;border-radius:999px;border:0;cursor:pointer;
+  box-shadow:0 12px 40px -8px rgba(232,80,2,.6),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .3s var(--ease),box-shadow .3s var(--ease);font-family:var(--sans)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 18px 50px -8px rgba(232,80,2,.75),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn .arr{transition:transform .3s var(--ease)}
+.btn:hover .arr{transform:translateX(4px)}
+.ghost{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;padding:15px 22px;border-radius:999px;font-weight:600;font-size:16px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:background .2s}
+.ghost:hover{background:rgba(255,255,255,.1)}
+.corner{position:absolute;z-index:2;line-height:1.5;text-shadow:0 1px 8px rgba(5,5,5,.6)}
+.corner.tl{left:24px;top:84px}.corner.tr{right:24px;top:84px;text-align:right}
+.corner.br{right:24px;bottom:28px;text-align:right}
+.glassPick{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px}
+.glassPick button{font:500 11.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:rgba(5,5,5,.35);border:1px solid rgba(255,255,255,.14);
+  padding:7px 10px;border-radius:999px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:all .25s}
+.glassPick button[aria-pressed="true"]{background:var(--ink);color:#050505;border-color:var(--ink)}
+.scrollHint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;width:22px;height:36px;border:1.5px solid rgba(255,255,255,.35);border-radius:12px}
+.scrollHint::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:7px;border-radius:2px;background:var(--ink);transform:translateX(-50%);animation:sh 2s var(--ease) infinite}
+@keyframes sh{0%{opacity:0;transform:translate(-50%,0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
 
-/* Боли: стеклянные карточки */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
-.card{position:relative;border-radius:var(--r-m);padding:26px 24px;background:radial-gradient(120% 85% at 100% 0%,rgba(232,80,2,.26) 0,rgba(58,22,6,.5) 38%,rgba(20,18,17,0) 70%),var(--surface);border:1px solid #262220;overflow:hidden;display:flex;flex-direction:column}
-.card .was{font:500 12.5px/1.4 var(--mono);color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
-.card p{color:#D8D2CD;font-size:16px;margin:0}
+/* ---------- бегущая строка болей ---------- */
+.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:18px 0;background:#080707}
+.ticker .track{display:flex;gap:44px;width:max-content;animation:tick 48s linear infinite}
+.ticker span{font:500 15px var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.02em}
+.ticker span i{font-style:normal;color:var(--signal);margin-right:12px}
+@keyframes tick{to{transform:translateX(-50%)}}
 
-/* Процесс 01–04 */
-.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:40px}
-.steps .track{position:absolute;left:12.5%;right:12.5%;top:23px;height:2px;background:var(--line)}
-.steps .fill{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--signal);transform-origin:left;transform:scaleX(1)}
-.js .steps .fill{transform:scaleX(0);transition:transform 2.4s cubic-bezier(.2,.7,.2,1)}
+/* ---------- раздел: эффекты ---------- */
+.block{padding:130px 0}
+.head{max-width:760px;margin-bottom:80px}
+.head .lead{margin-top:20px}
+.fx{display:grid;grid-template-columns:.85fr 1.15fr;gap:64px;align-items:center;margin-bottom:140px}
+.fx:last-child{margin-bottom:0}
+.fx.flip .txt{order:2}
+.fx .num{font:500 13px var(--mono);color:var(--signal);letter-spacing:.1em;display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.fx .num::after{content:"";height:1px;width:56px;background:linear-gradient(90deg,var(--signal),transparent)}
+.fx h3{margin-bottom:18px}
+.fx p{color:var(--ink-2);font-size:17.5px}
+.fact{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font:500 12.5px/1.4 var(--mono);color:var(--sand);padding:9px 13px;border-radius:999px;border:1px solid rgba(217,195,171,.25);background:rgba(217,195,171,.05)}
+.fact::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sand);flex:none}
+
+/* окно-демо */
+.stage{position:relative;padding:34px;border-radius:36px;overflow:hidden;isolation:isolate}
+.stage::before{content:"";position:absolute;inset:0;z-index:-2;transition:opacity .9s var(--ease);
+  background:radial-gradient(70% 80% at 85% 10%,rgba(232,80,2,.55),rgba(232,80,2,0) 60%),radial-gradient(60% 70% at 0% 100%,rgba(163,58,5,.45),rgba(163,58,5,0) 65%),linear-gradient(160deg,#1a0d06,#0b0807)}
+.stage::after{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .9s var(--ease);
+  background:radial-gradient(70% 80% at 85% 10%,rgba(255,90,78,.35),rgba(255,90,78,0) 60%),linear-gradient(160deg,#140707,#090606)}
+.stage[data-mode="without"]::after{opacity:1}
+.win{position:relative;border-radius:20px;background:rgba(10,9,8,.82);border:1px solid rgba(255,255,255,.09);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden}
+.win::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.06),transparent 60%)}
+.win:hover::before{opacity:1}
+.bar{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:#2c2826}
+.bar .ttl{font:500 12px var(--mono);color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);flex:none}
+.seg button{position:relative;z-index:1;font:600 12px var(--sans);color:var(--muted);background:none;border:0;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:color .3s}
+.seg button[aria-pressed="true"]{color:#050505}
+.seg .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:999px;background:#bdb5ae;transition:transform .5s var(--ease),background .5s var(--ease)}
+.seg[data-mode="with"] .thumb{transform:translateX(100%);background:var(--signal)}
+.term{font:400 13.5px/1.62 var(--mono);padding:18px 18px 22px;height:340px;overflow:hidden;position:relative}
+.term .l{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:7px;animation:lin .55s var(--ease) both}
+@keyframes lin{from{opacity:0;filter:blur(6px);transform:translateX(14px)}to{opacity:1;filter:none;transform:none}}
+.t-you{color:var(--ink)}.t-you::before{content:"› ";color:var(--signal)}
+.t-ai{color:var(--ink-2);font-family:var(--sans);font-size:15px;line-height:1.5}.t-ai::before{content:"● ";color:var(--sand);font-size:11px;vertical-align:2px}
+.t-tool{color:#8fb3ff}.t-tool::before{content:"⏺ ";color:#8fb3ff}
+.t-out{color:var(--muted);padding-left:18px;border-left:1px solid #2a2624}
+.t-burn{color:var(--bad);opacity:.9;padding-left:18px;font-size:12.5px;margin-bottom:2px}
+.t-deny{color:#FFD9C2;background:rgba(232,80,2,.14);border:1px solid rgba(232,80,2,.5);border-radius:10px;padding:10px 12px}
+.t-hook{color:var(--sand);background:rgba(217,195,171,.06);border:1px dashed rgba(217,195,171,.3);border-radius:10px;padding:10px 12px;font-size:12.5px}
+.t-sys{color:#5f5954;font-size:12px;text-align:center;letter-spacing:.08em;text-transform:uppercase}
+.t-leak{color:var(--bad)}
+.t-leak b{font-weight:400;filter:blur(3.5px);background:rgba(255,90,78,.15)}
+.caret{display:inline-block;width:8px;height:15px;background:var(--ink);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.cap{margin-top:16px;font:500 12.5px/1.5 var(--mono);color:var(--ink-2);display:flex;gap:10px;align-items:baseline;min-height:38px}
+.cap i{font-style:normal;flex:none;padding:3px 8px;border-radius:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.stage[data-mode="without"] .cap i{background:rgba(255,90,78,.16);color:#FF8C84}
+.stage[data-mode="with"] .cap i{background:rgba(232,80,2,.2);color:#FFB37E}
+
+/* лимиты: полоса контекста */
+.ctx{padding:24px 20px 26px;height:340px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.ctx .lbl{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.meter{display:flex;height:64px;border-radius:14px;overflow:hidden;background:#0d0b0a;border:1px solid rgba(255,255,255,.07);gap:3px;padding:3px}
+.meter div{border-radius:10px;display:flex;align-items:center;padding:0 10px;font:500 11.5px/1.2 var(--mono);color:#050505;overflow:hidden;white-space:nowrap;transition:flex-grow 1.2s var(--ease),background .8s}
+.m-rules{background:#6b625b}.m-notes{background:#4d4641}.m-hand{background:#3a3430;color:var(--ink-2)!important}
+.m-task{background:linear-gradient(90deg,var(--signal),var(--signal-hot));color:#050505}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 18px;font-size:14px;color:var(--ink-2)}
+.legend span{display:flex;gap:9px;align-items:center}
+.legend span::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.ctx .big{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.ctx .big em{font-style:normal;color:var(--signal-hot)}
+
+/* ---------- цифры ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{background:var(--canvas);padding:46px 28px}
+.stat .n{font-size:clamp(54px,6vw,84px);font-weight:700;letter-spacing:-.05em;line-height:1;background:linear-gradient(180deg,#fff 30%,#a89e96);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .n.o{background:linear-gradient(180deg,var(--signal-hot) 20%,var(--signal));-webkit-background-clip:text;background-clip:text}
+.stat p{margin:14px 0 0;color:var(--muted);font-size:15px;line-height:1.5}
+
+/* ---------- автор ---------- */
+.author{display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:start;max-width:920px}
+.author .mark{width:84px;height:84px;border-radius:24px;display:grid;place-items:center;background:radial-gradient(circle at 30% 20%,var(--signal-hot),var(--signal) 55%,#7a2a03);box-shadow:0 20px 50px -10px rgba(232,80,2,.55)}
+.author .mark svg{width:40px;height:40px;color:#050505}
+.author blockquote{margin:0;font-size:clamp(22px,2.8vw,32px);font-weight:600;letter-spacing:-.025em;line-height:1.3}
+.author blockquote span{color:var(--muted)}
+.author .sig{margin-top:22px}
+
+/* ---------- шаги ---------- */
+.steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:70px}
+.steps .track{position:absolute;left:12.5%;right:12.5%;top:27px;height:2px;background:var(--line);overflow:hidden}
+.steps .fill{position:absolute;inset:0;background:linear-gradient(90deg,var(--signal),var(--signal-hot));transform-origin:left;transform:scaleX(1)}
+.js .steps .fill{transform:scaleX(0);transition:transform 2.6s var(--ease)}
 .js .steps.on .fill{transform:scaleX(1)}
-.step{text-align:center;position:relative}
-.step .dot{width:48px;height:48px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;font:600 14px var(--mono);background:var(--signal);color:#050505;transition:background .4s,color .4s}
-.js .steps .step .dot{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
-.js .steps .step.lit .dot{background:var(--signal);color:#050505;border-color:var(--signal)}
-.step p{font-size:15.5px;color:#D8D2CD;max-width:240px;margin:0 auto}
+.step{text-align:center}
+.step .dot{position:relative;width:56px;height:56px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;font:600 14px var(--mono);background:var(--signal);color:#050505;transition:all .5s var(--ease)}
+.js .step .dot{background:var(--surface-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.js .step.lit .dot{background:var(--signal);color:#050505;box-shadow:0 0 0 8px rgba(232,80,2,.14),0 10px 30px -6px rgba(232,80,2,.7)}
+.step h4{margin:0 0 8px;font-size:20px;letter-spacing:-.02em}
+.step p{font-size:15.5px;color:var(--ink-2);max-width:240px;margin:0 auto}
 
-/* Полки */
-.shelves{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:30px}
-.shelf{border-radius:var(--r-m);background:var(--surface);border:1px solid var(--line);padding:24px}
-.shelf .tag{display:block;margin-bottom:10px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chip{font:500 13px/1 var(--mono);padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid #2a2a2a;color:#E6E0DB}
-.shelf.hot{background:linear-gradient(150deg,#2a1206,#141211 70%);border-color:rgba(232,80,2,.45)}
+/* ---------- установка ---------- */
+.install{position:relative;padding:130px 0;overflow:hidden;isolation:isolate}
+.install::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(45% 60% at 80% 40%,rgba(232,80,2,.55),rgba(232,80,2,0) 70%),radial-gradient(40% 50% at 15% 90%,rgba(217,195,171,.18),rgba(217,195,171,0) 70%),radial-gradient(80% 80% at 50% 50%,#1a0b04,var(--canvas) 75%)}
+.inst{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.pcard{position:relative;border-radius:30px;padding:26px;background:rgba(18,15,13,.55);-webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);
+  border:1px solid rgba(255,255,255,.12);box-shadow:0 50px 90px -40px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.14)}
+.pcard .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px}
+.cmd{font:400 14px/1.7 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#F1ECE8;background:rgba(5,5,5,.55);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:18px;max-height:250px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 70px),transparent);mask-image:linear-gradient(#000 calc(100% - 70px),transparent);transition:max-height .6s var(--ease)}
+.pcard.open .cmd,.pcard:target .cmd{max-height:900px;-webkit-mask-image:none;mask-image:none}
+.copy{display:inline-flex;align-items:center;gap:8px;font:700 14px var(--sans);background:var(--ink);color:#050505;border:0;border-radius:999px;padding:11px 18px;cursor:pointer;transition:transform .2s var(--ease),background .3s}
+.copy:hover{transform:translateY(-1px)}
+.copy.ok{background:#7CE2A0}
+.more{background:none;border:0;color:var(--ink-2);font:600 14px var(--sans);cursor:pointer;padding:12px 0 0;text-decoration:underline;text-underline-offset:4px}
+.perks{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px}
+.perks li{display:flex;gap:14px;align-items:flex-start;color:var(--ink-2)}
+.perks li b{color:var(--ink);display:block}
+.perks .ic{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(232,80,2,.16);color:var(--signal-hot);font:600 14px var(--mono)}
+.price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:6px 0 22px}
+.price .now{font-size:56px;font-weight:700;letter-spacing:-.04em;white-space:nowrap}
+.price .was{font-size:15px;color:var(--muted)}
 
-/* Промпт */
-.promptbox{border-radius:var(--r-m);border:1px solid rgba(232,80,2,.45);background:linear-gradient(180deg,rgba(232,80,2,.08),rgba(20,18,17,.9));padding:24px;margin-top:26px}
-.promptbox .cmd{font:400 14.5px/1.65 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;color:#F1ECE8;background:#0b0a09;border:1px solid #262220;border-radius:var(--r-s);padding:18px;max-height:230px;overflow:hidden;
-  -webkit-mask-image:linear-gradient(#000 calc(100% - 58px),transparent);mask-image:linear-gradient(#000 calc(100% - 58px),transparent);user-select:all;-webkit-user-select:all}
-.promptbox:target .cmd{max-height:none;-webkit-mask-image:none;mask-image:none}
-.promptbox .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:16px}
-.promptbox .pb-close{display:none}
-.promptbox:target .pb-open{display:none}
-.promptbox:target .pb-close{display:inline-flex}
-.ghost{display:inline-flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:11px 18px;border-radius:999px;font-weight:600;font-size:15px}
-.after{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.after div{border-radius:var(--r-s);background:rgba(255,255,255,.03);border:1px solid #222;padding:14px 16px;font-size:15px;color:#D8D2CD}
-.after b{color:var(--ink);display:block;margin-bottom:4px}
-
-/* Своё остаётся своим */
-.zones{font:500 15px/1.9 var(--mono);color:var(--muted);margin-top:18px}
-.zones span{color:var(--ink)}
-
-/* FAQ */
-details{border-bottom:1px solid #222;padding:18px 0}
-summary{cursor:pointer;list-style:none;font-weight:700;font-size:19px;letter-spacing:-.01em;display:flex;justify-content:space-between;gap:16px}
+/* ---------- FAQ ---------- */
+.faq{max-width:860px}
+details{border-bottom:1px solid var(--line);padding:22px 0}
+summary{cursor:pointer;list-style:none;font-weight:600;font-size:20px;letter-spacing:-.015em;display:flex;justify-content:space-between;gap:20px;align-items:center}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";color:var(--signal);font:400 26px/1 var(--mono);transition:transform .2s}
-details[open] summary::after{transform:rotate(45deg)}
-details p{margin:12px 0 0;color:#D0CAC5;max-width:760px}
+summary::after{content:"";flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);
+  background:linear-gradient(var(--ink),var(--ink)) center/11px 1.5px no-repeat,linear-gradient(var(--ink),var(--ink)) center/1.5px 11px no-repeat;transition:transform .35s var(--ease),background-color .3s}
+details[open] summary::after{transform:rotate(45deg);background-color:var(--signal);border-color:var(--signal)}
+details p{margin:14px 0 0;color:var(--ink-2);max-width:720px}
 
-.final{border-radius:var(--r-l);padding:44px 36px;background:radial-gradient(70% 120% at 85% 0%,rgba(232,80,2,.32),rgba(232,80,2,0) 60%),var(--surface);border:1px solid var(--line)}
-.final ul{margin:14px 0 26px;padding-left:20px;color:#D8D2CD}
-footer{padding:36px 0 48px;color:var(--muted);font:500 13px/1 var(--mono);text-align:center}
-footer a{color:var(--muted)}
+/* ---------- финал ---------- */
+.final{position:relative;padding:160px 0 120px;overflow:hidden;text-align:center;isolation:isolate}
+.final .giant{position:absolute;left:50%;top:78%;transform:translate(-50%,-50%);opacity:.55;z-index:-1;font-weight:800;font-size:clamp(90px,21vw,330px);letter-spacing:-.06em;line-height:.8;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(232,80,2,.55),rgba(232,80,2,0) 85%);-webkit-background-clip:text;background-clip:text;color:transparent;pointer-events:none;user-select:none}
+.final h2{font-size:clamp(40px,6.6vw,88px)}
+.final p{margin:22px auto 36px;max-width:560px}
+footer{padding:34px 0 46px;border-top:1px solid var(--line)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted);text-decoration:none}
 
-/* Появление */
-.js .rise{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
-.js .rise.on{opacity:1;transform:none}
+/* ---------- появление ---------- */
+.js .rise{opacity:0;transform:translateY(34px);filter:blur(6px);transition:opacity 1s var(--ease),transform 1s var(--ease),filter 1s var(--ease)}
+.js .rise.on{opacity:1;transform:none;filter:none}
 @media (prefers-reduced-motion:reduce){
-  .stage .light{animation:none}
-  .js .rise{opacity:1;transform:none;transition:none}
-  .js .steps .fill{transition:none;transform:scaleX(1)}
+  html{scroll-behavior:auto}
+  .js .rise{opacity:1;transform:none;filter:none;transition:none}
+  .ticker .track,.scrollHint::after,.caret{animation:none}
+  .term .l{animation:none}
 }
 
-@media (max-width:900px){
-  .grid{grid-template-columns:repeat(2,1fr)}
-  .thesis{grid-template-columns:1fr}
-  .after{grid-template-columns:1fr}
+/* ---------- адаптив ---------- */
+@media (max-width:980px){
+  .fx,.inst{grid-template-columns:1fr;gap:36px}
+  .fx.flip .txt{order:0}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .nav a.l{display:none}
 }
-@media (max-width:640px){
+@media (max-width:720px){
   body{font-size:16px}
-  section{padding:52px 0}
   .wrap{padding:0 16px}
-  .stage{min-height:0;border-radius:var(--r-m);grid-template-columns:1fr}
-  .stage::before{background:linear-gradient(0deg,rgba(5,5,5,.8) 0,rgba(5,5,5,.3) 55%,rgba(5,5,5,0) 80%)}
-  .pane{order:-1;justify-self:end;width:46%;margin:22px 22px 0 0}
-  .hero-copy{padding:20px 20px 28px}
-  .grid,.shelves{grid-template-columns:1fr}
-  .steps{grid-template-columns:1fr;gap:26px}
-  .steps .track{left:23px;right:auto;top:24px;bottom:24px;width:2px;height:auto}
+  .nav{top:10px;width:calc(100% - 20px);justify-content:space-between}
+  .hero{align-items:flex-end}
+  .hero::before{background:linear-gradient(0deg,var(--canvas) 0,rgba(5,5,5,.75) 42%,rgba(5,5,5,.1) 70%,rgba(5,5,5,0) 100%)}
+  .hero-in{padding:0 0 84px}
+  .hero h1{font-size:clamp(42px,12.5vw,64px)}
+  .hero .lead{margin:18px 0 26px}
+  .cssPane{right:8%;top:12%;width:44%;height:34%}
+  .corner.tl{top:76px;left:16px}.corner.tr{display:none}
+  .corner.br{left:16px;right:auto;bottom:auto;top:122px;text-align:left}
+  .corner.br .mono{display:none}
+  .glassPick{max-width:46vw;justify-content:flex-start}
+  .glassPick button{padding:6px 8px;font-size:10.5px}
+  .scrollHint{display:none}
+  .block{padding:90px 0}
+  .head{margin-bottom:54px}
+  .fx{margin-bottom:96px}
+  .stage{padding:14px;border-radius:26px}
+  .bar{flex-wrap:wrap}
+  .bar .ttl{flex-basis:calc(100% - 60px)}
+  .seg{width:100%}
+  .term{height:380px;font-size:12.5px;padding:14px}
+  .t-ai{font-size:14px}
+  .ctx{height:auto;min-height:340px}
+  .meter{height:56px}
+  .meter div{font-size:10px;padding:0 6px}
+  .stat{padding:30px 18px}
+  .author{grid-template-columns:1fr;gap:22px}
+  .steps{grid-template-columns:1fr;gap:28px;margin-top:46px}
+  .steps .track{left:27px;right:auto;top:28px;bottom:28px;width:2px;height:auto}
   .steps .fill{transform-origin:top}
   .js .steps .fill{transform:scaleY(0)}
   .js .steps.on .fill{transform:scaleY(1)}
-  .step{display:grid;grid-template-columns:48px 1fr;gap:16px;text-align:left;align-items:start}
+  .step{display:grid;grid-template-columns:56px 1fr;gap:18px;text-align:left}
   .step .dot{margin:0}
   .step p{margin:0;max-width:none}
-  .step h3{margin-top:10px}
-  .promptbox{padding:16px}
-  .final{padding:30px 20px}
+  .step h4{margin-top:14px}
+  .install{padding:90px 0}
+  .pcard{padding:16px;border-radius:24px}
+  .pcard .top{flex-wrap:wrap}
+  .final{padding:120px 0 90px}
+  summary{font-size:18px}
 }
 </style>
 </head>
 <body>
-<main>
 
-<section class="hero">
+<nav class="nav" aria-label="Навигация">
+  <a class="logo" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="currentColor" stroke-width="9" stroke-linecap="square"><path d="M32 4v56M4 32h56M12 12l40 40M52 12L12 52"/></g></svg>claude-tuning</a>
+  <a class="l" href="#effects">Что меняется</a>
+  <a class="l" href="#how">Как ставится</a>
+  <a class="l" href="#faq">Вопросы</a>
+  <a class="go" href="#install">Поставить</a>
+</nav>
+
+<main id="top">
+
+<section class="hero" id="hero">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="cssPane" aria-hidden="true"></div>
+  <div class="corner tl mono">Claude Code kit<br><b>2.0</b> · бесплатно</div>
+  <div class="corner tr mono">память · замок<br>ключи · лимиты</div>
+  <div class="corner br">
+    <div class="mono">стекло</div>
+    <div class="glassPick" id="glassPick" role="group" aria-label="Тип стекла">
+      <button type="button" data-t="0" aria-pressed="true">рифлёное</button>
+      <button type="button" data-t="2" aria-pressed="false">волна</button>
+      <button type="button" data-t="1" aria-pressed="false">фрактал</button>
+      <button type="button" data-t="3" aria-pressed="false">матовое</button>
+      <button type="button" data-t="4" aria-pressed="false">блоки</button>
+    </div>
+  </div>
+  <div class="wrap hero-in">
+    <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
+    <p class="lead">Таким Claude Code приходит из коробки. Я дал ему блокнот, список дел и замок на опасный шкаф. Теперь это напарник, и ставится всё одним сообщением.</p>
+    <div class="ctas">
+      <a class="btn" href="#install">Поставить бесплатно <span class="arr">→</span></a>
+      <a class="ghost" href="#effects">Посмотреть разницу</a>
+    </div>
+  </div>
+  <div class="scrollHint" aria-hidden="true"></div>
+</section>
+
+<div class="ticker" aria-hidden="true"><div class="track" id="ticker">
+  <span><i>01</i>каждое утро знакомитесь заново</span><span><i>02</i>лимит кончился к обеду</span><span><i>03</i>«продолжить?» на каждом шагу</span><span><i>04</i>ключ от базы прямо в чате</span><span><i>05</i>одна команда, и папки нет</span><span><i>06</i>пятый раз жмёт ту же кнопку</span><span><i>07</i>после сжатия забыл задачу</span>
+</div></div>
+
+<section class="block" id="effects">
   <div class="wrap">
-    <div class="stage">
-      <div class="light"></div>
-      <div class="hero-copy">
-        <div class="tag">[ <b>claude-tuning</b> ] для Claude Code</div>
-        <h1 style="margin-top:16px">Claude, который <span class="accent">помнит</span> и&nbsp;не&nbsp;сносит лишнего</h1>
-        <p class="lead">Одно сообщение агенту, и вокруг модели появляется порядок: задача переживает ночь и сжатие контекста, лимиты не тают к обеду, опасная команда упирается в замок.</p>
-        <ul class="bullets">
-          <li>Ставит сам агент, разбираться в настройках не нужно</li>
-          <li>Сначала показывает план и ждёт твоего «да»</li>
-          <li>Бесплатно, весь код открыт</li>
-        </ul>
-        <a class="btn" href="#prompt">Взять промпт <span class="arr">→</span></a>
+    <div class="head rise">
+      <div class="mono">пять эффектов · <b>переключай</b></div>
+      <h2 style="margin-top:18px">Тот же Claude.<br>Другие привычки.</h2>
+      <p class="lead">В каждом окне два режима: из коробки и с набором. Сообщения сторожей на экране взяты из самого набора.</p>
+    </div>
+
+    <div class="fx">
+      <div class="txt rise">
+        <div class="num">01 · замок</div>
+        <h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3>
+        <p>Один лишний символ в команде, и вместо папки с дублями уходит вся домашняя. Так уже случалось у живых людей. Сторож смотрит на каждую команду до запуска: необратимое останавливает, рискованное сначала спрашивает у тебя.</p>
+        <span class="fact">реальный случай, декабрь 2025: лишний ~/ в конце команды</span>
       </div>
-      <div class="pane" aria-hidden="true"></div>
+      <div class="stage rise" data-demo="lock"></div>
+    </div>
+
+    <div class="fx flip">
+      <div class="txt rise">
+        <div class="num">02 · блокнот</div>
+        <h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3>
+        <p>У каждой задачи свой список дел. Новая сессия начинается с него, а не с «Привет! Чем займёмся?». Вечером агент сам записывает итог дня, а после сжатия контекста получает список обратно.</p>
+        <span class="fact">/morning · /endday · session-handoff</span>
+      </div>
+      <div class="stage rise" data-demo="memory"></div>
+    </div>
+
+    <div class="fx">
+      <div class="txt rise">
+        <div class="num">03 · ключи</div>
+        <h3>Пароли остаются у&nbsp;тебя</h3>
+        <p>Попросишь разобраться с базой, и агент из коробки откроет .env целиком. Всё, что попало в чат, уже лежит в истории. С набором он видит только имена переменных и проверяет, заданы ли они.</p>
+        <span class="fact">.env, ssh-ключи, *.pem, файлы сессий</span>
+      </div>
+      <div class="stage rise" data-demo="keys"></div>
+    </div>
+
+    <div class="fx flip">
+      <div class="txt rise">
+        <div class="num">04 · повтор</div>
+        <h3>Не жмёт одну кнопку по&nbsp;кругу</h3>
+        <p>Пять одинаковых шагов подряд, и агент получает сигнал остановиться: назвать, где он может ошибаться, и зайти с другой стороны.</p>
+        <span class="fact">сигнал после пяти одинаковых шагов</span>
+      </div>
+      <div class="stage rise" data-demo="loop"></div>
+    </div>
+
+    <div class="fx">
+      <div class="txt rise">
+        <div class="num">05 · лимиты</div>
+        <h3>Лимита хватает до&nbsp;вечера</h3>
+        <p>Каждая сессия перечитывает инструкцию и заметки, и это съедает лимит ещё до первого вопроса. Набор сворачивает простыню правил в короткую карту, а из передачи дел целиком читает только последние три дня.</p>
+        <span class="fact">карта вместо инструкции: 40–60 строк</span>
+      </div>
+      <div class="stage rise" data-demo="limits"></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap thesis">
-    <div class="rise">
-      <div class="tag">почему так</div>
-      <h2 style="margin-top:12px">Модель у всех одна. Разница в&nbsp;том, что вокруг неё</h2>
-      <p class="muted">Ты пишешь в инструкции «никогда не удаляй базу». Claude читает, соглашается и в длинной сессии всё равно может это сделать. Инструкция для него как совет коллеги, а не запертая дверь.</p>
-      <p class="muted">Запираем мы по-другому: маленькие сторожа проверяют каждую команду до того, как она выполнится. Память тоже держится не на честном слове, а на файлах, которые агент сам ведёт и сам читает утром.</p>
-      <div class="quote" style="margin-top:26px">Просьбу можно забыть. Замок забыть нельзя.</div>
-    </div>
-    <div class="lock rise" aria-label="Что делает сторож с командами">
-      <div class="tag" style="margin-bottom:8px">сторож проверяет команду</div>
-      <div class="row"><span>стереть домашнюю папку</span><span class="pill no">стоп</span></div>
-      <div class="row"><span>удалить базу данных</span><span class="pill no">стоп</span></div>
-      <div class="row"><span>показать ключи из .env</span><span class="pill no">стоп</span></div>
-      <div class="row"><span>переписать историю в git</span><span class="pill ask">спросит тебя</span></div>
-      <div class="row"><span>запустить тесты</span><span class="pill ok">дальше</span></div>
-    </div>
+<section aria-label="Цифры">
+  <div class="stats">
+    <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передал дела между сессиями. Набор вырос из этой привычки</p></div>
+    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке сторожа: опасные остановлены, обычные прошли</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>навыков: передача дел, утро, итог дня, память, поиск по сессиям, уборка, баги, ревью</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>сторожей и подсказок, которые работают сами, без твоих просьб</p></div>
   </div>
 </section>
 
-<section>
+<section class="block">
   <div class="wrap">
-    <div class="rise">
-      <div class="tag">что меняется</div>
-      <h2 style="margin-top:12px">Шесть вещей, которые бесят в&nbsp;Claude Code</h2>
-    </div>
-    <div class="grid">
-      <div class="card rise"><div class="was">было: каждое утро с нуля</div><h3>Утром он помнит, на чём вы остановились</h3><p>Вечером агент записывает, что сделано и что дальше. Утром читает и продолжает, а не спрашивает заново.</p></div>
-      <div class="card rise"><div class="was">было: забыл после сжатия</div><h3>Длинная сессия не теряет задачу</h3><p>У каждой задачи свой список дел. Когда контекст сжимается, агент получает его обратно и идёт со следующего пункта.</p></div>
-      <div class="card rise"><div class="was">было: лимит к обеду</div><h3>Лимиты живут до вечера</h3><p>Короткая карта вместо простыни инструкций, старые заметки сворачиваются. Каждая сессия читает меньше.</p></div>
-      <div class="card rise"><div class="was">было: страшно отойти</div><h3>Опасное упирается в стоп</h3><p>Удалить папку целиком, базу или чужую работу нельзя. Рискованное он сначала спросит у тебя.</p></div>
-      <div class="card rise"><div class="was">было: ключи в чате</div><h3>Пароли остаются в своих файлах</h3><p>Агент не открывает файлы с ключами и не печатает их в переписку, даже если очень хочется помочь.</p></div>
-      <div class="card rise"><div class="was">было: ходит по кругу</div><h3>Ловит себя на повторе</h3><p>Пятый одинаковый шаг подряд, и он получает сигнал остановиться: искать причину, а не жать ту же кнопку снова.</p></div>
+    <div class="author rise">
+      <div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="currentColor" stroke-width="9" stroke-linecap="square"><path d="M32 4v56M4 32h56M12 12l40 40M52 12L12 52"/></g></svg></div>
+      <div>
+        <blockquote>Я каждый день работаю в Claude Code, и всё это стоит у меня. <span>В набор вошло только общее, без моих серверов, путей и проектов. Собирал для себя, отдаю бесплатно.</span></blockquote>
+        <div class="sig mono">veeskelad · автор набора</div>
+      </div>
     </div>
   </div>
 </section>
 
-<section>
+<section class="block" id="how" style="padding-top:0">
   <div class="wrap">
-    <h2 class="center rise">Как это ставится</h2>
+    <div class="head rise" style="margin-bottom:0">
+      <div class="mono">установка</div>
+      <h2 style="margin-top:18px">Ты говоришь «да».<br>Остальное делает агент.</h2>
+    </div>
     <div class="steps" id="steps">
       <div class="track"><div class="fill"></div></div>
-      <div class="step"><div class="dot">01</div><div><h3>Копируешь промпт</h3><p>И отправляешь его Claude Code на своём компьютере.</p></div></div>
-      <div class="step"><div class="dot">02</div><div><h3>Агент смотрит</h3><p>Что у тебя уже настроено, чего не хватает, что трогать не надо.</p></div></div>
-      <div class="step"><div class="dot">03</div><div><h3>Ты говоришь «да»</h3><p>Он показал план простыми словами. Без твоего ответа ничего не меняется.</p></div></div>
-      <div class="step"><div class="dot">04</div><div><h3>Проверка</h3><p>Агент сам пробует опасную команду и показывает, что замок сработал.</p></div></div>
+      <div class="step"><div class="dot">01</div><div><h4>Копируешь промпт</h4><p>И отправляешь его Claude Code на своём компьютере.</p></div></div>
+      <div class="step"><div class="dot">02</div><div><h4>Агент смотрит</h4><p>Что у тебя уже настроено, чего не хватает и что трогать не надо.</p></div></div>
+      <div class="step"><div class="dot">03</div><div><h4>Показывает план</h4><p>Простыми словами. Без твоего «да» ничего не меняется.</p></div></div>
+      <div class="step"><div class="dot">04</div><div><h4>Проверяет замок</h4><p>Сам пробует опасную команду и показывает, что сторож её остановил.</p></div></div>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
+<section class="install" id="install">
+  <div class="wrap inst">
     <div class="rise">
-      <div class="tag">что внутри</div>
-      <h2 style="margin-top:12px">Четыре полки в&nbsp;одном наборе</h2>
+      <div class="mono">одно сообщение</div>
+      <h2 style="margin-top:18px">Скопируй.<br>Отправь агенту.</h2>
+      <div class="price"><span class="now">0 ₽</span><span class="was">код открыт, читай каждую строку до установки</span></div>
+      <ul class="perks">
+        <li><span class="ic">01</span><div><b>План до изменений</b>Сначала видишь, что поменяется, потом решаешь.</div></li>
+        <li><span class="ic">02</span><div><b>Твоё не трогает</b>Свои файлы оставляет как есть и говорит «у тебя своя версия». Перед правкой настроек делает копию.</div></li>
+        <li><span class="ic">03</span><div><b>Можно убрать</b>Одна просьба, и он снимет ровно то, что поставил.</div></li>
+      </ul>
     </div>
-    <div class="shelves">
-      <div class="shelf rise"><span class="tag">01 · память</span><h3>Агент помнит дела</h3><p class="muted">Передача дел между сессиями, утренний разбор, итог дня и список дел у каждой задачи.</p><div class="chips"><span class="chip">/morning</span><span class="chip">/endday</span><span class="chip">session-handoff</span><span class="chip">memory-consolidate</span></div></div>
-      <div class="shelf rise"><span class="tag">02 · защита</span><h3>Замки на опасное</h3><p class="muted">Стоп на необратимое, вопрос на рискованное, ключи закрыты от чтения.</p><div class="chips"><span class="chip">стоп</span><span class="chip">спросить</span><span class="chip">ключи</span><span class="chip">повтор</span></div></div>
-      <div class="shelf rise"><span class="tag">03 · экономия</span><h3>Меньше чтения каждый раз</h3><p class="muted">Короткая карта вместо длинной инструкции, свёрнутые старые записи, сжатие контекста пораньше.</p><div class="chips"><span class="chip">карта</span><span class="chip">свёртка заметок</span><span class="chip">автосжатие</span></div></div>
-      <div class="shelf hot rise"><span class="tag">04 · порядок</span><h3>Чистые ветки и честный разбор ошибок</h3><p class="muted">Уборка старых копий проекта, поиск по прошлым разговорам, разбор бага от причины к исправлению.</p><div class="chips"><span class="chip">worktree-cleanup</span><span class="chip">session-search</span><span class="chip">systematic-debugging</span><span class="chip">review-triage</span></div></div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="rise">
-      <div class="tag">твоё остаётся твоим</div>
-      <h2 style="margin-top:12px">Ничего не перезаписывает</h2>
-      <p class="muted" style="max-width:720px">Если у тебя уже есть свой вариант чего-то, агент его не тронет и скажет «у тебя своя версия». Перед правкой настроек делает копию. Передумал: одна просьба, и он уберёт ровно то, что поставил.</p>
-      <div class="zones">/ <span>набор</span> / общий, обновляется отдельно<br>/ <span>твои настройки</span> / не трогаются<br>/ <span>твоё личное</span> / подключается поверх отдельной папкой</div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <div class="rise">
-      <div class="tag">промпт установки</div>
-      <h2 style="margin-top:12px">Скопируй и отправь агенту</h2>
-      <p class="muted">Открой на компьютере, где стоит Claude Code. Выдели текст целиком и вставь в чат.</p>
-    </div>
-    <div class="promptbox rise" id="prompt">
+    <div class="pcard rise" id="prompt">
+      <div class="top"><span class="mono">промпт для агента</span><button class="copy" type="button" id="copy">Скопировать промпт</button></div>
 <!--prompt--><div class="cmd">Поставь мне набор claude-tuning для Claude Code.
 
 1. Скачай https://github.com/veeskelad/claude-tuning в папку ~/.claude/skills/claude-tuning (git clone; если git нет, архив ветки main). Если папка уже есть, обнови её и ничего в ней не удаляй.
@@ -283,80 +453,314 @@ footer a{color:var(--muted)}
 
 Ключи, пароли и файлы .env не читай и не показывай.
 </div><!--/prompt-->
-      <div class="bar">
-        <span class="muted" style="font-size:15px">Агент сам скачает набор и расскажет, что нашёл.</span>
-        <a class="ghost pb-open" href="#prompt">Показать целиком ↓</a>
-        <a class="ghost pb-close" href="#mini">Свернуть ↑</a>
-      </div>
-    </div>
-    <div class="after rise" id="mini">
-      <div><b>Один разговор</b>Промпт, план, твоё «да», проверка.</div>
-      <div><b>План до изменений</b>Сначала видишь, что поменяется, потом решаешь.</div>
-      <div><b>Можно убрать</b>Попроси снять набор, твои настройки останутся.</div>
+      <button class="more" type="button" id="more">Показать целиком</button>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <h2 class="rise">Вопросы</h2>
+<section class="block" id="faq">
+  <div class="wrap faq">
+    <div class="mono rise">вопросы</div>
+    <h2 class="rise" style="margin:18px 0 30px">Коротко и&nbsp;честно</h2>
     <div class="rise">
-      <details><summary>Я не программист. Мне это нужно?</summary><p>Особенно нужно. Ты не обязан знать, где лежат настройки: агент их найдёт, объяснит и спросит разрешения. От тебя одно слово «да».</p></details>
+      <details><summary>Я не программист. Мне это нужно?</summary><p>Особенно нужно. Тебе не надо знать, где лежат настройки: агент их найдёт, объяснит и спросит разрешения. От тебя одно слово «да».</p></details>
       <details><summary>Он не сломает то, что у меня уже работает?</summary><p>Свои файлы агент не перезаписывает. Если что-то совпало по имени, оставляет твою версию и говорит об этом. Перед правкой настроек делает копию.</p></details>
-      <details><summary>Агент увидит мои пароли и ключи?</summary><p>Наоборот: после установки он не может открыть файлы с ключами и вывести их в чат. Значения остаются только у тебя.</p></details>
-      <details><summary>А если мне не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
-      <details><summary>Работает с Codex?</summary><p>Да, скиллы становятся видны и Codex, если он у тебя стоит. Замки и автоматические проверки работают в Claude Code.</p></details>
+      <details><summary>Агент увидит мои пароли?</summary><p>Наоборот: после установки он не может открыть файлы с ключами и вывести их в чат. Значения остаются только у тебя.</p></details>
+      <details><summary>Почему бесплатно?</summary><p>Я собирал это для себя и пользуюсь каждый день. Код открыт: можно прочитать каждую строку до установки.</p></details>
+      <details><summary>А если не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
+      <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Сторожа и автоматические подсказки работают в Claude Code.</p></details>
     </div>
   </div>
 </section>
 
-<section>
-  <div class="wrap">
-    <div class="final rise">
-      <h2>После установки</h2>
-      <p class="muted">Агент сам предложит, с чего начать. Например:</p>
-      <ul>
-        <li>«Наведи порядок в моей инструкции, она слишком длинная»</li>
-        <li>«Проверь, что замок ловит опасные команды»</li>
-        <li>«Вечером запиши итог дня, утром продолжим»</li>
-      </ul>
-      <a class="btn" href="#prompt">К промпту <span class="arr">→</span></a>
-    </div>
+<section class="final">
+  <div class="giant" aria-hidden="true">напарник</div>
+  <div class="wrap rise">
+    <h2>Тот же Claude.<br>Теперь напарник.</h2>
+    <p class="lead">После установки агент сам предложит, с чего начать: сократить инструкцию, проверить замок или записать итог дня.</p>
+    <a class="btn" href="#install">Взять промпт <span class="arr">→</span></a>
   </div>
 </section>
 
 </main>
-<footer>claude-tuning 2.0.0 · <a href="https://github.com/veeskelad/claude-tuning">github.com/veeskelad/claude-tuning</a></footer>
+<footer><div class="wrap mono"><span>claude-tuning 2.0.0</span><a href="https://github.com/veeskelad/claude-tuning">github.com/veeskelad/claude-tuning</a></div></footer>
 
 <script>
+(function(){
+var doc=document.documentElement;
+doc.classList.add("js");
+var reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+
+/* ---------- появление ---------- */
 try{
-  document.documentElement.classList.add("js");
-  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var all=[].slice.call(document.querySelectorAll(".rise"));
-  var steps=document.getElementById("steps");
-  var dots=[].slice.call(steps.querySelectorAll(".step"));
-  function lightSteps(){
-    steps.classList.add("on");
-    dots.forEach(function(d,i){setTimeout(function(){d.classList.add("lit")},reduce?0:i*600)});
-  }
-  function showAll(){all.forEach(function(e){e.classList.add("on")});lightSteps()}
-  if(reduce||!("IntersectionObserver" in window)){showAll()}
+  var rises=[].slice.call(document.querySelectorAll(".rise"));
+  var seen=false;
+  if(reduce||!("IntersectionObserver" in window)){rises.forEach(function(e){e.classList.add("on")})}
   else{
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(e){
-        if(!e.isIntersecting)return;
-        if(e.target===steps)lightSteps();else e.target.classList.add("on");
-        io.unobserve(e.target);
-      });
-    },{threshold:.15});
-    all.forEach(function(e){io.observe(e)});
-    io.observe(steps);
-    var seen=false;all.forEach(function(e){e.addEventListener("transitionend",function(){seen=true},{once:true})});
-    setTimeout(function(){if(!seen)showAll()},4000);
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("on");seen=true;io.unobserve(e.target)}})},{threshold:.12,rootMargin:"0px 0px -6% 0px"});
+    rises.forEach(function(e){io.observe(e)});
+    setTimeout(function(){if(!seen)rises.forEach(function(e){e.classList.add("on")})},4000);
   }
-}catch(e){
-  document.documentElement.classList.remove("js");
+}catch(e){doc.classList.remove("js")}
+
+/* ---------- заголовок: слова собираются из размытия ---------- */
+try{
+  var ws=[].slice.call(document.querySelectorAll("#h1 .w"));
+  if(!reduce){
+    ws.forEach(function(w,i){
+      w.animate([{opacity:0,filter:"blur(18px)",transform:"translateX(60px) scaleX(1.25)"},{opacity:1,filter:"blur(0)",transform:"none"}],
+        {duration:1100,delay:250+i*180,easing:"cubic-bezier(.16,1,.3,1)",fill:"both"});
+    });
+  }
+}catch(e){}
+
+/* ---------- бегущая строка: дублируем для бесшовного круга ---------- */
+var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
+
+/* ---------- стекло в шапке: WebGL2 ---------- */
+var glassType=0;
+(function(){
+  var hero=document.getElementById("hero"),cv=document.getElementById("gl");
+  var gl=null;try{gl=cv.getContext("webgl2",{antialias:false,premultipliedAlpha:false})}catch(e){}
+  if(!gl){hero.classList.add("nogl");return}
+  var VS="#version 300 es\nin vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+  var COM="#version 300 es\nprecision highp float;\n"+
+  "float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\n"+
+  "float vn(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}\n"+
+  "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.02+3.1;a*=.5;}return s;}\n"+
+  "float sdR(vec2 p,vec4 r,float rad){vec2 c=(r.xy+r.zw)*.5,h=(r.zw-r.xy)*.5;vec2 q=abs(p-c)-h+rad;return length(max(q,0.))+min(max(q.x,q.y),0.)-rad;}\n";
+  // Свет: многоцветный градиент с искривлением, смешивание в OKLab.
+  var BG=COM+
+  "uniform vec2 uRes;uniform float uT;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uFig,uPq;uniform float uCool;out vec4 o;\n"+
+  "vec3 lab(vec3 c){vec3 l=vec3(.4122214708*c.r+.5363325363*c.g+.0514459929*c.b,.2119034982*c.r+.6806995451*c.g+.1073969566*c.b,.0883024619*c.r+.2817188376*c.g+.6299787005*c.b);l=pow(max(l,0.),vec3(1./3.));"+
+  "return vec3(.2104542553*l.x+.7936177850*l.y-.0040720468*l.z,1.9779984951*l.x-2.4285922050*l.y+.4505937099*l.z,.0259040371*l.x+.7827717662*l.y-.8086757660*l.z);}\n"+
+  "vec3 lin(vec3 c){vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.2914855480*c.z);l=l*l*l;"+
+  "return vec3(4.0767416621*l.x-3.3077115913*l.y+.2309699292*l.z,-1.2684380046*l.x+2.6097574011*l.y-.3413193965*l.z,-.0041960863*l.x-.7034186147*l.y+1.7076147010*l.z);}\n"+
+  "vec3 ramp(float v){v=clamp(v,0.,1.);vec3 k;if(v<.35)k=mix(lab(c0),lab(c1),v/.35);else if(v<.6)k=mix(lab(c1),lab(c2),(v-.35)/.25);else if(v<.85)k=mix(lab(c2),lab(c3),(v-.6)/.25);else k=mix(lab(c3),lab(c4),(v-.85)/.15);return max(lin(k),0.);}\n"+
+  // Силуэт стажёра за стеклом (как в шаблоне ember-glass), в координатах кадра 1920 px, ось y вниз.
+  "float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}\n"+
+  "float fig(vec2 p){float head=(length((p-vec2(0.,-270.))/vec2(122.,158.))-1.)*122.;vec2 nq=abs(p-vec2(6.,-80.))-vec2(52.,90.);float neck=length(max(nq,0.))+min(max(nq.x,nq.y),0.);"+
+  "float sh=(length((p-vec2(0.,300.))/vec2(430.,250.))-1.)*250.;float body=(length((p-vec2(0.,760.))/vec2(470.,520.))-1.)*470.;return smin(smin(smin(head,neck,36.),sh,70.),body,90.);}\n"+
+  "vec2 toP(vec2 q){return vec2(q.x-uFig.x,uFig.y-q.y)*1920./uFig.z;}\n"+
+  "void main(){vec2 q=gl_FragCoord.xy/uRes.y;float A=uRes.x/uRes.y;float t=uT;\n"+
+  "vec2 w=vec2(fbm(q*2.1+vec2(0.,t*.05)),fbm(q*2.1+vec2(5.2,1.3)-t*.04));vec2 qw=q+(w-.5)*.26;\n"+
+  "float dS=length(q-uSun.xy+(w-.5)*.14)/uSun.z;float sun=exp(-dS*dS);\n"+
+  "float dE=length((q-vec2(.1*A,-.06))*vec2(1.,1.5)+(w.yx-.5)*.22)/.5;float em=exp(-dE*dE);\n"+
+  "float band=.5+.5*sin(qw.y*8.+fbm(qw*2.5+t*.06)*5.+t*.3);\n"+
+  "float v=sun*.95+em*.6+band*.18*(sun+em)+fbm(qw*4.-t*.05)*.06;v=1.-exp(-v*1.15);vec3 col=ramp(v);\n"+
+  "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC)*uCool;\n"+
+  "float a=uFig.w*(1.-smoothstep(-.025,0.,sdR(q,uPq,.03)));\n"+
+  "if(a>0.){vec2 p=toP(q);float d=fig(p);float e=1.5;vec2 n=normalize(vec2(fig(p+vec2(e,0.))-fig(p-vec2(e,0.)),fig(p+vec2(0.,e))-fig(p-vec2(0.,e)))+1e-5);\n"+
+  " float ins=1.-smoothstep(-1.5,1.5,d);float rim=exp(-max(-d,0.)/14.)*ins*max(dot(n,normalize(toP(uSun.xy)-p)),0.);\n"+
+  " vec3 fc=c0*.6+ramp(.25)*.25+rim*ramp(.9)*1.7;col*=1.-.55*a*exp(-max(d,0.)/90.)*(1.-ins);col=mix(col,fc,ins*a);}\n"+
+  "o=vec4(pow(max(col,0.),vec3(1./2.2)),1.);}";
+  // Стекло: лист меньше блока, тень под ним, кромка, зерно.
+  var GL=COM+
+  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uT,uD,uRib,uPh;uniform int uType;uniform vec4 uP;uniform float uR;out vec4 o;\n"+
+  "vec3 S(vec2 px,float lod){return pow(textureLod(uBg,px/uRes,lod).rgb,vec3(2.2));}\n"+
+  "const vec2 P[12]=vec2[](vec2(-.326,-.406),vec2(-.840,-.074),vec2(-.696,.457),vec2(-.203,.621),vec2(.962,-.195),vec2(.473,-.480),vec2(.519,.767),vec2(.185,-.893),vec2(.507,.064),vec2(.896,.412),vec2(-.322,-.933),vec2(-.792,-.598));\n"+
+  "vec3 disp(vec2 px,vec2 off,float lod){return vec3(S(px+off,lod).r,S(px+off*1.05,lod).g,S(px+off*1.1,lod).b);}\n"+
+  "vec3 glass(vec2 px){\n"+
+  " if(uType<=2){float x=px.x+uPh;if(uType==2)x+=sin(px.y*.0055/uD+uT*.35)*uRib*1.1;float u=fract(x/uRib),s=u*2.-1.;float off,dy=0.;\n"+
+  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.9/sqrt(max(1.-s*s*.9,.08));\n"+
+  "  float lod=.4+abs(s)*1.3;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(4.+abs(s)*9.)*uD),vec2(off,0.),lod);c/=5.;\n"+
+  "  float sp=exp(-pow((s+.42)/.09,2.))*.16;float gr=smoothstep(.72,1.,abs(s))*.38;return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
+  " if(uType==3){vec3 f=vec3(0.);for(int i=0;i<12;i++)f+=S(px+P[i]*20.*uD,2.6);f/=12.;float l=dot(f,vec3(.2126,.7152,.0722));f=max(mix(vec3(l),f,1.4),0.)*vec3(1.03,.94,.84);return mix(f,vec3(1.),.03)+(h21(px*.9)-.5)*.01;}\n"+
+  " vec2 cell=vec2(uRib*3.2);vec2 g=fract((px+vec2(uPh,0.))/cell)*2.-1.;float lod=.9+length(g)*1.1;vec3 c=disp(px,-g*cell*.24,lod);float e=max(abs(g.x),abs(g.y));\n"+
+  " return c*(1.-smoothstep(.8,1.,e)*.35)+exp(-pow((g.x+g.y+1.1)/.22,2.))*.05*c*3.;}\n"+
+  "void main(){vec2 px=gl_FragCoord.xy;vec3 col=S(px,0.);\n"+
+  " float dP=sdR(px,uP,uR);float m=1.-smoothstep(-1.,1.,dP);\n"+
+  " float dS=sdR(px+vec2(0.,34.*uD),uP,uR);col*=1.-.5*exp(-max(dS,0.)/(70.*uD))*step(0.,dP);\n"+
+  " if(m>0.)col=mix(col,glass(px)+.012,m);\n"+
+  " vec2 cc=(uP.xy+uP.zw)*.5;float lit=max(dot(normalize(px-cc),normalize(vec2(-.6,1.))),0.);\n"+
+  " col+=exp(-pow(dP/(1.2*uD),2.))*(.08+.3*lit);\n"+
+  " vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(px+fract(uT*30.)*91.7)-.5)*.03;s+=(h21(px*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
+  function sh(t,s){var x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x}
+  function prog(fs){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,"p");gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));var u={},n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+    for(var i=0;i<n;i++){var nm=gl.getActiveUniform(p,i).name.replace(/\[0\]$/,"");u[nm]=gl.getUniformLocation(p,nm)}return{p:p,u:u}}
+  var pB,pG;
+  try{pB=prog(BG);pG=prog(GL)}catch(e){hero.classList.add("nogl");return}
+  var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  var tex=gl.createTexture(),fb=gl.createFramebuffer(),W=0,H=0,D=1,bw=0,bh=0;
+  function hex(v){var n=parseInt(v.slice(1),16);return[(n>>16)/255,((n>>8)&255)/255,(n&255)/255].map(function(c){return Math.pow(c,2.2)})}
+  var PAL=["#050505","#2A0B03","#A33A05","#E85002","#FFB070"].map(hex);
+  function resize(){
+    D=Math.min(window.devicePixelRatio||1,1.75);
+    W=Math.max(2,Math.round(cv.clientWidth*D));H=Math.max(2,Math.round(cv.clientHeight*D));cv.width=W;cv.height=H;
+    bw=Math.max(2,W>>1);bh=Math.max(2,H>>1);
+    gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,bw,bh,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+  }
+  resize();window.addEventListener("resize",resize);
+  // Лист следует за курсором с запаздыванием (пружина без перелёта).
+  var mx=0,my=0,sx=0,sy=0;
+  hero.addEventListener("pointermove",function(e){var r=hero.getBoundingClientRect();mx=(e.clientX-r.left)/r.width-.5;my=(e.clientY-r.top)/r.height-.5});
+  hero.addEventListener("pointerleave",function(){mx=0;my=0});
+  var visible=true,running=false,t0=performance.now(),last=t0;
+  function kick(){if(!running&&visible&&!reduce&&!document.hidden){running=true;last=performance.now();requestAnimationFrame(frame)}}
+  new IntersectionObserver(function(es){visible=es[0].isIntersecting;kick()}).observe(hero);
+  function frame(now){
+    var dt=Math.min(.05,(now-last)/1000);last=now;var t=reduce?8:(now-t0)/1000+6;
+    sx+=(mx-sx)*Math.min(1,dt*3);sy+=(my-sy)*Math.min(1,dt*3);
+    var cw=cv.clientWidth,ch=cv.clientHeight,mob=cw<720;
+    // Лист: на десктопе справа ~28% ширины, на телефоне сверху справа. Координаты GL: y снизу.
+    var pw=mob?cw*.4:Math.min(cw*.27,420),ph=mob?ch*.29:Math.min(ch*.62,600);
+    var cx=mob?cw*.7:cw*.72,cy=mob?ch*.235:ch*.5;
+    cx+=sx*28;cy+=sy*22;
+    var x0=(cx-pw/2)*D,x1=(cx+pw/2)*D,y0=(ch-(cy+ph/2))*D,y1=(ch-(cy-ph/2))*D;
+    // проход 1: свет
+    gl.useProgram(pB.p);gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.viewport(0,0,bw,bh);
+    gl.uniform2f(pB.u.uRes,bw,bh);gl.uniform1f(pB.u.uT,t);
+    var A=bw/bh,qx=(cx/cw)*A,qTop=1-(cy-ph/2)/ch,qBot=1-(cy+ph/2)/ch,qw2=(pw/2)/ch;
+    // Стажёр: макушка чуть ниже верха листа, плечи у нижней кромки; свет сзади сверху слева — контровой.
+    var z=(qTop-qBot)*.78*1920/728,fy=qTop-.07-428*z/1920;
+    gl.uniform4f(pB.u.uFig,qx+(qw2*.12)-sx*.012,fy,z,1);
+    gl.uniform4f(pB.u.uPq,qx-qw2,qBot,qx+qw2,qTop);
+    gl.uniform3f(pB.u.uSun,qx-qw2*.55+Math.sin(t*.3)*.02-sx*.05,fy+270*z/1920+.07,mob?.26:.42);gl.uniform1f(pB.u.uCool,mob?.15:1);
+    ["c0","c1","c2","c3","c4"].forEach(function(n,i){gl.uniform3fv(pB.u[n],PAL[i])});
+    gl.drawArrays(gl.TRIANGLES,0,3);gl.bindTexture(gl.TEXTURE_2D,tex);gl.generateMipmap(gl.TEXTURE_2D);
+    // проход 2: стекло на экран
+    gl.useProgram(pG.p);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(pG.u.uBg,0);
+    gl.uniform2f(pG.u.uRes,W,H);gl.uniform1f(pG.u.uT,t);gl.uniform1f(pG.u.uD,D);gl.uniform1f(pG.u.uRib,30*D);gl.uniform1f(pG.u.uPh,t*9*D);
+    gl.uniform1i(pG.u.uType,glassType);gl.uniform4f(pG.u.uP,x0,y0,x1,y1);gl.uniform1f(pG.u.uR,28*D);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(running&&visible&&!reduce&&!document.hidden)requestAnimationFrame(frame);else running=false;
+  }
+  window.__redrawHero=function(){if(!running)frame(performance.now())};
+  document.addEventListener("visibilitychange",kick);
+  if(reduce)frame(performance.now());else kick();
+})();
+var pick=document.getElementById("glassPick");
+pick.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;glassType=+b.dataset.t;
+  [].forEach.call(pick.children,function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+  var p=document.querySelector(".cssPane");if(p)p.style.backdropFilter=p.style.webkitBackdropFilter=glassType===3?"blur(26px)":"blur(14px)";
+  if(window.__redrawHero)window.__redrawHero()});
+
+/* ---------- демо: два режима, сообщения сторожей дословно из набора ---------- */
+var DENY_RM="⛔ Необратимая команда заблокирована. Если она нужна, запусти вручную в терминале.";
+var DENY_ENV="Файл с ключами (.env) агенту не читается: значение попадёт в чат и транскрипт. Имена ключей: grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env.";
+var LOOP="Одно и то же действие (тот же инструмент, те же аргументы) повторено 5 раз подряд. Остановись: назови предположение, которое может быть неверным, и попробуй другой подход.";
+var DEMOS={
+  lock:{title:"claude · ~/Фото",
+    without:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],
+      ["burn","удалено ~/Desktop/договор-final.pdf"],["burn","удалено ~/Documents/диплом/"],["burn","удалено ~/Фото/2024/свадьба/"],["burn","удалено ~/Projects/сайт/"],["burn","удалено ~/Library/…"],["ai","Готово! Папка очищена."]],
+    with:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],["deny",DENY_RM],
+      ["ai","В конце команды лишний ~/, это вся домашняя папка. Удаляю только дубли."],["tool","Bash(rm -rf ./Фото/дубли)"],["out","готово"]],
+    cap:{without:"Агент из коробки выполнил команду целиком, вместе с лишним ~/",with:"Сторож остановил команду до запуска, агент сам нашёл ошибку"}},
+  memory:{title:"claude · ~/Work/сайт · утро",
+    without:[["sys","новая сессия"],["you","Продолжим сайт?"],["ai","Привет! С удовольствием. Расскажи, что за сайт и на каком он этапе?"],["you","Мы же вчера весь день его делали…"],["ai","Извини, у меня нет доступа к прошлым разговорам. Опиши проект ещё раз?"]],
+    with:[["sys","новая сессия"],["hook","📋 Незакрытые задачи (.tasks/ и TASKS.md):\n~/Work/сайт/.tasks/сайт-визитка.md — открыто 2 из 5, правка 0 дн. назад\n   цель: Сайт-визитка для студии\n   - [ ] Меню на телефоне\n   - [ ] Форма заявки"],
+      ["you","Продолжим сайт?"],["ai","Да. Вчера закончили главную, галерею и цены. Следующий пункт: меню на телефоне. Начинаю."]],
+    cap:{without:"Каждая сессия начинается с чистого листа",with:"Список дел подхватывается сам, агент идёт со следующего пункта"}},
+  keys:{title:"claude · ~/Work/бот",
+    without:[["you","Почему бот не подключается к базе?"],["tool","Read(.env)"],["leak","DATABASE_URL=postgres://admin:<b>Xq7-gR2k</b>@db.host/bot\nOPENAI_API_KEY=<b>sk-proj-4fJ9…k2Qa</b>"],["ai","Вижу пароль от базы и ключ OpenAI, сейчас проверю их…"]],
+    with:[["you","Почему бот не подключается к базе?"],["tool","Read(.env)"],["deny",DENY_ENV],["tool","Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env)"],["out","DATABASE_URL=\nOPENAI_API_KEY="],["ai","Переменная DATABASE_URL на месте. Проверю, отвечает ли сама база."]],
+    cap:{without:"Ключи попали в чат и остались в истории",with:"Агент видит только имена переменных, значения остаются в файле"}},
+  loop:{title:"claude · ~/Work/бот · тесты",
+    without:[["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Попробую ещё раз."],["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Ещё раз."],["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Странно. Запущу снова."]],
+    with:[["tool","Bash(npm test) ×5"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["hook",LOOP],["ai","Я пять раз запускал одно и то же. Предположение: тест ждёт базу, а она не поднята. Проверяю это."],["tool","Bash(docker ps)"],["out","база не запущена"]],
+    cap:{without:"Агент жмёт одну кнопку, пока не кончится лимит",with:"После пяти повторов он останавливается и ищет причину"}}
+};
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function shell(stage,title){
+  stage.innerHTML="";
+  var win=el("div","win"),bar=el("div","bar");
+  bar.appendChild(el("div","dots","<i></i><i></i><i></i>"));bar.appendChild(el("div","ttl",esc(title)));
+  var seg=el("div","seg");seg.setAttribute("role","group");seg.setAttribute("aria-label","Режим");
+  seg.innerHTML='<span class="thumb"></span><button type="button" data-m="without">из коробки</button><button type="button" data-m="with">с набором</button>';
+  bar.appendChild(seg);win.appendChild(bar);stage.appendChild(win);
+  win.addEventListener("pointermove",function(e){var r=win.getBoundingClientRect();win.style.setProperty("--mx",(e.clientX-r.left)+"px");win.style.setProperty("--my",(e.clientY-r.top)+"px")});
+  var cap=el("div","cap");stage.appendChild(cap);
+  return{win:win,seg:seg,cap:cap};
 }
+function setMode(st,ui,m,capText){
+  st.dataset.mode=m;ui.seg.dataset.mode=m;
+  [].forEach.call(ui.seg.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.dataset.m===m?"true":"false")});
+  ui.cap.innerHTML="<i>"+(m==="with"?"с набором":"из коробки")+"</i><span>"+esc(capText)+"</span>";
+}
+function termDemo(stage,d){
+  var ui=shell(stage,d.title),term=el("div","term");ui.win.appendChild(term);
+  var run=0,auto=true;
+  async function play(m){
+    var id=++run;setMode(stage,ui,m,d.cap[m]);term.innerHTML="";
+    var lines=d[m];
+    for(var i=0;i<lines.length;i++){
+      if(id!==run)return;
+      var type=lines[i][0],txt=lines[i][1];
+      var line=el("div","l t-"+type);term.appendChild(line);
+      if(type==="you"&&!reduce){
+        var c=el("span","caret");line.appendChild(document.createTextNode(""));line.appendChild(c);
+        for(var k=1;k<=txt.length;k++){if(id!==run)return;line.firstChild.nodeValue=txt.slice(0,k);await sleep(26)}
+        c.remove();await sleep(380);
+      }else{
+        line.innerHTML=type==="leak"?txt:esc(txt);
+        if(!reduce)await sleep(type==="burn"?170:type==="deny"||type==="hook"?1300:type==="ai"?950:650);
+      }
+      while(term.scrollHeight>term.clientHeight&&term.firstChild)term.removeChild(term.firstChild);
+    }
+    return id;
+  }
+  async function loop(){
+    while(auto){var a=await play("without");if(!auto||a!==run)return;await sleep(2200);if(!auto)return;var b=await play("with");if(!auto||b!==run)return;await sleep(5200)}
+  }
+  ui.seg.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;auto=false;play(b.dataset.m)});
+  setMode(stage,ui,"with",d.cap.with);
+  return function start(){if(reduce){play("with")}else loop()};
+}
+function limitsDemo(stage){
+  var ui=shell(stage,"контекст сессии · до первого вопроса"),box=el("div","ctx");ui.win.appendChild(box);
+  box.innerHTML='<div class="lbl"><span>окно контекста</span><span>начало сессии</span></div>'+
+    '<div class="meter"><div class="m-rules"></div><div class="m-notes"></div><div class="m-hand"></div><div class="m-task">твоя задача</div></div>'+
+    '<div class="legend"><span style="--c:#6b625b">инструкция</span><span style="--c:#4d4641">заметки</span><span style="--c:#3a3430">передача дел</span><span style="--c:#E85002">место для работы</span></div>'+
+    '<div class="big"></div>';
+  var segs=box.querySelectorAll(".meter div"),big=box.querySelector(".big");
+  var S={without:[[30,"простыня правил"],[20,"все заметки"],[22,"вся история"],[28,"задача"]],with:[[6,""],[5,""],[7,"3 дня"],[82,"твоя задача"]]};
+  var cap={without:"Половину окна съедает то, что агент перечитывает каждый раз",with:"Карта вместо простыни, из передачи дел только последние три дня"};
+  var BIG={without:"Лимит уходит <em>до</em> первого вопроса",with:"Почти всё окно <em>под работу</em>"};
+  var auto=true,run=0;
+  function show(m){setMode(stage,ui,m,cap[m]);S[m].forEach(function(s,i){segs[i].style.flexGrow=s[0];segs[i].textContent=s[1]});big.innerHTML=BIG[m]}
+  ui.seg.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;auto=false;show(b.dataset.m)});
+  show("with");
+  return function start(){if(reduce)return;(async function(){var id=++run;while(auto&&id===run){show("without");await sleep(3800);if(!auto)return;show("with");await sleep(5200)}})()};
+}
+[].forEach.call(document.querySelectorAll("[data-demo]"),function(st){
+  var k=st.dataset.demo,start=k==="limits"?limitsDemo(st):termDemo(st,DEMOS[k]),started=false;
+  if(!("IntersectionObserver" in window)){start();return}
+  var o=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!started){started=true;start();o.disconnect()}},{threshold:.35});o.observe(st);
+});
+
+/* ---------- цифры ---------- */
+[].forEach.call(document.querySelectorAll("[data-count]"),function(n){
+  if(reduce||!("IntersectionObserver" in window))return;
+  var to=+n.dataset.count;n.textContent="0";
+  var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();
+    (function f(now){var k=Math.min(1,(now-t0)/1400);k=1-Math.pow(1-k,4);n.textContent=Math.round(to*k);if(k<1)requestAnimationFrame(f)})(t0)},{threshold:.5});o.observe(n);
+});
+
+/* ---------- шаги ---------- */
+(function(){var s=document.getElementById("steps"),d=[].slice.call(s.querySelectorAll(".step"));
+  function lit(){s.classList.add("on");d.forEach(function(x,i){setTimeout(function(){x.classList.add("lit")},reduce?0:i*650)})}
+  if(reduce||!("IntersectionObserver" in window)){lit();return}
+  var o=new IntersectionObserver(function(es){if(es[0].isIntersecting){lit();o.disconnect()}},{threshold:.4});o.observe(s)})();
+
+/* ---------- промпт ---------- */
+(function(){var card=document.getElementById("prompt"),cmd=card.querySelector(".cmd"),btn=document.getElementById("copy"),more=document.getElementById("more");
+  more.addEventListener("click",function(){card.classList.toggle("open");more.textContent=card.classList.contains("open")?"Свернуть":"Показать целиком"});
+  btn.addEventListener("click",function(){
+    var txt=cmd.textContent;
+    function ok(){btn.textContent="Скопировано ✓";btn.classList.add("ok");setTimeout(function(){btn.textContent="Скопировать промпт";btn.classList.remove("ok")},2400)}
+    function fallback(){var r=document.createRange();r.selectNodeContents(cmd);var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");ok()}catch(e){btn.textContent="Выделено, нажми ⌘C"}}
+    if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(ok,fallback);else fallback();
+  });
+})();
+})();
 </script>
 </body>
 </html>

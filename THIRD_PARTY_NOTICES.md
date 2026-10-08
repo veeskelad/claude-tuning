@@ -28,6 +28,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## docs/fonts
+
+Шрифты страницы `docs/index.html`: Onest и JetBrains Mono, лицензия SIL Open Font License 1.1. Тексты лицензий: `docs/fonts/OFL-Onest.txt`, `docs/fonts/OFL-JetBrainsMono.txt`.
+
 ## Не входят в набор
 
 `find-skills` ([vercel-labs/skills](https://github.com/vercel-labs/skills)) и `skill-creator` ([anthropics/skills](https://github.com/anthropics/skills)) ставятся установщиками их авторов; набор их не копирует.
