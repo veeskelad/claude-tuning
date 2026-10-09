@@ -93,77 +93,81 @@ section{position:relative}
 .block{padding:130px 0}
 .head{max-width:760px;margin-bottom:80px}
 .head .lead{margin-top:20px}
-.fx{display:grid;grid-template-columns:.85fr 1.15fr;gap:64px;align-items:center;margin-bottom:140px}
+.fx{margin-bottom:120px}
 .fx:last-child{margin-bottom:0}
-.fx.flip .txt{order:2}
-.fx .num{font:500 13px var(--mono);color:var(--signal);letter-spacing:.1em;display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.fx-head{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:end;margin-bottom:30px}
+.fx .num{font:500 13px var(--mono);color:var(--signal-hot);letter-spacing:.1em;display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .fx .num::after{content:"";height:1px;width:56px;background:linear-gradient(90deg,var(--signal),transparent)}
-.fx h3{margin-bottom:18px}
-.fx p{color:var(--ink-2);font-size:17.5px}
-.fact{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font:500 12.5px/1.4 var(--mono);color:var(--sand);padding:9px 13px;border-radius:999px;border:1px solid rgba(217,195,171,.25);background:rgba(217,195,171,.05)}
+.fx h3{font-size:clamp(30px,3.6vw,46px)}
+.fx p{color:var(--ink-2);font-size:17.5px;margin-bottom:12px}
+.fact{display:inline-flex;align-items:center;gap:8px;font:500 12.5px/1.4 var(--mono);color:var(--sand);padding:9px 13px;border-radius:999px;border:1px solid rgba(217,195,171,.25);background:rgba(217,195,171,.05)}
 .fact::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sand);flex:none}
 
-/* окно-демо */
-.stage{position:relative;padding:34px;isolation:isolate}
-/* Подсветка за окном без границ блока: свет растворяется в фоне страницы */
-.stage::before{content:"";position:absolute;inset:-22% -18%;z-index:-2;pointer-events:none;transition:opacity .9s var(--ease);
-  background:radial-gradient(closest-side at 50% 50%,rgba(232,80,2,.3),rgba(163,58,5,.12) 55%,rgba(163,58,5,0) 100%)}
-.stage::after{content:"";position:absolute;inset:-22% -18%;z-index:-1;opacity:0;pointer-events:none;transition:opacity .9s var(--ease);
-  background:radial-gradient(closest-side at 50% 50%,rgba(255,90,78,.14),rgba(255,90,78,.05) 55%,rgba(255,90,78,0) 100%)}
-.stage[data-mode="without"]::after{opacity:1}
-.stage[data-mode="without"]::before{opacity:0}
-.win{position:relative;border-radius:20px;background:rgba(10,9,8,.82);border:1px solid rgba(255,255,255,.09);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
-  box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden}
-.win::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
-  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.06),transparent 60%)}
-.win:hover::before{opacity:1}
-.bar{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
-.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:#2c2826}
-.bar .ttl{font:500 12px var(--mono);color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.seg{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);flex:none}
-.seg button{position:relative;z-index:1;font:600 12px var(--sans);color:var(--muted);background:none;border:0;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:color .3s}
-.seg button[aria-pressed="true"]{color:#050505}
-.seg .thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:999px;background:#bdb5ae;transition:transform .5s var(--ease),background .5s var(--ease)}
-.seg[data-mode="with"] .thumb{transform:translateX(100%);background:var(--signal)}
-.term{font:400 13.5px/1.62 var(--mono);padding:18px 18px 22px;height:340px;overflow:hidden;position:relative}
+/* сцена: яркий градиент света, на нём две стеклянные карточки (стекло меньше блока) */
+.scene{position:relative;border-radius:40px;padding:44px;overflow:hidden;isolation:isolate;display:grid;grid-template-columns:1fr 1fr;gap:26px;
+  box-shadow:0 50px 100px -50px rgba(232,80,2,.45)}
+.scene::before{content:"";position:absolute;inset:-25%;z-index:-2;background:var(--g);animation:drift2 18s ease-in-out infinite alternate}
+.scene::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.22;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+@keyframes drift2{to{transform:translate3d(-4%,3%,0) scale(1.06)}}
+.g1{--g:radial-gradient(45% 60% at 88% 8%,#FFC58A 0,#FF7A1A 30%,rgba(232,80,2,0) 70%),radial-gradient(55% 70% at 8% 96%,#C10801 0,rgba(193,8,1,0) 70%),linear-gradient(140deg,#E85002 0%,#8A2304 55%,#1A0603 100%)}
+.g2{--g:radial-gradient(80% 55% at 50% 108%,#F3D9BD 0,#FFB070 22%,#E85002 44%,rgba(232,80,2,0) 72%),linear-gradient(180deg,#120605 0%,#3A1606 45%,#A33A05 100%)}
+.g3{--g:radial-gradient(55% 65% at 12% 10%,#FFB070 0,#E85002 35%,rgba(232,80,2,0) 70%),radial-gradient(50% 60% at 100% 100%,rgba(70,90,190,.55) 0,rgba(70,90,190,0) 70%),linear-gradient(160deg,#C24104 0%,#5A1503 60%,#120504 100%)}
+.g4{--g:radial-gradient(45% 70% at 62% 50%,#FF8A2A 0,#E85002 30%,rgba(232,80,2,0) 70%),radial-gradient(40% 50% at 10% 20%,rgba(243,217,189,.55),rgba(243,217,189,0) 70%),linear-gradient(90deg,#1A0603 0%,#7A2104 50%,#1A0603 100%)}
+.g5{--g:radial-gradient(75% 60% at 50% -12%,#F3D9BD 0,#FFB070 24%,#E85002 46%,rgba(232,80,2,0) 76%),linear-gradient(180deg,#A33A05 0%,#2A0B03 100%)}
+
+.card{position:relative;display:flex;flex-direction:column;min-width:0;border-radius:26px;overflow:hidden;
+  background:rgba(14,10,8,.62);-webkit-backdrop-filter:blur(26px) saturate(1.35);backdrop-filter:blur(26px) saturate(1.35);
+  border:1px solid rgba(255,255,255,.16);box-shadow:0 30px 60px -28px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.22)}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(360px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.07),transparent 60%)}
+.card:hover::before{opacity:1}
+.card .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.badge{display:inline-flex;align-items:center;gap:8px;font:700 13px var(--sans);padding:7px 12px 7px 8px;border-radius:999px;white-space:nowrap}
+.badge i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px}
+.before .badge{background:rgba(255,255,255,.1);color:var(--ink)}
+.before .badge i{background:var(--bad);color:#fff}
+.after .badge{background:var(--signal);color:#050505}
+.after .badge i{background:#050505;color:var(--signal-hot)}
+.card .ttl{font:500 12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .cap{padding:13px 16px 15px;border-top:1px solid rgba(255,255,255,.08);font:500 14px/1.45 var(--sans);color:var(--ink-2)}
+.before .cap{color:#FFB3AC}
+.after .cap{color:#FFD2B0}
+.term{font:400 13.5px/1.6 var(--mono);padding:16px 16px 18px;height:310px;overflow:hidden;position:relative}
 .term .l{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:7px;animation:lin .55s var(--ease) both}
 @keyframes lin{from{opacity:0;filter:blur(6px);transform:translateX(14px)}to{opacity:1;filter:none;transform:none}}
-.t-you{color:var(--ink)}.t-you::before{content:"› ";color:var(--signal)}
+.t-you{color:var(--ink)}.t-you::before{content:"› ";color:var(--signal-hot)}
 .t-ai{color:var(--ink-2);font-family:var(--sans);font-size:15px;line-height:1.5}.t-ai::before{content:"● ";color:var(--sand);font-size:11px;vertical-align:2px}
-.t-tool{color:#8fb3ff}.t-tool::before{content:"⏺ ";color:#8fb3ff}
-.t-out{color:var(--muted);padding-left:18px;border-left:1px solid #2a2624}
-.t-burn{color:var(--bad);opacity:.9;padding-left:18px;font-size:12.5px;margin-bottom:2px}
-.t-deny{color:#FFD9C2;background:rgba(232,80,2,.14);border:1px solid rgba(232,80,2,.5);border-radius:10px;padding:10px 12px}
-.t-hook{color:var(--sand);background:rgba(217,195,171,.06);border:1px dashed rgba(217,195,171,.3);border-radius:10px;padding:10px 12px;font-size:12.5px}
-.t-sys{color:#5f5954;font-size:12px;text-align:center;letter-spacing:.08em;text-transform:uppercase}
-.t-leak{color:var(--bad)}
-.t-leak b{font-weight:400;filter:blur(3.5px);background:rgba(255,90,78,.15)}
+.t-tool{color:#9cbcff}.t-tool::before{content:"⏺ ";color:#9cbcff}
+.t-out{color:#B9B1AA;padding-left:16px;border-left:1px solid rgba(255,255,255,.14)}
+.t-burn{color:#FF7A70;padding-left:16px;font-size:12.5px;margin-bottom:2px}
+.t-deny{color:#FFE2D0;background:rgba(232,80,2,.22);border:1px solid rgba(255,122,26,.6);border-radius:10px;padding:10px 12px}
+.t-hook{color:#F3D9BD;background:rgba(243,217,189,.08);border:1px dashed rgba(243,217,189,.38);border-radius:10px;padding:10px 12px;font-size:12.5px}
+.t-sys{color:#8a817a;font-size:11.5px;text-align:center;letter-spacing:.08em;text-transform:uppercase}
+.t-leak{color:#FF7A70}
+.t-leak b{font-weight:400;filter:blur(3.5px);background:rgba(255,90,78,.18)}
 .caret{display:inline-block;width:8px;height:15px;background:var(--ink);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-.cap{margin-top:16px;font:500 12.5px/1.5 var(--mono);color:var(--ink-2);display:flex;gap:10px;align-items:baseline;min-height:38px}
-.cap i{font-style:normal;flex:none;padding:3px 8px;border-radius:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-.stage[data-mode="without"] .cap i{background:rgba(255,90,78,.16);color:#FF8C84}
-.stage[data-mode="with"] .cap i{background:rgba(232,80,2,.2);color:#FFB37E}
 
-/* лимиты: полоса контекста */
-.ctx{padding:24px 20px 26px;height:340px;display:flex;flex-direction:column;justify-content:center;gap:22px}
-.ctx .lbl{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.meter{display:flex;height:64px;border-radius:14px;overflow:hidden;background:#0d0b0a;border:1px solid rgba(255,255,255,.07);gap:3px;padding:3px}
-.meter div{border-radius:10px;display:flex;align-items:center;padding:0 10px;font:500 11.5px/1.2 var(--mono);color:#050505;overflow:hidden;white-space:nowrap;transition:flex-grow 1.2s var(--ease),background .8s}
-.m-rules{background:#6b625b}.m-notes{background:#4d4641}.m-hand{background:#3a3430;color:var(--ink-2)!important}
+/* лимиты: полоса памяти разговора */
+.ctx{padding:22px 18px;height:310px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.ctx .lbl{font:500 12px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.meter{display:flex;height:60px;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);gap:3px;padding:3px}
+.meter div{border-radius:10px;display:flex;align-items:center;padding:0 10px;font:500 11.5px/1.2 var(--mono);color:#050505;overflow:hidden;white-space:nowrap;flex-grow:1;transition:flex-grow 1.4s var(--ease)}
+.m-rules{background:#8a7f77}.m-notes{background:#62574f}.m-hand{background:#463e39;color:var(--ink-2)!important}
 .m-task{background:linear-gradient(90deg,var(--signal),var(--signal-hot));color:#050505}
-.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 18px;font-size:14px;color:var(--ink-2)}
-.legend span{display:flex;gap:9px;align-items:center}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 16px;font-size:13.5px;color:var(--ink-2)}
+.legend span{display:flex;gap:8px;align-items:center}
 .legend span::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
-.ctx .big{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.ctx .big{font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
 .ctx .big em{font-style:normal;color:var(--signal-hot)}
 
 /* ---------- цифры ---------- */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.stat{background:var(--canvas);padding:46px 28px}
+.stats.scene{grid-template-columns:repeat(4,1fr);gap:16px;padding:28px}
+.stat{padding:30px 24px;border-radius:24px;background:rgba(14,10,8,.5);-webkit-backdrop-filter:blur(24px) saturate(1.3);backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
 .stat .n{font-size:clamp(54px,6vw,84px);font-weight:700;letter-spacing:-.05em;line-height:1;background:linear-gradient(180deg,#fff 30%,#a89e96);-webkit-background-clip:text;background-clip:text;color:transparent}
 .stat .n.o{background:linear-gradient(180deg,var(--signal-hot) 20%,var(--signal));-webkit-background-clip:text;background-clip:text}
-.stat p{margin:14px 0 0;color:var(--muted);font-size:15px;line-height:1.5}
+.stat p{margin:14px 0 0;color:var(--ink-2);font-size:15px;line-height:1.5}
 
 /* ---------- автор ---------- */
 .author{display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:start;max-width:920px}
@@ -221,6 +225,7 @@ details p{margin:14px 0 0;color:var(--ink-2);max-width:720px}
 
 /* ---------- финал ---------- */
 .final{position:relative;padding:160px 0 120px;overflow:hidden;text-align:center;isolation:isolate}
+.final::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(45% 60% at 50% 78%,rgba(255,122,26,.55),rgba(232,80,2,.18) 45%,rgba(232,80,2,0) 75%)}
 .final .giant{position:absolute;left:50%;top:78%;transform:translate(-50%,-50%);opacity:.55;z-index:-1;font-weight:800;font-size:clamp(90px,21vw,330px);letter-spacing:-.06em;line-height:.8;white-space:nowrap;
   background:linear-gradient(180deg,rgba(232,80,2,.55),rgba(232,80,2,0) 85%);-webkit-background-clip:text;background-clip:text;color:transparent;pointer-events:none;user-select:none}
 .final h2{font-size:clamp(40px,6.6vw,88px)}
@@ -241,9 +246,10 @@ footer a{color:var(--muted);text-decoration:none}
 
 /* ---------- адаптив ---------- */
 @media (max-width:980px){
-  .fx,.inst{grid-template-columns:1fr;gap:36px}
-  .fx.flip .txt{order:0}
-  .stats{grid-template-columns:repeat(2,1fr)}
+  .inst{grid-template-columns:1fr;gap:36px}
+  .fx-head{grid-template-columns:1fr;gap:14px}
+  .scene{padding:28px;gap:18px}
+  .stats.scene{grid-template-columns:repeat(2,1fr)}
   .nav a.l{display:none}
 }
 @media (max-width:720px){
@@ -264,17 +270,16 @@ footer a{color:var(--muted);text-decoration:none}
   .scrollHint{display:none}
   .block{padding:90px 0}
   .head{margin-bottom:54px}
-  .fx{margin-bottom:96px}
-  .stage{padding:14px 0}
-  .bar{flex-wrap:wrap}
-  .bar .ttl{flex-basis:calc(100% - 60px)}
-  .seg{width:100%}
-  .term{height:380px;font-size:12.5px;padding:14px}
+  .fx{margin-bottom:90px}
+  .scene{grid-template-columns:1fr;padding:14px;gap:14px;border-radius:28px}
+  .term{height:300px;font-size:12.5px;padding:14px}
+  .card .ttl{display:none}
   .t-ai{font-size:14px}
-  .ctx{height:auto;min-height:340px}
+  .ctx{height:auto}
   .meter{height:56px}
   .meter div{font-size:10px;padding:0 6px}
-  .stat{padding:30px 18px}
+  .stats.scene{padding:14px;gap:12px;grid-template-columns:1fr}
+  .stat{padding:22px 16px}
   .author{grid-template-columns:1fr;gap:22px}
   .steps{grid-template-columns:1fr;gap:28px;margin-top:46px}
   .steps .track{left:27px;right:auto;top:28px;bottom:28px;width:2px;height:auto}
@@ -341,66 +346,52 @@ footer a{color:var(--muted);text-decoration:none}
       <h2>Твой Claude до&nbsp;и&nbsp;после тюнинга</h2>
       <p class="lead">Сравни, как меняется твоя работа с Claude после установки скилла.</p>
     </div>
-
-    <div class="fx">
-      <div class="txt rise">
-        <div class="num">01 · защита от удаления</div>
-        <h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3>
-        <p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет хук. Это маленькая проверка, которую Claude Code запускает сам. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p>
-        <span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span>
+    <article class="fx">
+      <div class="fx-head rise">
+        <div><div class="num">01 · защита от удаления</div><h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3></div>
+        <div><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет хук. Это маленькая проверка, которую Claude Code запускает сам. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
       </div>
-      <div class="stage rise" data-demo="lock"></div>
-    </div>
-
-    <div class="fx flip">
-      <div class="txt rise">
-        <div class="num">02 · память</div>
-        <h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3>
-        <p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам.</p>
-        <span class="fact">команды /morning и /endday</span>
+      <div class="scene g1 rise" data-demo="lock"></div>
+    </article>
+    <article class="fx">
+      <div class="fx-head rise">
+        <div><div class="num">02 · память</div><h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3></div>
+        <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам.</p><span class="fact">команды /morning и /endday</span></div>
       </div>
-      <div class="stage rise" data-demo="memory"></div>
-    </div>
-
-    <div class="fx">
-      <div class="txt rise">
-        <div class="num">03 · пароли и ключи</div>
-        <h3>Секреты не&nbsp;попадут в&nbsp;чат</h3>
-        <p>У любого бота, сайта или автоматизации есть секреты: пароли, API-ключи, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p>
-        <span class="fact">файлы .env, токены, ключи доступа</span>
+      <div class="scene g2 rise" data-demo="memory"></div>
+    </article>
+    <article class="fx">
+      <div class="fx-head rise">
+        <div><div class="num">03 · пароли и ключи</div><h3>Секреты не&nbsp;попадут в&nbsp;чат</h3></div>
+        <div><p>У любого бота, сайта или автоматизации есть секреты: пароли, API-ключи, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p><span class="fact">файлы .env, токены, ключи доступа</span></div>
       </div>
-      <div class="stage rise" data-demo="keys"></div>
-    </div>
-
-    <div class="fx flip">
-      <div class="txt rise">
-        <div class="num">04 · повторы</div>
-        <h3>Не&nbsp;делает одно и&nbsp;то&nbsp;же по&nbsp;кругу</h3>
-        <p>Бывает, агент упирается в ошибку и пробует снова, и снова, а лимит тает. После тюнинга на пятом одинаковом шаге хук его останавливает: агент должен назвать, где мог ошибиться, и попробовать по-другому.</p>
-        <span class="fact">подсказка после пяти повторов</span>
+      <div class="scene g3 rise" data-demo="keys"></div>
+    </article>
+    <article class="fx">
+      <div class="fx-head rise">
+        <div><div class="num">04 · повторы</div><h3>Не&nbsp;делает одно и&nbsp;то&nbsp;же по&nbsp;кругу</h3></div>
+        <div><p>Бывает, агент упирается в ошибку и пробует снова, и снова, а лимит тает. После тюнинга на пятом одинаковом шаге хук его останавливает: агент должен назвать, где мог ошибиться, и попробовать по-другому.</p><span class="fact">подсказка после пяти повторов</span></div>
       </div>
-      <div class="stage rise" data-demo="loop"></div>
-    </div>
-
-    <div class="fx">
-      <div class="txt rise">
-        <div class="num">05 · лимиты</div>
-        <h3>Лимита хватает до&nbsp;вечера</h3>
-        <p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит лимит, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой шпаргалкой, а из старых заметок он читает только последние три дня.</p>
-        <span class="fact">шпаргалка на 40–60 строк</span>
+      <div class="scene g4 rise" data-demo="loop"></div>
+    </article>
+    <article class="fx">
+      <div class="fx-head rise">
+        <div><div class="num">05 · лимиты</div><h3>Лимита хватает до&nbsp;вечера</h3></div>
+        <div><p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит лимит, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой шпаргалкой, а из старых заметок он читает только последние три дня.</p><span class="fact">шпаргалка на 40–60 строк</span></div>
       </div>
-      <div class="stage rise" data-demo="limits"></div>
-    </div>
+      <div class="scene g5 rise" data-demo="limits"></div>
+    </article>
   </div>
 </section>
 
-<section aria-label="Цифры">
-  <div class="stats">
+<section aria-label="Цифры" style="padding:20px 0 0"><div class="wrap">
+  <div class="stats scene g2">
     <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передавал дела из одного разговора с Claude в другой. Из этой привычки и вырос набор</p></div>
     <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: все опасные остановлены, обычные прошли</p></div>
     <div class="stat rise"><div class="n" data-count="8">8</div><p>готовых навыков. Например, «начни утро» и «подведи итог дня»</p></div>
     <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков: срабатывают сами, просить их не нужно</p></div>
   </div>
+</div>
 </section>
 
 <section class="block">
@@ -672,71 +663,59 @@ var DEMOS={
 };
 function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
-function shell(stage,title){
-  stage.innerHTML="";
-  var win=el("div","win"),bar=el("div","bar");
-  bar.appendChild(el("div","dots","<i></i><i></i><i></i>"));bar.appendChild(el("div","ttl",esc(title)));
-  var seg=el("div","seg");seg.setAttribute("role","group");seg.setAttribute("aria-label","Режим");
-  seg.innerHTML='<span class="thumb"></span><button type="button" data-m="without">из коробки</button><button type="button" data-m="with">после тюнинга</button>';
-  bar.appendChild(seg);win.appendChild(bar);stage.appendChild(win);
-  win.addEventListener("pointermove",function(e){var r=win.getBoundingClientRect();win.style.setProperty("--mx",(e.clientX-r.left)+"px");win.style.setProperty("--my",(e.clientY-r.top)+"px")});
-  var cap=el("div","cap");stage.appendChild(cap);
-  return{win:win,seg:seg,cap:cap};
+function card(scene,kind,title,cap){
+  var c=el("div","card "+kind);
+  c.innerHTML='<div class="top"><span class="badge"><i>'+(kind==="before"?"✕":"✓")+"</i>"+(kind==="before"?"из коробки":"после тюнинга")+'</span><span class="ttl">'+esc(title)+"</span></div>";
+  var body=el("div",kind==="ctx"?"ctx":"term");c.appendChild(body);c.appendChild(el("div","cap",esc(cap)));scene.appendChild(c);
+  c.addEventListener("pointermove",function(e){var r=c.getBoundingClientRect();c.style.setProperty("--mx",(e.clientX-r.left)+"px");c.style.setProperty("--my",(e.clientY-r.top)+"px")});
+  return body;
 }
-function setMode(st,ui,m,capText){
-  st.dataset.mode=m;ui.seg.dataset.mode=m;
-  [].forEach.call(ui.seg.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.dataset.m===m?"true":"false")});
-  ui.cap.innerHTML="<i>"+(m==="with"?"после тюнинга":"из коробки")+"</i><span>"+esc(capText)+"</span>";
-}
-function termDemo(stage,d){
-  var ui=shell(stage,d.title),term=el("div","term");ui.win.appendChild(term);
-  var run=0,auto=true;
-  async function play(m){
-    var id=++run;setMode(stage,ui,m,d.cap[m]);term.innerHTML="";
-    var lines=d[m];
-    for(var i=0;i<lines.length;i++){
-      if(id!==run)return;
-      var type=lines[i][0],txt=lines[i][1];
-      var line=el("div","l t-"+type);term.appendChild(line);
-      if(type==="you"&&!reduce){
-        var c=el("span","caret");line.appendChild(document.createTextNode(""));line.appendChild(c);
-        for(var k=1;k<=txt.length;k++){if(id!==run)return;line.firstChild.nodeValue=txt.slice(0,k);await sleep(26)}
-        c.remove();await sleep(380);
-      }else{
-        line.innerHTML=type==="leak"?txt:esc(txt);
-        if(!reduce)await sleep(type==="burn"?170:type==="deny"||type==="hook"?1300:type==="ai"?950:650);
-      }
-      while(term.scrollHeight>term.clientHeight&&term.firstChild)term.removeChild(term.firstChild);
+async function play(term,lines,alive){
+  term.innerHTML="";
+  for(var i=0;i<lines.length;i++){
+    if(!alive())return;
+    var type=lines[i][0],txt=lines[i][1],line=el("div","l t-"+type);term.appendChild(line);
+    if(type==="you"&&!reduce){
+      var c=el("span","caret");line.appendChild(document.createTextNode(""));line.appendChild(c);
+      for(var k=1;k<=txt.length;k++){if(!alive())return;line.firstChild.nodeValue=txt.slice(0,k);await sleep(26)}
+      c.remove();await sleep(380);
+    }else{
+      line.innerHTML=type==="leak"?txt:esc(txt);
+      if(!reduce)await sleep(type==="burn"?170:type==="deny"||type==="hook"?1300:type==="ai"?950:650);
     }
-    return id;
+    while(term.scrollHeight>term.clientHeight&&term.firstChild)term.removeChild(term.firstChild);
   }
-  async function loop(){
-    while(auto){var a=await play("without");if(!auto||a!==run)return;await sleep(2200);if(!auto)return;var b=await play("with");if(!auto||b!==run)return;await sleep(5200)}
-  }
-  ui.seg.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;auto=false;play(b.dataset.m)});
-  setMode(stage,ui,"with",d.cap.with);
-  return function start(){if(reduce){play("with")}else loop()};
 }
-function limitsDemo(stage){
-  var ui=shell(stage,"память разговора · до первого вопроса"),box=el("div","ctx");ui.win.appendChild(box);
-  box.innerHTML='<div class="lbl"><span>память разговора</span><span>начало сессии</span></div>'+
-    '<div class="meter"><div class="m-rules"></div><div class="m-notes"></div><div class="m-hand"></div><div class="m-task">твоя задача</div></div>'+
-    '<div class="legend"><span style="--c:#6b625b">инструкция</span><span style="--c:#4d4641">заметки</span><span style="--c:#3a3430">передача дел</span><span style="--c:#E85002">место для работы</span></div>'+
-    '<div class="big"></div>';
-  var segs=box.querySelectorAll(".meter div"),big=box.querySelector(".big");
-  var S={without:[[30,"простыня правил"],[20,"все заметки"],[22,"вся история"],[28,"задача"]],with:[[6,""],[5,""],[7,"3 дня"],[82,"твоя задача"]]};
-  var cap={without:"Половину памяти разговора съедает то, что агент перечитывает каждый раз",with:"Шпаргалка вместо длинной инструкции, из заметок только последние три дня"};
-  var BIG={without:"Лимит уходит <em>до</em> первого вопроса",with:"Почти всё окно <em>под работу</em>"};
-  var auto=true,run=0;
-  function show(m){setMode(stage,ui,m,cap[m]);S[m].forEach(function(s,i){segs[i].style.flexGrow=s[0];segs[i].textContent=s[1]});big.innerHTML=BIG[m]}
-  ui.seg.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;auto=false;show(b.dataset.m)});
-  show("with");
-  return function start(){if(reduce)return;(async function(){var id=++run;while(auto&&id===run){show("without");await sleep(3800);if(!auto)return;show("with");await sleep(5200)}})()};
+function termDemo(scene,d){
+  scene.innerHTML="";
+  var b=card(scene,"before",d.title,d.cap.without),a=card(scene,"after",d.title,d.cap.with);
+  return async function(isOn){
+    if(reduce){play(b,d.without,function(){return true});play(a,d.with,function(){return true});return}
+    while(true){
+      while(!isOn())await sleep(400);
+      await Promise.all([play(b,d.without,isOn),play(a,d.with,isOn)]);
+      await sleep(5200);
+    }
+  };
 }
-[].forEach.call(document.querySelectorAll("[data-demo]"),function(st){
-  var k=st.dataset.demo,start=k==="limits"?limitsDemo(st):termDemo(st,DEMOS[k]),started=false;
-  if(!("IntersectionObserver" in window)){start();return}
-  var o=new IntersectionObserver(function(es){if(es[0].isIntersecting&&!started){started=true;start();o.disconnect()}},{threshold:.35});o.observe(st);
+function limitsDemo(scene){
+  scene.innerHTML="";
+  var S={before:[[30,"длинная инструкция"],[20,"все заметки"],[22,"вся история"],[28,"задача"]],after:[[6,""],[5,""],[7,"3 дня"],[82,"твоя задача"]]};
+  var BIG={before:"Лимит уходит <em>до</em> первого вопроса",after:"Почти вся память <em>под работу</em>"};
+  var cap={before:"Половину памяти разговора съедает то, что агент перечитывает каждый раз",after:"Шпаргалка вместо длинной инструкции, из заметок только последние три дня"};
+  var boxes=["before","after"].map(function(k){
+    var box=card(scene,k,"память разговора · до первого вопроса",cap[k]);box.className="ctx";
+    box.innerHTML='<div class="lbl">память разговора</div><div class="meter"><div class="m-rules"></div><div class="m-notes"></div><div class="m-hand"></div><div class="m-task"></div></div>'+
+      '<div class="legend"><span style="--c:#8a7f77">инструкция</span><span style="--c:#62574f">заметки</span><span style="--c:#463e39">передача дел</span><span style="--c:#E85002">место для работы</span></div><div class="big">'+BIG[k]+"</div>";
+    return [k,box];
+  });
+  return function(){boxes.forEach(function(kb){var segs=kb[1].querySelectorAll(".meter div");S[kb[0]].forEach(function(x,i){segs[i].style.flexGrow=x[0];segs[i].textContent=x[1]})})};
+}
+[].forEach.call(document.querySelectorAll("[data-demo]"),function(sc){
+  var k=sc.dataset.demo,on=false,started=false,start=k==="limits"?limitsDemo(sc):termDemo(sc,DEMOS[k]);
+  function isOn(){return on&&!document.hidden}
+  if(!("IntersectionObserver" in window)){on=true;start(isOn);return}
+  new IntersectionObserver(function(es){on=es[0].isIntersecting;if(on&&!started){started=true;start(isOn)}},{threshold:.3}).observe(sc);
 });
 
 /* ---------- цифры ---------- */
