@@ -11,7 +11,8 @@
 | Индекс памяти проекта | `~/.claude/projects/<slug>/memory/MEMORY.md` (≤200 строк, детали — в отдельных файлах) |
 | Разобранные грабли | `memory/lessons-learned.md` там же — **только грепом** |
 | Что было вчера | `~/.claude/global-handoff.md` (`/endday` и `/session-handoff` пишут, `/morning` читает) |
-| Найти старую сессию | скилл `session-search` |
+| Что делает другая открытая сессия | спросить её: `/list-agents`, затем `@имя` и вопрос |
+| Что делала закрытая сессия | её запись в `global-handoff.md`; вернуть — `claude --resume <имя>`; найти по теме — скилл `session-search` |
 | Навыки под задачу | `~/.agents/skills/`, поиск — `/find-skills <описание>` |
 | Баг или неожиданное поведение | скилл `systematic-debugging` — причина до фикса |
 | Замечания ревью | скилл `review-triage` |

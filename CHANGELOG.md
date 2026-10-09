@@ -3,6 +3,7 @@
 ## 2.0.0 — 08.10.2026
 
 - Набор `kit/` и установщик `scripts/install-kit.py`: сухой прогон, `--apply`, `--check`, `--uninstall`. Ничего не перезаписывает, перед правкой настроек делает копию.
+- Сессии видят друг друга (Claude Code 2.1.224+): открытую спрашивают напрямую (`/list-agents`, `@имя`), handoff теперь про закрытые — имя сессии, `claude --resume`, id в автосохранении.
 - `--extra DIR`: свой модуль той же формы поверх набора — личное отдельно от общего.
 - Лицензия MIT.
 - В набор вошли самые используемые в ежедневной работе скиллы настройки: `session-handoff`, `endday`, `morning`, `memory-consolidate`, `session-search`, `worktree-cleanup`, `systematic-debugging`, `review-triage`.

@@ -23,6 +23,8 @@ LOG=$(git log --oneline -5 2>/dev/null)
   echo ""
   echo "---"
   echo "## Автосохранение [$TRIGGER] ($DATE) | $PROJECT | $DEVICE"
+  # Закрытую сессию можно вернуть или спросить по id: claude --resume <id>, claude -p --resume <id> "вопрос".
+  [ -n "$SESSION_ID" ] && echo "- Сессия: $SESSION_ID (вернуть: claude --resume $SESSION_ID)"
   echo "- Ветка: $BRANCH"
   echo "- Незакоммиченные:"
   echo "$STATUS"
