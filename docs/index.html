@@ -137,6 +137,8 @@ section{position:relative}
 
 /* ---------- раздел: узнаёшь себя ---------- */
 .quiz .head{margin-bottom:48px}
+.quiz .path{margin:22px 0 18px;font:500 clamp(15px,1.6vw,18px)/1.6 var(--mono);color:var(--sand);max-width:900px}
+.quiz .path i{font-style:normal;color:var(--signal-hot);margin:0 4px}
 .qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .qi{position:relative;display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:start;text-align:left;font:inherit;color:var(--ink);cursor:pointer;
   padding:22px 22px 20px;border-radius:22px;background:var(--surface);border:1px solid var(--line);transition:border-color .3s,background .3s,transform .3s var(--ease),box-shadow .3s}
@@ -440,7 +442,7 @@ footer a{color:var(--muted);text-decoration:none}
     <div>
       <div class="mono hero-kick">claude-tuning · система вокруг Claude Code</div>
       <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-      <p class="lead">Модель у всех одна, разница в том, что стоит вокруг неё. Из коробки <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> каждое утро знакомится с тобой заново и выполнит любую команду, даже ту, что сотрёт полдиска. Вокруг своего я собрал систему: он помнит, на чём мы остановились, тормозит перед <span class="tip" tabindex="0">необратимым<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> и учится на моих поправках. Ставится одним сообщением.</p>
+      <p class="lead">Модель у всех одна, разница в том, что стоит вокруг неё. У тебя <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> каждое утро знакомится заново и выполнит любую команду, даже ту, что сотрёт полдиска. У меня за неделю 179 разговоров с агентами, каждый начинается со списка открытых задач, а <span class="tip" tabindex="0">необратимое<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> просто не запускается. Ставится одним сообщением.</p>
       <div class="ctas">
         <a class="btn" href="#install">Поставить себе <span class="arr">→</span></a>
         <a class="ghost" href="#effects">Как это устроено у меня</a>
@@ -512,8 +514,9 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <div class="mono" style="margin-bottom:18px">а у тебя?</div>
-      <h2>Узнаёшь свою неделю?</h2>
-      <p class="lead">Отмечай честно. Под каждым пунктом увидишь, какая часть системы это закрывает.</p>
+      <h2>На этом месте большинство сходит с&nbsp;дистанции</h2>
+      <p class="path">ставишь Claude <i>→</i> неделю кайфуешь <i>→</i> лимит к обеду, пропавшая папка, пятый пересказ проекта <i>→</i> «агенты пока сырые» <i>→</i> закрываешь</p>
+      <p class="lead">Модель тут ни при чём, просто вокруг неё пусто. Отмечай честно, что из этого уже было, и под каждым пунктом увидишь, какая часть системы это закрывает.</p>
     </div>
     <div class="qgrid rise" id="qgrid">
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро заново объясняешь проект</b><small>Что строим и где остановились, и так изо дня в день.</small><span class="cure">→ Набор ведёт список дел, и утром агент сам вспоминает, на чём вчера остановилась работа</span></span></button>
