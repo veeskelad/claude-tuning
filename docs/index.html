@@ -101,6 +101,11 @@ section{position:relative}
 .nc code{display:block;width:max-content;max-width:100%;overflow-x:auto;font:500 clamp(15px,1.7vw,20px) var(--mono);color:#FFD9C2;padding:14px 18px;border-radius:14px;
   background:rgba(255,90,78,.1);border:1px solid rgba(255,90,78,.35)}
 .nc code b{color:#fff;background:var(--bad);border-radius:6px;padding:0 6px;font-weight:700}
+.nc .act{padding:14px 18px;border-radius:14px;background:rgba(255,90,78,.08);border:1px solid rgba(255,90,78,.35)}
+.nc .act .h{display:block;font:600 clamp(16px,1.6vw,19px)/1.4 var(--sans);color:var(--ink)}
+.nc .act mark{background:var(--bad);color:#fff;border-radius:6px;padding:0 6px}
+.nc .act code{display:block;width:auto;max-width:none;overflow:visible;margin-top:6px;padding:0;background:none;border:0;font:500 13px var(--mono);color:#C9A79A}
+.nc .act code b{background:rgba(255,90,78,.35);color:#fff;border-radius:4px;padding:0 4px}
 .nc .lost{display:flex;flex-wrap:wrap;gap:8px}
 .nc .lost span{font:500 13px var(--mono);color:#C9A79A;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,90,78,.22);text-decoration:line-through;text-decoration-color:rgba(255,90,78,.8)}
 .nc .lost span:last-child{text-decoration:none;border-style:dashed;color:var(--muted)}
@@ -221,13 +226,15 @@ section{position:relative}
 .term{font:400 13.5px/1.6 var(--mono);padding:16px 16px 18px;height:330px;overflow:hidden;position:relative}
 .term .l{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:7px;animation:lin .55s var(--ease) both}
 @keyframes lin{from{opacity:0;filter:blur(6px);transform:translateX(14px)}to{opacity:1;filter:none;transform:none}}
-.t-you{color:var(--ink)}.t-you::before{content:"› ";color:var(--signal-hot)}
-.t-ai{color:var(--ink-2);font-family:var(--sans);font-size:15px;line-height:1.5}.t-ai::before{content:"● ";color:var(--sand);font-size:11px;vertical-align:2px}
-.t-tool{color:#9cbcff}.t-tool::before{content:"⏺ ";color:#9cbcff}
-.t-out{color:#B9B1AA;padding-left:16px;border-left:1px solid rgba(255,255,255,.14)}
+.t-you{width:fit-content;max-width:86%;margin-left:auto;padding:9px 14px;border-radius:16px 16px 4px 16px;background:rgba(255,255,255,.1);color:var(--ink);font:500 14.5px/1.45 var(--sans)}
+.t-ai{color:var(--ink-2);font-family:var(--sans);font-size:15px;line-height:1.5;padding-left:24px;position:relative}.t-ai::before{content:"✳";position:absolute;left:2px;top:0;color:var(--signal-hot);font-size:14px}
+.t-tool{color:#B9B1AA;font-size:12px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+.t-tool .h{display:block;font:600 14px/1.4 var(--sans);color:var(--ink)}.t-tool .h::before{content:"⌘ ";color:var(--sand);font-weight:400}
+.t-tool code{display:block;margin-top:3px;font:400 11.5px/1.45 var(--mono);color:#8f867f;white-space:pre-wrap;overflow-wrap:anywhere}
+.t-out{color:#B9B1AA;margin-left:12px;padding-left:12px;border-left:1px solid rgba(255,255,255,.14);font-size:12.5px}
 .t-burn{color:#FF7A70;padding-left:16px;font-size:12.5px;margin-bottom:2px}
-.t-deny{color:#FFE2D0;background:rgba(232,80,2,.22);border:1px solid rgba(255,122,26,.6);border-radius:10px;padding:10px 12px}
-.t-hook{color:#F3D9BD;background:rgba(243,217,189,.08);border:1px dashed rgba(243,217,189,.38);border-radius:10px;padding:10px 12px;font-size:12.5px}
+.t-deny{font-family:var(--sans);font-size:14px;line-height:1.45;color:#FFE2D0;background:rgba(232,80,2,.22);border:1px solid rgba(255,122,26,.6);border-radius:10px;padding:10px 12px}
+.t-hook{font-family:var(--sans);font-size:13.5px !important;line-height:1.45;color:#F3D9BD;background:rgba(243,217,189,.08);border:1px dashed rgba(243,217,189,.38);border-radius:10px;padding:10px 12px;font-size:12.5px}
 .t-sys{color:#8a817a;font-size:11.5px;text-align:center;letter-spacing:.08em;text-transform:uppercase}
 .t-leak{color:#FF7A70}
 .t-leak b{font-weight:500;color:#FFD9D5;background:rgba(255,90,78,.28);border-radius:4px;padding:0 3px}
@@ -422,7 +429,7 @@ footer a{color:var(--muted);text-decoration:none}
     <div>
       <div class="mono hero-kick">claude-tuning · набор для Claude Code</div>
       <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-      <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждый новый разговор начинает с чистого листа. Я дал ему список дел, закрыл <span class="tip" tabindex="0">опасные команды<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> и спрятал от него пароли. Ставится одним сообщением.</p>
+      <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждый новый разговор начинает с чистого листа. Я дал ему список дел, закрыл <span class="tip" tabindex="0">опасные команды<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> и спрятал от него пароли. Ставится одним сообщением.</p>
       <div class="ctas">
         <a class="btn" href="#install">Поставить <span class="arr">→</span></a>
         <a class="ghost" href="#effects">Как я улучшил своего Claude</a>
@@ -451,10 +458,10 @@ footer a{color:var(--muted);text-decoration:none}
       <article class="nc big rise">
         <span class="when">декабрь 2025 · Reddit</span>
         <h3>Одна команда стёрла весь&nbsp;Mac</h3>
-        <p>Агент чистил тестовые папки и случайно дописал в конец команды <span class="mono" style="font-size:inherit;text-transform:none;letter-spacing:0;color:var(--ink)">~/</span>, а это вся домашняя папка. Вместе с тестами пропали документы, настройки и связка ключей с паролями.</p>
-        <code>rm -rf tests/ patches/ plan/ <b>~/</b></code>
+        <p>Claude сам запускает команды на твоём компьютере, и одна из них удаляет папки сразу, без корзины и без вопроса «вы уверены?». Агент чистил тестовые папки и случайно добавил к ним ещё одну: всю домашнюю папку. Вместе с тестами пропали документы, настройки и связка ключей с паролями.</p>
+        <div class="act"><span class="h">⌘ Удалить папки tests, patches, plan и <mark>всю домашнюю папку</mark></span><code>rm -rf tests/ patches/ plan/ <b>~/</b></code></div>
         <div class="lost" aria-label="Что удалила команда"><span>~/Documents</span><span>~/Desktop</span><span>~/Pictures</span><span>~/Library/Keychains</span><span>…и всё остальное</span></div>
-        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Хук проверяет каждую команду до запуска. Он увидел бы <b>~/</b> в конце и не дал её выполнить, а агенту пришлось бы найти ошибку и удалить только тесты. Эту самую команду я прогнал через набор: она остановлена.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Набор проверяет каждую команду до запуска. Он увидел бы в ней домашнюю папку и не дал её выполнить, а агенту пришлось бы найти ошибку и удалить только тесты. Эту самую команду я прогнал через набор: она остановлена.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.reddit.com/r/ClaudeAI/comments/1pgxckk/claude_cli_deleted_my_entire_home_directory_wiped/" target="_blank" rel="noopener">пост на Reddit</a>, <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-rm-rf-incident/" target="_blank" rel="noopener">разбор Docker</a></span>
       </article>
       <article class="nc rise">
@@ -779,32 +786,32 @@ var DEMOS={
     with:[["sys","сегодня · новый разговор"],["hook","📋 Незакрытые задачи: сайт-визитка, сделано 3 из 5"],["you","Продолжим сайт?"],["ai","Да. Главная, галерея и цены готовы. Дальше меню на телефоне, начинаю."]],
     cap:{without:"Вчера всё обсудили, сегодня он ничего не помнит и спрашивает заново.",with:"Главное из вчерашнего лежит в списке дел. Агент читает его и продолжает с нужного места."}},
   lock:{title:"claude · ~/Фото",
-    without:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],
+    without:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)","Удаляет папку «дубли» и… всю домашнюю папку"],
       ["burn","удалено ~/Desktop/договор-final.pdf"],["burn","удалено ~/Documents/диплом/"],["burn","удалено ~/Фото/2024/свадьба/"],["burn","удалено ~/Projects/сайт/"],["burn","удалено ~/Library/…"],["ai","Готово! Папка очищена."]],
-    with:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],["deny",DENY_RM],
-      ["ai","В конце команды лишний ~/, это вся домашняя папка. Удаляю только дубли."],["tool","Bash(rm -rf ./Фото/дубли)"],["out","готово"]],
+    with:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)","Удаляет папку «дубли» и… всю домашнюю папку"],["deny",DENY_RM],
+      ["ai","В конце команды лишний ~/, это вся домашняя папка. Удаляю только дубли."],["tool","Bash(rm -rf ./Фото/дубли)","Удаляет только папку «дубли»"],["out","готово"]],
     cap:{without:"Агент выполнил команду целиком, вместе с лишним символом. Вернуть файлы нельзя.",with:"Хук остановил команду до запуска. Агент нашёл ошибку и удалил только дубли."}},
   memory:{title:"claude · ~/Work · новый разговор",
     without:[["you","Помнишь, в августе мы решали, откуда брать фото для сайта? На чём остановились?"],["ai","У меня нет доступа к прошлым разговорам. Расскажи, что за сайт и какие были варианты?"],["you","Я и сам уже не помню…"]],
-    with:[["you","Помнишь, в августе мы решали, откуда брать фото для сайта? На чём остановились?"],["tool","Read(~/.claude/handoff-workspace/INDEX.md)"],
+    with:[["you","Помнишь, в августе мы решали, откуда брать фото для сайта? На чём остановились?"],["tool","Read(~/.claude/handoff-workspace/INDEX.md)","Открывает архив заметок по датам"],
       ["out","04.08 · сайт-визитка: фото только свои, от стока отказались\nподробно: 2026-08/2026-08-04.md"],
       ["ai","Нашёл запись от 4 августа. Решили снимать фото сами: на стоке такие же картинки у конкурентов. Продолжаем с этим?"]],
     cap:{without:"Через два месяца не помнит ни агент, ни ты сам.",with:"Итог каждого дня лежит в архиве по датам, и агент находит решение двухмесячной давности за пару секунд."}},
   keys:{title:"claude · ~/Work/бот",
-    without:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)"],["leak","TELEGRAM_BOT_TOKEN=<b>7712…:AAF3xQ</b>\nOPENAI_API_KEY=<b>sk-proj-4fJ9…k2Qa</b>"],["ai","Вижу токен бота и API-ключ, сейчас проверю их…"]],
-    with:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)"],["deny",DENY_ENV],["tool","Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env)"],
+    without:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)","Открывает файл с паролями и ключами"],["leak","TELEGRAM_BOT_TOKEN=<b>7712…:AAF3xQ</b>\nOPENAI_API_KEY=<b>sk-proj-4fJ9…k2Qa</b>"],["ai","Вижу токен бота и API-ключ, сейчас проверю их…"]],
+    with:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)","Открывает файл с паролями и ключами"],["deny",DENY_ENV],["tool","Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env)","Смотрит только названия ключей"],
       ["env","TELEGRAM_BOT_TOKEN="+VAULT("7712…:AAF3xQ")],["env","OPENAI_API_KEY="+VAULT("sk-proj-4fJ9…k2Qa")],["ai","Токен бота на месте. Проверю, запущен ли сам бот."]],
     cap:{without:"Ключи попали в чат и остались в истории. Кто её увидит, тот сможет ими пользоваться.",with:"Агент видит только названия. Сами значения остаются в файле, у тебя."}},
   learn:{title:"claude · ~/Work/блог",
     without:[["you","Опять длинные тире в тексте. Я же просил без них"],["ai","Извини! Сейчас уберу."],["sys","на следующий день"],["you","Опять длинные тире…"],["ai","Извини! Сейчас уберу."]],
     with:[["you","Опять длинные тире в тексте. Я же просил без них"],["ai","Убрал. Вижу, ты просишь об этом уже третий раз, поэтому записываю правило в скилл, который пишет тексты."],
-      ["tool","Edit(~/.agents/skills/posts/SKILL.md)"],["out","+ Без длинного тире: только запятые и точки\nжурнал: правка №12, откатить: «откати правку 12»"],["ai","Готово. С завтрашнего дня это уже часть инструкции."]],
+      ["tool","Edit(~/.agents/skills/posts/SKILL.md)","Дописывает правило в скилл для текстов"],["out","+ Без длинного тире: только запятые и точки\nжурнал: правка №12, откатить: «откати правку 12»"],["ai","Готово. С завтрашнего дня это уже часть инструкции."]],
     cap:{without:"Извиняется, исправляет, а на следующий день повторяет ту же ошибку.",with:"Повторённая просьба становится правилом в том скилле, где она нужна. Каждая правка записана, её можно откатить."}},
   loop:{title:"claude · ~/Work/сайт",
-    without:[["you","Почему на телефоне сайт показывает пустую страницу?"],["tool","Edit(style.css: убрал overflow)"],["tool","Bash(npm run build)"],["out","собрано, на телефоне пусто"],
-      ["ai","Не помогло. Верну overflow и поправлю высоту."],["tool","Edit(style.css: вернул overflow)"],["tool","Bash(npm run build)"],["out","собрано, на телефоне пусто"],["ai","Хм. Попробую всё-таки убрать overflow…"]],
-    with:[["you","Почему на телефоне сайт показывает пустую страницу?"],["tool","Edit → build → откат → build, и так три раза"],["hook",LOOP],
-      ["ai","Я трижды прошёл один и тот же круг. Значит, дело не в стилях, посмотрю ошибки самой страницы."],["tool","Bash(grep -rn matchMedia src)"],["out","src/app.js:12  на старых телефонах этой функции нет"],["ai","Вот причина. Чиню её, а стили не трогаю."]],
+    without:[["you","Почему на телефоне сайт показывает пустую страницу?"],["tool","Edit(style.css)","Меняет стили сайта"],["tool","Bash(npm run build)","Собирает сайт"],["out","собрано, на телефоне пусто"],
+      ["ai","Не помогло. Верну overflow и поправлю высоту."],["tool","Edit(style.css)","Возвращает стили как было"],["tool","Bash(npm run build)","Собирает сайт"],["out","собрано, на телефоне пусто"],["ai","Хм. Попробую всё-таки убрать overflow…"]],
+    with:[["you","Почему на телефоне сайт показывает пустую страницу?"],["tool","Edit → build → Edit → build ×3","Правит, собирает, откатывает, и так три раза"],["hook",LOOP],
+      ["ai","Я трижды прошёл один и тот же круг. Значит, дело не в стилях, посмотрю ошибки самой страницы."],["tool","Bash(grep -rn matchMedia src)","Ищет ошибку в коде страницы"],["out","src/app.js:12  на старых телефонах этой функции нет"],["ai","Вот причина. Чиню её, а стили не трогаю."]],
     cap:{without:"Агент ходит между двумя правками и не замечает, что уже пробовал обе.",with:"Хук заметил, что шаги пошли по кругу, и агент стал искать причину в другом месте."}}
 };
 function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
@@ -813,13 +820,14 @@ async function play(term,lines,alive){
   term.innerHTML="";
   for(var i=0;i<lines.length;i++){
     if(!alive())return false;
-    var type=lines[i][0],txt=lines[i][1],line=el("div","l t-"+type);term.appendChild(line);
+    var type=lines[i][0],txt=lines[i][1],plain=lines[i][2],line=el("div","l t-"+type);term.appendChild(line);
     if(type==="you"&&!reduce){
       var c=el("span","caret");line.appendChild(document.createTextNode(""));line.appendChild(c);
       for(var k=1;k<=txt.length;k++){if(!alive())return false;line.firstChild.nodeValue=txt.slice(0,k);await sleep(24)}
       c.remove();await sleep(380);
     }else{
-      line.innerHTML=type==="leak"||type==="env"?txt:esc(txt);
+      var body=type==="leak"||type==="env"?txt:esc(txt);
+      line.innerHTML=plain?'<span class="h">'+esc(plain)+"</span><code>"+body+"</code>":body;
       if(!reduce)await sleep(type==="burn"?170:type==="deny"||type==="hook"?1300:type==="ai"?950:650);
     }
     while(term.scrollHeight>term.clientHeight&&term.firstChild)term.removeChild(term.firstChild);
