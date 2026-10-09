@@ -7,7 +7,7 @@
 <meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт стереть лишнее и не показывает ключи. Ставится одним сообщением агенту.">
 <meta name="theme-color" content="#050505">
 <meta property="og:title" content="claude-tuning: гениальный стажёр со списком дел">
-<meta property="og:description" content="Помнит задачу между сессиями, не стирает лишнего и не показывает пароли. Ставится одним сообщением агенту.">
+<meta property="og:description" content="Модель у всех одна, разница в системе вокруг неё. Помнит твои дела, тормозит перед необратимым и учится на твоих поправках.">
 <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:Onest;src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
@@ -438,15 +438,15 @@ footer a{color:var(--muted);text-decoration:none}
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="wrap hero-grid">
     <div>
-      <div class="mono hero-kick">claude-tuning · набор для Claude Code</div>
+      <div class="mono hero-kick">claude-tuning · система вокруг Claude Code</div>
       <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-      <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждый новый разговор начинает с чистого листа. Я дал ему список дел, закрыл <span class="tip" tabindex="0">опасные команды<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> и спрятал от него пароли. Ставится одним сообщением.</p>
+      <p class="lead">Модель у всех одна, разница в том, что стоит вокруг неё. Из коробки <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> каждое утро знакомится с тобой заново и выполнит любую команду, даже ту, что сотрёт полдиска. Вокруг своего я собрал систему: он помнит, на чём мы остановились, тормозит перед <span class="tip" tabindex="0">необратимым<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> и учится на моих поправках. Ставится одним сообщением.</p>
       <div class="ctas">
-        <a class="btn" href="#install">Поставить <span class="arr">→</span></a>
-        <a class="ghost" href="#effects">Как я улучшил своего Claude</a>
+        <a class="btn" href="#install">Поставить себе <span class="arr">→</span></a>
+        <a class="ghost" href="#effects">Как это устроено у меня</a>
       </div>
       <div class="hero-chips">
-        <a href="#fx-memory"><i>✓</i>помнит дела</a><a href="#fx-lock"><i>✓</i>не стирает лишнего</a><a href="#fx-keys"><i>✓</i>прячет пароли</a><a href="#fx-limits"><i>✓</i>бережёт лимит</a><a href="#fx-learn"><i>✓</i>учится у тебя</a>
+        <a href="#fx-memory"><i>✓</i>помнит дела</a><a href="#fx-lock"><i>✓</i>тормозит перед необратимым</a><a href="#fx-keys"><i>✓</i>не светит ключи</a><a href="#fx-limits"><i>✓</i>бережёт лимит</a><a href="#fx-learn"><i>✓</i>учится у тебя</a>
       </div>
     </div>
     <div class="hdemo" id="hdemo">
@@ -461,47 +461,47 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="block news" id="news">
   <div class="wrap">
     <div class="head rise">
-      <div class="mono" style="margin-bottom:18px">реальные случаи</div>
-      <h2>Это уже случалось с&nbsp;живыми людьми</h2>
-      <p class="lead">Пять настоящих историй со ссылками на источники. Под каждой я рассказываю, чем бы она закончилась, если бы у человека стоял этот набор.</p>
+      <div class="mono" style="margin-bottom:18px">это не страшилки</div>
+      <h2>Это случилось с&nbsp;теми, кто оставил Claude как есть</h2>
+      <p class="lead">Пять историй со ссылками на источники. Под каждой я разбираю, в каком месте система бы её остановила.</p>
     </div>
     <div class="ngrid">
       <article class="nc big rise">
         <span class="when">декабрь 2025 · Reddit</span>
         <h3>Одна команда стёрла весь&nbsp;Mac</h3>
-        <p>Claude сам запускает команды на твоём компьютере, и одна из них удаляет папки сразу, без корзины и без вопроса «вы уверены?». Агент чистил тестовые папки и случайно добавил к ним ещё одну: всю домашнюю папку. Вместе с тестами пропали документы, настройки и связка ключей с паролями.</p>
+        <p>Claude сам запускает команды на твоём компьютере, и среди них есть такая, что стирает папки мгновенно, мимо корзины и без «вы уверены?». Агент чистил тестовые папки и прихватил вместе с ними домашнюю. Документы, настройки и связка ключей с паролями ушли вместе с тестами.</p>
         <div class="act"><span class="h">⌘ Удалить папки tests, patches, plan и <mark>всю домашнюю папку</mark></span><code>rm -rf tests/ patches/ plan/ <b>~/</b></code></div>
         <div class="lost" aria-label="Что удалила команда"><span>~/Documents</span><span>~/Desktop</span><span>~/Pictures</span><span>~/Library/Keychains</span><span>…и всё остальное</span></div>
-        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Набор проверяет каждую команду до запуска. Он увидел бы в ней домашнюю папку и не дал её выполнить, а агенту пришлось бы найти ошибку и удалить только тесты. Эту самую команду я прогнал через набор: она остановлена.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Хук смотрит на каждую команду до запуска. Он увидел бы там домашнюю папку и не пустил её, а агенту пришлось бы найти свою ошибку и удалить только тесты. Я прогнал через набор ровно эту команду, и она не прошла.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.reddit.com/r/ClaudeAI/comments/1pgxckk/claude_cli_deleted_my_entire_home_directory_wiped/" target="_blank" rel="noopener">пост на Reddit</a>, <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-rm-rf-incident/" target="_blank" rel="noopener">разбор Docker</a></span>
       </article>
       <article class="nc rise">
         <span class="when">сентябрь 2026 · Reddit</span>
         <h3>48&nbsp;218 файлов удалено за&nbsp;103 секунды</h3>
-        <p>По словам автора поста, Claude Code написал скрипт очистки, прошёл по ссылкам обратно в рабочую папку и удалил файлы проекта.</p>
-        <div class="clock" aria-label="Удаление шло 103 секунды, с 22:10:31 до 22:12:14"><div class="bar"><i></i></div><div class="ts"><span>22:10:31</span><b>103 секунды</b><span>22:12:14</span></div><p>Почти 470 файлов в секунду. Заметить и остановить это вручную не успеть.</p></div>
-        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Удаляла не команда, а скрипт, поэтому набор смотрит и внутрь скриптов. Прежде чем запустить такой, агент показал бы его тебе и спросил разрешения.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <p>По словам автора поста, Claude Code сам написал скрипт очистки, прошёл по ссылкам обратно в рабочую папку и выкосил проект.</p>
+        <div class="clock" aria-label="Удаление шло 103 секунды, с 22:10:31 до 22:12:14"><div class="bar"><i></i></div><div class="ts"><span>22:10:31</span><b>103 секунды</b><span>22:12:14</span></div><p>Почти 470 файлов в секунду. Руками такое не остановить: пока поймёшь, что происходит, проекта уже нет.</p></div>
+        <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Тут удаляла не команда, а скрипт, и обычная защита его не видит. Набор заглядывает внутрь, и если там удаление, сначала показывает скрипт тебе.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.techradar.com/pro/security/i-broke-something-a-claude-code-ai-agent-deleted-48-000-files-in-just-over-100-seconds-then-apologized-for-doing-so" target="_blank" rel="noopener">TechRadar</a></span>
       </article>
       <article class="nc sub rise">
         <span class="when">31 марта 2026 · The Register</span>
         <h3>«Лимиты кончаются гораздо быстрее, чем ожидалось»</h3>
-        <p>Так написала сама Anthropic и пообещала, что команда займётся этим в первую очередь.</p>
-        <a class="save" href="#fx-limits"><span class="k">с claude-tuning</span><span class="t">Агент начинал бы разговор с короткой шпаргалки и заметок за три дня, а не со всей истории, и лимит уходил бы на работу.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <p>Это написала сама Anthropic и пообещала разобраться в первую очередь. Ждать, пока разберутся, можно долго.</p>
+        <a class="save" href="#fx-limits"><span class="k">с claude-tuning</span><span class="t">Агент начинал бы день с короткой шпаргалки и заметок за три дня, а не с перечитывания всей истории, и лимит уходил бы на работу.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.theregister.com/2026/03/31/anthropic_claude_code_limits/" target="_blank" rel="noopener">The Register</a></span>
       </article>
       <article class="nc sub rise">
         <span class="when">февраль 2026 · GitHub</span>
         <h3>Claude вписывает ключи прямо в&nbsp;команды</h3>
-        <p>Он открывает файл с ключами и вставляет токены в скрипты, а скрипты остаются в истории разговора. Тикет об этом закрыли, так ничего и не исправив.</p>
-        <a class="save" href="#fx-keys"><span class="k">с claude-tuning</span><span class="t">Хук не дал бы открыть файл с ключами. Агент увидел бы только их названия, а сами токены остались бы у тебя.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <p>Он открывает файл с ключами и вписывает токены прямо в скрипты, а скрипты остаются в истории разговора. Тикет закрыли, так ничего и не исправив.</p>
+        <a class="save" href="#fx-keys"><span class="k">с claude-tuning</span><span class="t">Хук не дал бы открыть этот файл. Агент видел бы только названия ключей, а сами значения остались бы у тебя.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/24185" target="_blank" rel="noopener">GitHub #24185</a></span>
       </article>
       <article class="nc sub rise">
         <span class="when">июль 2026 · GitHub</span>
         <h3>Claude ничего не запоминает от&nbsp;сессии к&nbsp;сессии</h3>
-        <p>Так назвал свою жалобу человек, который часами объяснял агенту, как устроены его проекты, а в новом разговоре от этого ничего не осталось. Тикет закрыли за давностью, так и не ответив.</p>
-        <a class="save" href="#fx-memory"><span class="k">с claude-tuning</span><span class="t">Итог каждого дня ложился бы в архив, и в новом разговоре агент начинал бы с него, а не с просьбы рассказать всё заново.</span><span class="go">Посмотреть, как это работает →</span></a>
+        <p>Так назвал свою жалобу человек, который часами объяснял агенту свои проекты, а в новом разговоре всё пропало. Тикет закрыли за давностью, ответа так и не было.</p>
+        <a class="save" href="#fx-memory"><span class="k">с claude-tuning</span><span class="t">Итог каждого дня ложился бы в архив, и новый разговор начинался бы с него, а не с «расскажи, что за проект».</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/73024" target="_blank" rel="noopener">GitHub #73024</a></span>
       </article>
     </div>
@@ -512,21 +512,21 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <div class="mono" style="margin-bottom:18px">а у тебя?</div>
-      <h2>Что из этого было с&nbsp;тобой?</h2>
-      <p class="lead">Отметь всё, с чем уже сталкивался, и под каждым пунктом увидишь, что из набора это исправляет.</p>
+      <h2>Узнаёшь свою неделю?</h2>
+      <p class="lead">Отмечай честно. Под каждым пунктом увидишь, какая часть системы это закрывает.</p>
     </div>
     <div class="qgrid rise" id="qgrid">
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро объясняю всё заново</b><small>Приходится снова рассказывать, что за проект и на чём вчера остановились.</small><span class="cure">→ Набор ведёт список дел, и утром агент сам вспоминает, на чём вчера остановилась работа</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончается раньше работы</b><small>Только начал, а лимит уже кончился, и ждать теперь до вечера.</small><span class="cure">→ Агент читает короткую шпаргалку и только свежие заметки, так что лимит уходит на работу</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Боюсь пускать агента в важные папки</b><small>Страшно, что он удалит лишнее, а вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды ещё до запуска</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент видел мои пароли или ключи</b><small>Он открыл файл с настройками, и токен оказался прямо в чате.</small><span class="cure">→ Хук не даёт открыть файл с ключами, агент видит только их названия</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Он ходит по кругу</b><small>Пробует то одно, то другое и снова возвращается к первому, а лимит тем временем тает.</small><span class="cure">→ Хук замечает, что шаги повторяются, и просит агента зайти с другой стороны</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он забыл, что делал</b><small>Разговор стал длинным, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список файлов, которые он правил</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро заново объясняешь проект</b><small>Что строим и где остановились, и так изо дня в день.</small><span class="cure">→ Набор ведёт список дел, и утром агент сам вспоминает, на чём вчера остановилась работа</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончился, а работа нет</b><small>Только разогнался, и до вечера стоишь.</small><span class="cure">→ Агент читает короткую шпаргалку и только свежие заметки, так что лимит уходит на работу</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Не пускаешь агента к важному</b><small>Потому что одна кривая команда, и вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды ещё до запуска</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Ключ уже светился в чате</b><small>Агент открыл настройки, и токен теперь живёт в истории разговора.</small><span class="cure">→ Хук не даёт открыть файл с ключами, агент видит только их названия</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент ходит по кругу</b><small>Правит, откатывает, снова правит то же место, а лимит тает.</small><span class="cure">→ Хук замечает, что шаги повторяются, и просит агента зайти с другой стороны</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он всё забыл</b><small>Разговор разросся, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список файлов, которые он правил</span></span></button>
     </div>
     <div class="qres" id="qres" aria-live="polite">
       <div class="sc"><strong id="qn">0</strong><span>из 6</span></div>
-      <p id="qt">Отметь хотя бы один пункт, или тебе просто очень везёт.</p>
-      <div class="ctas"><a class="btn" href="#install">Поставить <span class="arr">→</span></a><a class="ghost" href="#effects">Как это выглядит</a></div>
+      <p id="qt">Ни одного? Значит, ты либо только начал, либо уже собрал своё.</p>
+      <div class="ctas"><a class="btn" href="#install">Поставить <span class="arr">→</span></a><a class="ghost" href="#effects">Посмотреть в деле</a></div>
     </div>
   </div>
 </section>
@@ -534,15 +534,15 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="block" id="effects">
   <div class="wrap">
     <div class="head rise">
-      <h2>Что меняется после тюнинга</h2>
-      <p class="lead">Шесть случаев, знакомых всем, кто работает с Claude. В каждом есть переключатель: посмотри, как он ведёт себя из коробки и как после установки <span class="tip" tabindex="0">скилла<span class="tip-b" role="tooltip">Скилл: инструкция для Claude, которую он открывает, когда она нужна. Этот набор ставится как скилл и сам настраивает остальное.</span></span>.</p>
+      <h2>Шесть сцен из обычного дня</h2>
+      <p class="lead">В каждой переключатель: Claude из коробки и Claude внутри системы. Смотри, где он ведёт себя иначе.</p>
     </div>
     <article class="fx" id="fx-lock">
       <div class="fx-head rise">
         <div class="num">01 · защита от удаления</div>
-        <h3>Не&nbsp;сотрёт лишнего</h3>
-        <p class="lead-in">Опасные команды: удалить папку целиком, стереть базу данных, затереть историю проекта. После них ничего не вернуть.</p>
-        <p>Например, ты просишь убрать дубли фотографий. В команду случайно попадает лишний символ, и вместо одной папки она удалит всё, что лежит на компьютере. Из коробки агент выполнит её не глядя. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. Необратимое не запустится, агент сам найдёт ошибку и удалит только дубли.</p>
+        <h3>Тормозит перед необратимым</h3>
+        <p class="lead-in">Есть команды, после которых ничего не вернуть: удалить папку целиком, стереть базу, переписать историю проекта.</p>
+        <p>Просишь убрать дубли фотографий, а в команду попадает лишний символ, и под удаление уходит весь компьютер. Из коробки агент выполнит это не моргнув. В системе каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. Необратимое не запустится, агент сам найдёт ошибку и удалит только дубли.</p>
         <span class="fact">все 22 опасные команды из проверки остановлены, обычные проходят</span>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
@@ -551,7 +551,7 @@ footer a{color:var(--muted);text-decoration:none}
       <div class="fx-head rise">
         <div class="num">02 · память</div>
         <h3>Помнит разговор с&nbsp;тобой двухмесячной давности</h3>
-        <p>Из коробки каждый разговор начинается с чистого листа, и всё вчерашнее тебе приходится рассказывать ему заново. После тюнинга итог каждого дня ложится в архив по датам: что сделали, что решили и почему. Через пару месяцев агент находит нужный день и помнит о твоей работе то, что ты сам мог уже забыть.</p>
+        <p>Из коробки каждый разговор начинается с нуля, и вчерашнее ты пересказываешь ему сам. В системе итог каждого дня ложится в архив по датам: что сделали, что решили и почему. Через два месяца агент открывает нужный день и помнит о твоей работе то, что ты уже забыл.</p>
         <span class="fact">команды <span class="tip" tabindex="0">/morning и /endday<span class="tip-b" role="tooltip">Их пишешь ты в чате Claude Code: /morning утром, чтобы продолжить, /endday вечером, чтобы записать итог дня.</span></span></span>
       </div>
       <div class="scene g2 rise" data-demo="memory"></div>
@@ -610,7 +610,7 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="author rise">
       <div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="currentColor" stroke-width="9" stroke-linecap="square"><path d="M32 4v56M4 32h56M12 12l40 40M52 12L12 52"/></g></svg></div>
       <div>
-        <blockquote>Я работаю в Claude Code каждый день, и этот набор давно стоит у меня самого. <span>Выходит новая модель или новая возможность, и я перестраиваю его под неё, пока не станет удобно.</span></blockquote>
+        <blockquote>Я живу в Claude Code: только за последнюю неделю у меня было 179 разговоров с агентами, от серверов до роликов. <span>Эта система давно стоит у меня самого, и с каждой новой моделью я перестраиваю её, пока не станет удобно.</span></blockquote>
         <div class="sig mono">veeskelad · автор набора</div>
       </div>
     </div>
@@ -665,10 +665,9 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="mono rise">вопросы</div>
     <h2 class="rise" style="margin:18px 0 30px">Коротко и&nbsp;честно</h2>
     <div class="rise">
-      <details><summary>Я не программист. Мне это нужно?</summary><p>Да. Набор пригодится всем, кто работает в Claude Code: пишешь ли ты код, тексты или собираешь автоматизации. Где лежат настройки, знать не нужно: агент сам их найдёт, объяснит и спросит разрешения.</p></details>
+      <details><summary>Я не программист. Мне это нужно?</summary><p>Если ты уже работаешь в Claude Code, то да, неважно, пишешь ты код, тексты или собираешь автоматизации. Где лежат настройки, знать не нужно: агент найдёт их сам, объяснит и спросит разрешения.</p></details>
       <details><summary>Он не сломает то, что у меня уже работает?</summary><p>При установке агент твоих файлов не перезаписывает: если что-то совпало по имени, оставляет твою версию и говорит об этом. Потом он подстраивает свои инструкции под тебя, но каждую правку записывает в журнал вместе с копией, и любую можно откатить одной просьбой. Хуки и настройки доступа он сам не меняет.</p></details>
       <details><summary>Агент увидит мои пароли?</summary><p>Нет. После установки он не может открыть файлы с секретами и вывести их в чат. Значения остаются только у тебя.</p></details>
-      <details><summary>Что бесплатно, а что нет?</summary><p>Набор бесплатный, и код открыт: можно прочитать каждую строку до установки. Я собирал его для себя и пользуюсь каждый день. Платный здесь только сам Claude Code: он работает по твоей подписке Claude или через API, как и раньше.</p></details>
       <details><summary>А если не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
       <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Хуки работают только в Claude Code.</p></details>
     </div>
@@ -778,8 +777,8 @@ try{
     var n=items.filter(function(b){return b.getAttribute("aria-pressed")==="true"}).length;
     qn.textContent=n;res.classList.toggle("hit",n>0);
     var W=["","это","оба","все три","все четыре","все пять","все шесть"];
-    qt.textContent=n===0?"Отметь хотя бы один пункт, или тебе просто очень везёт."
-      :"Набор закрывает "+W[n]+", а ставится одним сообщением и бесплатно.";
+    qt.textContent=n===0?"Ни одного? Значит, ты либо только начал, либо уже собрал своё."
+      :"Система закрывает "+W[n]+", а ставится одним сообщением агенту.";
   }
   items.forEach(function(b){b.addEventListener("click",function(){b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true"?"false":"true");upd()})});
   upd();
