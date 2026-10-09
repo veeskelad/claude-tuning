@@ -432,53 +432,53 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="block news" id="news">
   <div class="wrap">
     <div class="head rise">
-      <div class="mono" style="margin-bottom:18px">это уже случилось</div>
-      <h2>Не страшилки. Новости.</h2>
-      <p class="lead">Всё это было на самом деле, с обычным Claude Code и похожими агентами. Под каждой историей источник и ссылка на пример: что поменяет набор.</p>
+      <div class="mono" style="margin-bottom:18px">реальные случаи</div>
+      <h2>Это уже случалось с&nbsp;живыми людьми</h2>
+      <p class="lead">Каждая история ниже произошла на самом деле, под ней ссылка на источник. А кнопка рядом покажет, как набор не дал бы этому случиться.</p>
     </div>
     <div class="ngrid">
       <article class="nc big rise">
         <span class="when">декабрь 2025 · Reddit</span>
         <h3>Одна команда стёрла весь&nbsp;Mac</h3>
-        <p>Агент чистил тестовые папки и дописал в конец команды <span class="mono" style="font-size:inherit;text-transform:none;letter-spacing:0;color:var(--ink)">~/</span>, то есть всю домашнюю папку. Пропали документы, настройки и связка ключей с паролями.</p>
+        <p>Агент чистил тестовые папки и случайно дописал в конец команды <span class="mono" style="font-size:inherit;text-transform:none;letter-spacing:0;color:var(--ink)">~/</span>, а это вся домашняя папка. Вместе с тестами пропали документы, настройки и связка ключей с паролями.</p>
         <code>rm -rf tests/ patches/ plan/ <b>~/</b></code>
         <div class="lost" aria-label="Что удалила команда"><span>~/Documents</span><span>~/Desktop</span><span>~/Pictures</span><span>~/Library/Keychains</span><span>…и всё остальное</span></div>
-        <a class="fix" href="#fx-lock"><i>✓</i>Хук остановит её до запуска. Пример 01</a>
+        <a class="fix" href="#fx-lock"><i>✓</i>Как набор останавливает такие команды</a>
         <span class="src">Источник: <a href="https://www.reddit.com/r/ClaudeAI/comments/1pgxckk/claude_cli_deleted_my_entire_home_directory_wiped/" target="_blank" rel="noopener">пост на Reddit</a>, <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-rm-rf-incident/" target="_blank" rel="noopener">разбор Docker</a></span>
       </article>
       <article class="nc rise">
         <span class="when">сентябрь 2026 · Reddit</span>
         <h3>48&nbsp;218 файлов за&nbsp;103 секунды</h3>
         <p>По словам автора поста, Claude Code написал скрипт очистки, прошёл по ссылкам обратно в рабочую папку и удалил файлы проекта.</p>
-        <a class="fix" href="#fx-lock"><i>✓</i>Пример 01</a>
+        <a class="fix" href="#fx-lock"><i>✓</i>Как набор это ловит</a>
         <span class="src">Источник: <a href="https://www.techradar.com/pro/security/i-broke-something-a-claude-code-ai-agent-deleted-48-000-files-in-just-over-100-seconds-then-apologized-for-doing-so" target="_blank" rel="noopener">TechRadar</a></span>
       </article>
       <article class="nc rise">
         <span class="when">31 марта 2026 · The Register</span>
         <h3>«Лимиты кончаются гораздо быстрее, чем ожидалось»</h3>
-        <p>Это написала сама Anthropic и назвала разбор главной задачей команды.</p>
-        <a class="fix" href="#fx-limits"><i>✓</i>Пример 05</a>
+        <p>Так написала сама Anthropic и пообещала, что команда займётся этим в первую очередь.</p>
+        <a class="fix" href="#fx-limits"><i>✓</i>Как набор бережёт лимит</a>
         <span class="src">Источник: <a href="https://www.theregister.com/2026/03/31/anthropic_claude_code_limits/" target="_blank" rel="noopener">The Register</a></span>
       </article>
       <article class="nc rise">
         <span class="when">2 сентября · Хабр</span>
-        <h3>Один файл прочитан 266&nbsp;раз</h3>
-        <p>Автор полгода считал токены. Лимиты подписки кончались к обеду, а агент снова и снова перечитывал одну и ту же таблицу стилей.</p>
-        <a class="fix" href="#fx-limits"><i>✓</i>Пример 05</a>
+        <h3>Агент 266&nbsp;раз перечитал один и&nbsp;тот же файл</h3>
+        <p>Автор статьи полгода считал, куда уходят токены. Лимит подписки кончался у него к обеду, а агент всё это время перечитывал одну и ту же таблицу стилей.</p>
+        <a class="fix" href="#fx-limits"><i>✓</i>Как набор бережёт лимит</a>
         <span class="src">Источник: <a href="https://habr.com/ru/articles/1077658/" target="_blank" rel="noopener">Хабр</a></span>
       </article>
       <article class="nc rise">
         <span class="when">февраль 2026 · GitHub</span>
-        <h3>Ключи из .env прямо в&nbsp;командах</h3>
-        <p>Claude Code открывает файл с ключами и вписывает токены в скрипты. Они остаются в истории разговора. Тикет закрыли без исправления.</p>
-        <a class="fix" href="#fx-keys"><i>✓</i>Пример 03</a>
+        <h3>Claude вписывает ключи прямо в&nbsp;команды</h3>
+        <p>Он открывает файл с ключами и вставляет токены в скрипты, а скрипты остаются в истории разговора. Тикет об этом закрыли, так ничего и не исправив.</p>
+        <a class="fix" href="#fx-keys"><i>✓</i>Как набор прячет ключи</a>
         <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/24185" target="_blank" rel="noopener">GitHub #24185</a></span>
       </article>
       <article class="nc rise">
         <span class="when">июль 2026 · GitHub</span>
         <h3>«Claude remembers NOTHING»</h3>
-        <p>Человек часами объяснял агенту, как устроены его проекты. В новом разговоре от этого ничего не осталось. Тикет закрыт за давностью.</p>
-        <a class="fix" href="#fx-memory"><i>✓</i>Пример 02</a>
+        <p>Человек часами объяснял агенту, как устроены его проекты, а в новом разговоре от этого ничего не осталось. Тикет закрыли за давностью, так и не ответив.</p>
+        <a class="fix" href="#fx-memory"><i>✓</i>Как набор помнит дела</a>
         <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/73024" target="_blank" rel="noopener">GitHub #73024</a></span>
       </article>
     </div>
@@ -489,20 +489,20 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <div class="mono" style="margin-bottom:18px">а у тебя?</div>
-      <h2>Узнаёшь себя?</h2>
-      <p class="lead">Отметь, что уже было с тобой. Под каждым пунктом появится, что из набора это закрывает.</p>
+      <h2>Что из этого было с&nbsp;тобой?</h2>
+      <p class="lead">Отметь всё, с чем уже сталкивался, и под каждым пунктом увидишь, что из набора это исправляет.</p>
     </div>
     <div class="qgrid rise" id="qgrid">
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро объясняю всё заново</b><small>Что за проект, на чём остановились, что решили вчера.</small><span class="cure">→ Список дел и запись в конце дня. Пример 02</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончается раньше работы</b><small>Ещё ничего толком не сделал, а уже ждать до вечера.</small><span class="cure">→ Короткая шпаргалка и только свежие заметки. Пример 05</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Боюсь пускать агента в важные папки</b><small>Вдруг удалит лишнее, и вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды. Пример 01</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент видел мои пароли или ключи</b><small>Открыл файл с настройками, и токен оказался в чате.</small><span class="cure">→ Хук не даёт открыть файл с ключами. Пример 03</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Он пятый раз делает одно и то же</b><small>Та же ошибка, тот же запуск, а лимит тает.</small><span class="cure">→ После пяти повторов хук его останавливает. Пример 04</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он забыл, что делал</b><small>Разговор стал длинным, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список правленых файлов</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро объясняю всё заново</b><small>Приходится снова рассказывать, что за проект и на чём вчера остановились.</small><span class="cure">→ Набор ведёт список дел, и утром агент сам вспоминает, где вы закончили</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончается раньше работы</b><small>Только начал, а лимит уже кончился, и ждать теперь до вечера.</small><span class="cure">→ Агент читает короткую шпаргалку и только свежие заметки, так что лимит уходит на работу</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Боюсь пускать агента в важные папки</b><small>Страшно, что он удалит лишнее, а вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды ещё до запуска</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент видел мои пароли или ключи</b><small>Он открыл файл с настройками, и токен оказался прямо в чате.</small><span class="cure">→ Хук не даёт открыть файл с ключами, агент видит только их названия</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Он пятый раз делает одно и то же</b><small>Запускает одно и то же с той же ошибкой, а лимит тем временем тает.</small><span class="cure">→ После пяти одинаковых попыток хук его останавливает и просит поискать причину</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он забыл, что делал</b><small>Разговор стал длинным, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список файлов, которые он правил</span></span></button>
     </div>
     <div class="qres" id="qres" aria-live="polite">
       <div class="sc"><strong id="qn">0</strong><span>из 6</span></div>
-      <p id="qt">Отметь хотя бы один пункт. Или тебе очень везёт.</p>
+      <p id="qt">Отметь хотя бы один пункт, или тебе просто очень везёт.</p>
       <div class="ctas"><a class="btn" href="#install">Поставить <span class="arr">→</span></a><a class="ghost" href="#effects">Как это выглядит</a></div>
     </div>
   </div>
@@ -520,7 +520,7 @@ footer a{color:var(--muted);text-decoration:none}
         <h3>Не&nbsp;сотрёт лишнего</h3>
         <p class="lead-in">Опасные команды: удалить папку целиком, стереть базу данных, затереть историю проекта. После них ничего не вернуть.</p>
         <p>Например, ты просишь убрать дубли фотографий. В команду случайно попадает лишний символ, и вместо одной папки она удалит всё, что лежит на компьютере. Из коробки агент выполнит её не глядя. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. Необратимое не запустится, агент сам найдёт ошибку и удалит только дубли.</p>
-        <span class="fact">остановлены 22 опасные команды из 22, обычные проходят</span>
+        <span class="fact">все 22 опасные команды из проверки остановлены, обычные проходят</span>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
     </article>
@@ -565,10 +565,10 @@ footer a{color:var(--muted);text-decoration:none}
 
 <section aria-label="Цифры" style="padding:20px 0 0"><div class="wrap">
   <div class="stats scene g2">
-    <div class="stat rise"><div class="n o" data-count="22" data-suffix="/22">22/22</div><p>опасные команды остановлены до запуска, в том числе команда, стёршая Mac в декабре. 19 обычных прошли без вопросов</p></div>
-    <div class="stat rise"><div class="n" data-count="25" data-suffix="×">25×</div><p>меньше заметок читает агент по утрам: из 860&nbsp;КБ за 60 дней только свежие 34&nbsp;КБ. Замер на моей машине</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков срабатывают сами: просить и помнить о них не нужно</p></div>
-    <div class="stat rise"><div class="n" data-count="1">1</div><p>сообщение агенту, и набор стоит. Без твоего «да» он ничего не меняет</p></div>
+    <div class="stat rise"><div class="n o" data-count="22" data-suffix="/22">22/22</div><p>опасных команд из проверки остановлены до запуска, включая ту, что стёрла Mac в декабре, а 19 обычных прошли без вопросов</p></div>
+    <div class="stat rise"><div class="n" data-count="25" data-suffix="×">25×</div><p>меньше заметок агент читает по утрам: из 860&nbsp;КБ, которые накопились у меня за 60 дней, он берёт только свежие 34&nbsp;КБ</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков срабатывают сами, так что просить и помнить о них не нужно</p></div>
+    <div class="stat rise"><div class="n" data-count="1">1</div><p>сообщение агенту, и набор стоит, причём без твоего «да» он ничего не поменяет</p></div>
   </div>
 </div>
 </section>
@@ -589,7 +589,7 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise" style="margin-bottom:0">
       <div class="mono">установка</div>
-      <h2 style="margin-top:18px">Ты говоришь «да».<br>Остальное делает агент.</h2>
+      <h2 style="margin-top:18px">Ты только говоришь «да», остальное агент сделает сам</h2>
     </div>
     <div class="steps" id="steps">
       <div class="track"><div class="fill"></div></div>
@@ -605,7 +605,7 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap inst">
     <div class="rise">
       <div class="mono">одно сообщение</div>
-      <h2 style="margin-top:18px">Скопируй.<br>Отправь агенту.</h2>
+      <h2 style="margin-top:18px">Скопируй и&nbsp;отправь агенту</h2>
       <div class="price"><span class="now">0 ₽</span><span class="was">набор бесплатный, код открыт</span></div>
       <p class="muted" style="margin:-8px 0 6px;max-width:520px">Платишь только за сам Claude Code: подписку Claude или API, как и без набора. Набор ничего сверху не берёт.</p>
       <ul class="perks">
@@ -648,7 +648,7 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="final">
   <div class="giant" aria-hidden="true">напарник</div>
   <div class="wrap rise">
-    <h2>Тот же Claude.<br>Теперь напарник.</h2>
+    <h2>Тот же Claude, только теперь напарник</h2>
     <p class="lead">После установки агент сам предложит, с чего начать: сократить инструкцию, проверить защиту или записать итог дня.</p>
     <a class="btn" href="#install">Взять промпт <span class="arr">→</span></a>
   </div>
@@ -747,9 +747,9 @@ try{
   function upd(){
     var n=items.filter(function(b){return b.getAttribute("aria-pressed")==="true"}).length;
     qn.textContent=n;res.classList.toggle("hit",n>0);
-    qt.textContent=n===0?"Отметь хотя бы один пункт. Или тебе очень везёт."
-      :n===items.length?"Все шесть. Набор закрывает каждый, ставится одним сообщением и бесплатно."
-      :"Набор закрывает "+(n===1?"его":"все "+n)+". Ставится одним сообщением и бесплатно.";
+    var W=["","это","оба","все три","все четыре","все пять","все шесть"];
+    qt.textContent=n===0?"Отметь хотя бы один пункт, или тебе просто очень везёт."
+      :"Набор закрывает "+W[n]+", а ставится одним сообщением и бесплатно.";
   }
   items.forEach(function(b){b.addEventListener("click",function(){b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true"?"false":"true");upd()})});
   upd();
