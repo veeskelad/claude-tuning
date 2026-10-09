@@ -74,16 +74,12 @@ section{position:relative}
 .corner{position:absolute;z-index:2;line-height:1.5;text-shadow:0 1px 8px rgba(5,5,5,.6)}
 .corner.tl{left:24px;top:84px}.corner.tr{right:24px;top:84px;text-align:right}
 .corner.br{right:24px;bottom:28px;text-align:right}
-.glassPick{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px}
-.glassPick button{font:500 11.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:rgba(5,5,5,.35);border:1px solid rgba(255,255,255,.14);
-  padding:7px 10px;border-radius:999px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:all .25s}
-.glassPick button[aria-pressed="true"]{background:var(--ink);color:#050505;border-color:var(--ink)}
 .scrollHint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:2;width:22px;height:36px;border:1.5px solid rgba(255,255,255,.35);border-radius:12px}
 .scrollHint::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:7px;border-radius:2px;background:var(--ink);transform:translateX(-50%);animation:sh 2s var(--ease) infinite}
 @keyframes sh{0%{opacity:0;transform:translate(-50%,0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
 
 /* ---------- бегущая строка болей ---------- */
-.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:18px 0;background:#080707}
+.ticker{overflow:hidden;padding:18px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .ticker .track{display:flex;gap:44px;width:max-content;animation:tick 48s linear infinite}
 .ticker span{font:500 15px var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.02em}
 .ticker span i{font-style:normal;color:var(--signal);margin-right:12px}
@@ -162,6 +158,17 @@ section{position:relative}
 .ctx .big{font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
 .ctx .big em{font-style:normal;color:var(--signal-hot)}
 
+
+/* подсказки к терминам */
+.tip{position:relative;cursor:help;border-bottom:1.5px dotted rgba(255,122,26,.75);color:inherit;outline:none}
+.tip-b{position:absolute;left:50%;bottom:calc(100% + 12px);width:min(300px,78vw);transform:translate(-50%,8px);opacity:0;pointer-events:none;z-index:30;
+  padding:13px 15px;border-radius:16px;font:400 14px/1.5 var(--sans);color:var(--ink);text-align:left;letter-spacing:0;text-transform:none;white-space:normal;
+  background:rgba(24,16,12,.72);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);
+  border:1px solid rgba(255,255,255,.16);box-shadow:0 24px 50px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.18);
+  transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.tip-b::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;background:radial-gradient(80% 120% at 0% 0%,rgba(232,80,2,.28),rgba(232,80,2,0) 70%)}
+.tip:hover .tip-b,.tip:focus .tip-b,.tip.open .tip-b{opacity:1;transform:translate(-50%,0)}
+
 /* ---------- цифры ---------- */
 .stats.scene{grid-template-columns:repeat(4,1fr);gap:16px;padding:28px}
 .stat{padding:30px 24px;border-radius:24px;background:rgba(14,10,8,.5);-webkit-backdrop-filter:blur(24px) saturate(1.3);backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
@@ -192,7 +199,7 @@ section{position:relative}
 
 /* ---------- установка ---------- */
 .install{position:relative;padding:130px 0;overflow:hidden;isolation:isolate}
-.install::before{content:"";position:absolute;inset:0;z-index:-1;
+.install::before{content:"";position:absolute;inset:0;z-index:-1;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);
   background:radial-gradient(45% 60% at 80% 40%,rgba(232,80,2,.55),rgba(232,80,2,0) 70%),radial-gradient(40% 50% at 15% 90%,rgba(217,195,171,.18),rgba(217,195,171,0) 70%),radial-gradient(80% 80% at 50% 50%,#1a0b04,var(--canvas) 75%)}
 .inst{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
 .pcard{position:relative;border-radius:30px;padding:26px;background:rgba(18,15,13,.55);-webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);
@@ -225,12 +232,12 @@ details p{margin:14px 0 0;color:var(--ink-2);max-width:720px}
 
 /* ---------- финал ---------- */
 .final{position:relative;padding:160px 0 120px;overflow:hidden;text-align:center;isolation:isolate}
-.final::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(45% 60% at 50% 78%,rgba(255,122,26,.55),rgba(232,80,2,.18) 45%,rgba(232,80,2,0) 75%)}
+.final::before{content:"";position:absolute;inset:0;z-index:-2;-webkit-mask-image:linear-gradient(transparent,#000 30%);mask-image:linear-gradient(transparent,#000 30%);background:radial-gradient(45% 60% at 50% 78%,rgba(255,122,26,.55),rgba(232,80,2,.18) 45%,rgba(232,80,2,0) 75%)}
 .final .giant{position:absolute;left:50%;top:78%;transform:translate(-50%,-50%);opacity:.55;z-index:-1;font-weight:800;font-size:clamp(90px,21vw,330px);letter-spacing:-.06em;line-height:.8;white-space:nowrap;
   background:linear-gradient(180deg,rgba(232,80,2,.55),rgba(232,80,2,0) 85%);-webkit-background-clip:text;background-clip:text;color:transparent;pointer-events:none;user-select:none}
 .final h2{font-size:clamp(40px,6.6vw,88px)}
 .final p{margin:22px auto 36px;max-width:560px}
-footer{padding:34px 0 46px;border-top:1px solid var(--line)}
+footer{padding:34px 0 46px}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 footer a{color:var(--muted);text-decoration:none}
 
@@ -263,11 +270,9 @@ footer a{color:var(--muted);text-decoration:none}
   .hero .lead{margin:18px 0 26px}
   .cssPane{right:8%;top:12%;width:44%;height:34%}
   .corner.tl{top:76px;left:16px}.corner.tr{display:none}
-  .corner.br{left:16px;right:auto;bottom:auto;top:122px;text-align:left}
-  .corner.br .mono{display:none}
-  .glassPick{max-width:46vw;justify-content:flex-start}
-  .glassPick button{padding:6px 8px;font-size:10.5px}
   .scrollHint{display:none}
+  .tip-b{left:-8px;transform:translate(0,8px)}
+  .tip:hover .tip-b,.tip:focus .tip-b,.tip.open .tip-b{transform:translate(0,0)}
   .block{padding:90px 0}
   .head{margin-bottom:54px}
   .fx{margin-bottom:90px}
@@ -313,23 +318,13 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="hero" id="hero">
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="cssPane" aria-hidden="true"></div>
-  <div class="corner tl mono">Claude Code kit<br><b>2.0</b> · бесплатно</div>
+  <div class="corner tl mono">Claude Code kit<br><b>2.0</b></div>
   <div class="corner tr mono">память · защита<br>пароли · лимиты</div>
-  <div class="corner br">
-    <div class="mono">стекло</div>
-    <div class="glassPick" id="glassPick" role="group" aria-label="Тип стекла">
-      <button type="button" data-t="0" aria-pressed="true">рифлёное</button>
-      <button type="button" data-t="2" aria-pressed="false">волна</button>
-      <button type="button" data-t="1" aria-pressed="false">фрактал</button>
-      <button type="button" data-t="3" aria-pressed="false">матовое</button>
-      <button type="button" data-t="4" aria-pressed="false">блоки</button>
-    </div>
-  </div>
   <div class="wrap hero-in">
     <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-    <p class="lead">Таким Claude Code приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему опасные команды: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
+    <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему опасные команды: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
     <div class="ctas">
-      <a class="btn" href="#install">Поставить бесплатно <span class="arr">→</span></a>
+      <a class="btn" href="#install">Поставить <span class="arr">→</span></a>
       <a class="ghost" href="#effects">Как я тюню своего Claude</a>
     </div>
   </div>
@@ -344,26 +339,26 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <h2>Твой Claude до&nbsp;и&nbsp;после тюнинга</h2>
-      <p class="lead">Сравни, как меняется твоя работа с Claude после установки скилла.</p>
+      <p class="lead">Сравни, как меняется твоя работа с Claude после установки <span class="tip" tabindex="0">скилла<span class="tip-b" role="tooltip">Скилл: инструкция для Claude, которую он открывает, когда она нужна. Этот набор ставится как скилл и сам настраивает остальное.</span></span>.</p>
     </div>
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">01 · защита от удаления</div><h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3></div>
-        <div><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет хук. Это маленькая проверка, которую Claude Code запускает сам. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
+        <div><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
     </article>
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">02 · память</div><h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3></div>
-        <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам. Соседнюю открытую сессию он теперь может просто спросить, что она делает. Закрытую вспомнит по её записи.</p><span class="fact">команды /morning и /endday</span></div>
+        <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам. Соседнюю открытую сессию он теперь может просто спросить, что она делает. Закрытую вспомнит по её записи.</p><span class="fact">команды <span class="tip" tabindex="0">/morning и /endday<span class="tip-b" role="tooltip">Их пишешь ты в чате Claude Code: /morning утром, чтобы продолжить, /endday вечером, чтобы записать итог дня.</span></span></span></div>
       </div>
       <div class="scene g2 rise" data-demo="memory"></div>
     </article>
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">03 · пароли и ключи</div><h3>Секреты не&nbsp;попадут в&nbsp;чат</h3></div>
-        <div><p>У любого бота, сайта или автоматизации есть секреты: пароли, API-ключи, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p><span class="fact">файлы .env, токены, ключи доступа</span></div>
+        <div><p>У любого бота, сайта или автоматизации есть секреты: пароли, <span class="tip" tabindex="0">API-ключи<span class="tip-b" role="tooltip">API-ключ: длинный пароль, по которому сервис вроде OpenAI или Telegram узнаёт тебя и списывает деньги. Кто его увидел, тот может им пользоваться.</span></span>, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p><span class="fact">файлы .env, токены, ключи доступа</span></div>
       </div>
       <div class="scene g3 rise" data-demo="keys"></div>
     </article>
@@ -377,7 +372,7 @@ footer a{color:var(--muted);text-decoration:none}
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">05 · лимиты</div><h3>Лимита хватает до&nbsp;вечера</h3></div>
-        <div><p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит лимит, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой шпаргалкой, а из старых заметок он читает только последние три дня.</p><span class="fact">шпаргалка на 40–60 строк</span></div>
+        <div><p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит <span class="tip" tabindex="0">лимит<span class="tip-b" role="tooltip">Лимит: сколько работы Claude даёт по твоей подписке за несколько часов. Всё, что агент читает, расходует его.</span></span>, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой <span class="tip" tabindex="0">шпаргалкой<span class="tip-b" role="tooltip">Шпаргалка: короткий файл CLAUDE.md на 40–60 строк. В нём не все правила целиком, а где что лежит.</span></span>, а из старых заметок он читает только последние три дня.</p><span class="fact">шпаргалка на 40–60 строк</span></div>
       </div>
       <div class="scene g5 rise" data-demo="limits"></div>
     </article>
@@ -427,7 +422,8 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="rise">
       <div class="mono">одно сообщение</div>
       <h2 style="margin-top:18px">Скопируй.<br>Отправь агенту.</h2>
-      <div class="price"><span class="now">0 ₽</span><span class="was">код открыт, читай каждую строку до установки</span></div>
+      <div class="price"><span class="now">0 ₽</span><span class="was">набор бесплатный, код открыт</span></div>
+      <p class="muted" style="margin:-8px 0 6px;max-width:520px">Платишь только за сам Claude Code: подписку Claude или API, как и без набора. Набор ничего сверху не берёт.</p>
       <ul class="perks">
         <li><span class="ic">01</span><div><b>План до изменений</b>Сначала видишь, что поменяется, потом решаешь.</div></li>
         <li><span class="ic">02</span><div><b>Твоё не трогает</b>Свои файлы оставляет как есть и говорит «у тебя своя версия». Перед правкой настроек делает копию.</div></li>
@@ -456,10 +452,9 @@ footer a{color:var(--muted);text-decoration:none}
     <h2 class="rise" style="margin:18px 0 30px">Коротко и&nbsp;честно</h2>
     <div class="rise">
       <details><summary>Я не программист. Мне это нужно?</summary><p>Да. Набор пригодится всем, кто работает в Claude Code: пишешь ли ты код, тексты или собираешь автоматизации. Где лежат настройки, знать не нужно: агент сам их найдёт, объяснит и спросит разрешения.</p></details>
-      <details><summary>Что такое хуки?</summary><p>Маленькие проверки, которые Claude Code запускает сам в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</p></details>
       <details><summary>Он не сломает то, что у меня уже работает?</summary><p>Свои файлы агент не перезаписывает. Если что-то совпало по имени, оставляет твою версию и говорит об этом. Перед правкой настроек делает копию.</p></details>
       <details><summary>Агент увидит мои пароли?</summary><p>Нет. После установки он не может открыть файлы с секретами и вывести их в чат. Значения остаются только у тебя.</p></details>
-      <details><summary>Почему бесплатно?</summary><p>Я собирал это для себя и пользуюсь каждый день. Код открыт: можно прочитать каждую строку до установки.</p></details>
+      <details><summary>Что бесплатно, а что нет?</summary><p>Набор бесплатный, и код открыт: можно прочитать каждую строку до установки. Я собирал его для себя и пользуюсь каждый день. Платный здесь только сам Claude Code: он работает по твоей подписке Claude или через API, как и раньше.</p></details>
       <details><summary>А если не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
       <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Хуки работают только в Claude Code.</p></details>
     </div>
@@ -525,7 +520,7 @@ var glassType=0;
   "float sdR(vec2 p,vec4 r,float rad){vec2 c=(r.xy+r.zw)*.5,h=(r.zw-r.xy)*.5;vec2 q=abs(p-c)-h+rad;return length(max(q,0.))+min(max(q.x,q.y),0.)-rad;}\n";
   // Свет: многоцветный градиент с искривлением, смешивание в OKLab.
   var BG=COM+
-  "uniform vec2 uRes;uniform float uT;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uFig,uPq;uniform float uCool;out vec4 o;\n"+
+  "uniform vec2 uRes;uniform float uT;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uFig,uPq,uFq;uniform float uCool;uniform sampler2D uFg;out vec4 o;\n"+
   "vec3 lab(vec3 c){vec3 l=vec3(.4122214708*c.r+.5363325363*c.g+.0514459929*c.b,.2119034982*c.r+.6806995451*c.g+.1073969566*c.b,.0883024619*c.r+.2817188376*c.g+.6299787005*c.b);l=pow(max(l,0.),vec3(1./3.));"+
   "return vec3(.2104542553*l.x+.7936177850*l.y-.0040720468*l.z,1.9779984951*l.x-2.4285922050*l.y+.4505937099*l.z,.0259040371*l.x+.7827717662*l.y-.8086757660*l.z);}\n"+
   "vec3 lin(vec3 c){vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.2914855480*c.z);l=l*l*l;"+
@@ -543,6 +538,7 @@ var glassType=0;
   "float band=.5+.5*sin(qw.y*8.+fbm(qw*2.5+t*.06)*5.+t*.3);\n"+
   "float v=sun*.95+em*.6+band*.18*(sun+em)+fbm(qw*4.-t*.05)*.06;v=1.-exp(-v*1.15);vec3 col=ramp(v);\n"+
   "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC)*uCool;\n"+
+  "vec2 fu=(q-uFq.xy)/(uFq.zw-uFq.xy);if(fu.x>0.&&fu.x<1.&&fu.y>0.&&fu.y<1.){vec4 f=texture(uFg,vec2(fu.x,1.-fu.y));col=col*(1.-.35*f.a)+pow(f.rgb,vec3(2.2))*f.a*.9;}\n"+
   "float a=uFig.w*(1.-smoothstep(-.025,0.,sdR(q,uPq,.03)));\n"+
   "if(a>0.){vec2 p=toP(q);float d=fig(p);float e=1.5;vec2 n=normalize(vec2(fig(p+vec2(e,0.))-fig(p-vec2(e,0.)),fig(p+vec2(0.,e))-fig(p-vec2(0.,e)))+1e-5);\n"+
   " float ins=1.-smoothstep(-1.5,1.5,d);float rim=exp(-max(-d,0.)/14.)*ins*max(dot(n,normalize(toP(uSun.xy)-p)),0.);\n"+
@@ -590,6 +586,35 @@ var glassType=0;
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
   }
+  // Что лежит за стеклом: карточки самого набора — список дел и остановленная команда.
+  var fgTex=gl.createTexture(),fgW=0,fgH=0,fgDirty=true;
+  function drawFg(w,h){
+    var c=document.createElement("canvas");c.width=w;c.height=h;var x=c.getContext("2d"),u=w/360;
+    function rr(X,Y,W,H,R){x.beginPath();if(x.roundRect)x.roundRect(X,Y,W,H,R);else x.rect(X,Y,W,H)}
+    x.save();x.translate(w*.5,h*.3);x.rotate(-.06);
+    rr(-140*u,-95*u,280*u,190*u,22*u);x.fillStyle="rgba(243,217,189,.96)";x.fill();
+    x.fillStyle="#2a1206";x.font="700 "+(21*u)+"px Onest, sans-serif";x.fillText("Сайт-визитка",-116*u,-52*u);
+    x.font="500 "+(15*u)+"px 'JetBrains Mono', monospace";
+    [["☑","главная",1],["☑","галерея",1],["☐","меню",0],["☐","форма",0]].forEach(function(r,i){x.fillStyle=r[2]?"#C24104":"#7a5a45";x.fillText(r[0]+"  "+r[1],-116*u,(-14+i*27)*u)});
+    x.restore();
+    x.save();x.translate(w*.52,h*.71);x.rotate(.05);
+    rr(-150*u,-78*u,300*u,156*u,22*u);x.fillStyle="rgba(12,9,8,.95)";x.fill();
+    x.font="500 "+(14*u)+"px 'JetBrains Mono', monospace";x.fillStyle="#D9C3AB";x.fillText("› rm -rf ./дубли ~/",-126*u,-38*u);
+    rr(-126*u,-20*u,86*u,30*u,15*u);x.fillStyle="#E85002";x.fill();
+    x.fillStyle="#050505";x.font="700 "+(14*u)+"px Onest, sans-serif";x.fillText("стоп",-103*u,0);
+    x.fillStyle="#A7A7A7";x.font="500 "+(13*u)+"px 'JetBrains Mono', monospace";x.fillText("открыто 2 из 5 · утро",-126*u,40*u);
+    x.restore();
+    return c;
+  }
+  function uploadFg(w,h){
+    fgW=w;fgH=h;fgDirty=false;
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,fgTex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,drawFg(w,h));
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.activeTexture(gl.TEXTURE0);
+  }
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){fgDirty=true;if(window.__redrawHero)window.__redrawHero()});
   resize();window.addEventListener("resize",resize);
   // Лист следует за курсором с запаздыванием (пружина без перелёта).
   var mx=0,my=0,sx=0,sy=0;
@@ -611,9 +636,12 @@ var glassType=0;
     gl.useProgram(pB.p);gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.viewport(0,0,bw,bh);
     gl.uniform2f(pB.u.uRes,bw,bh);gl.uniform1f(pB.u.uT,t);
     var A=bw/bh,qx=(cx/cw)*A,qTop=1-(cy-ph/2)/ch,qBot=1-(cy+ph/2)/ch,qw2=(pw/2)/ch;
-    // Стажёр: макушка чуть ниже верха листа, плечи у нижней кромки; свет сзади сверху слева — контровой.
     var z=(qTop-qBot)*.78*1920/728,fy=qTop-.07-428*z/1920;
-    gl.uniform4f(pB.u.uFig,qx+(qw2*.12)-sx*.012,fy,z,1);
+    gl.uniform4f(pB.u.uFig,0,0,1,0);
+    // Карточки за стеклом чуть отстают от листа — так видно, что стекло их преломляет.
+    var fx=-sx*.025,fy2=sy*.02;gl.uniform4f(pB.u.uFq,qx-qw2+fx,qBot+fy2,qx+qw2+fx,qTop+fy2);
+    var fw=Math.round(pw*D),fh=Math.round(ph*D);if(fw!==fgW||fh!==fgH||fgDirty)uploadFg(fw,fh);
+    gl.uniform1i(pB.u.uFg,1);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,fgTex);gl.activeTexture(gl.TEXTURE0);
     gl.uniform4f(pB.u.uPq,qx-qw2,qBot,qx+qw2,qTop);
     gl.uniform3f(pB.u.uSun,qx-qw2*.55+Math.sin(t*.3)*.02-sx*.05,fy+270*z/1920+.07,mob?.26:.42);gl.uniform1f(pB.u.uCool,mob?.15:1);
     ["c0","c1","c2","c3","c4"].forEach(function(n,i){gl.uniform3fv(pB.u[n],PAL[i])});
@@ -630,11 +658,6 @@ var glassType=0;
   document.addEventListener("visibilitychange",kick);
   if(reduce)frame(performance.now());else kick();
 })();
-var pick=document.getElementById("glassPick");
-pick.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;glassType=+b.dataset.t;
-  [].forEach.call(pick.children,function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
-  var p=document.querySelector(".cssPane");if(p)p.style.backdropFilter=p.style.webkitBackdropFilter=glassType===3?"blur(26px)":"blur(14px)";
-  if(window.__redrawHero)window.__redrawHero()});
 
 /* ---------- демо: два режима, сообщения сторожей дословно из набора ---------- */
 var DENY_RM="⛔ Необратимая команда заблокирована. Если она нужна, запусти вручную в терминале.";
@@ -717,6 +740,9 @@ function limitsDemo(scene){
   if(!("IntersectionObserver" in window)){on=true;start(isOn);return}
   new IntersectionObserver(function(es){on=es[0].isIntersecting;if(on&&!started){started=true;start(isOn)}},{threshold:.3}).observe(sc);
 });
+
+/* ---------- подсказки: касание на телефоне ---------- */
+document.addEventListener("click",function(e){var t=e.target.closest(".tip");[].forEach.call(document.querySelectorAll(".tip.open"),function(x){if(x!==t)x.classList.remove("open")});if(t)t.classList.toggle("open")});
 
 /* ---------- цифры ---------- */
 [].forEach.call(document.querySelectorAll("[data-count]"),function(n){
