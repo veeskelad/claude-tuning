@@ -1,6 +1,6 @@
 ---
 name: claude-tuning
-description: "Тюнинг Claude Code: за один проход ставит рабочую систему вокруг модели — память между сессиями (handoff, /morning, /endday, чек-листы задач), экономию токенов (CLAUDE.md-карта, сжатие handoff), защиту от удаления и утечки ключей (хуки), уборку веток и базовые скиллы (session-handoff, memory-consolidate, session-search, worktree-cleanup, systematic-debugging, review-triage). Для новой машины, нового человека или ревизии существующей настройки. Триггеры: 'тюнинг', 'настрой claude code', 'настроить новый сервер', 'обнови настройки', 'почисти claude', 'добавить хуки', 'настроить память', 'claude всё забывает', 'съедает лимиты', 'боюсь, что агент что-то удалит'."
+description: "Тюнинг Claude Code: за один проход ставит рабочую систему вокруг модели — память между сессиями (handoff, /morning, /endday, чек-листы задач), экономию токенов (CLAUDE.md-карта, сжатие handoff), защиту от удаления и утечки ключей (хуки), уборку веток, ревизию под человека (повторённые просьбы становятся правилами и скиллами) и базовые скиллы (session-handoff, memory-consolidate, session-search, worktree-cleanup, systematic-debugging, review-triage, self-tune). Для новой машины, нового человека или ревизии существующей настройки. Триггеры: 'тюнинг', 'настрой claude code', 'настроить новый сервер', 'обнови настройки', 'почисти claude', 'добавить хуки', 'настроить память', 'claude всё забывает', 'съедает лимиты', 'боюсь, что агент что-то удалит', 'я же просил', 'опять одно и то же'."
 ---
 
 # Claude Code Tuning
@@ -94,18 +94,18 @@ python3 "$K/scripts/install-kit.py" --extra DIR [--apply]  # плюс свой �
 
 `--uninstall` снимает только файлы, совпадающие с `kit/`, и только хуки kit из настроек; свои правки, чужие хуки, `env`, `CLAUDE.md`, handoff и чек-листы остаются.
 
-Проверено 08.10.2026 в пустом HOME с чужим хуком в настройках: сухой прогон, `--apply`, `--check` («всё на месте», страж блокирует `rm -rf tests/plan/ ~/`), повторный `--apply` без изменений, `--uninstall --apply` — чужой хук и своя правка на месте.
+Проверено 08.10.2026 и 09.10.2026 в пустом HOME с чужим хуком в настройках: сухой прогон, `--apply`, `--check` («всё на месте», страж блокирует `rm -rf tests/ patches/ plan/ ~/`), повторный `--apply` без изменений, `--uninstall --apply` — чужой хук и своя правка на месте.
 
 ## 4. Хуки безопасности
 
 `safety-guard.sh` (PreToolUse, Bash) — три уровня:
-- **deny**: `rm -rf` по корню, домашней папке или `$HOME` (в том числе не первым аргументом: `rm -rf tests/plan/ ~/` в декабре 2025 снёс у пользователя домашнюю папку вместе с Keychain), `drop database|table|schema`, `terraform destroy`, `drizzle-kit push --force`, `prisma migrate reset`, `git reset --hard origin/…`, `kubectl delete`, `docker system prune`, `npm publish`, `chmod 777`; вывод `.env` и ключей командой; полный `printenv`/`env`;
-- **ask**: `rm -rf` по абсолютному пути вне временных каталогов, `git reset --hard`, `git clean -f`, `git push --force`, `git branch -D`, остановка сервисов, `reboot`;
+- **deny**: `rm -rf` по корню, домашней папке или `$HOME` (в том числе не первым аргументом: `rm -rf tests/ patches/ plan/ ~/` в декабре 2025 снёс у пользователя домашнюю папку вместе с Keychain), `drop database|table|schema`, `terraform destroy`, `drizzle-kit push --force`, `prisma migrate reset`, `git reset --hard origin/…`, `kubectl delete`, `docker system prune`, `npm publish`, `chmod 777` (и с флагами, `chmod -R 777`); вывод `.env` и ключей командой; полный `printenv`/`env`;
+- **ask**: запуск скрипта (`python`, `node`, `bash`… или встроенного кода), который удаляет файлы — 48 218 файлов в сентябре 2026 стёр именно скрипт; `rm -rf` по абсолютному пути вне временных каталогов, `git reset --hard`, `git clean -f`, `git push --force`, `git branch -D`, остановка сервисов, `reboot`;
 - остальное — пропуск. Тело heredoc при записи файла не проверяется: это данные, а не команды. Чтение текста (`grep "rm -rf /" docs/`) не блокируется.
 
 `guard-secret-read.sh` (PreToolUse, Read): `.env*` (кроме `.example`), `*.pem`, `*.key`, ssh-ключи, `credentials*.json`, `.netrc`. Точечное разрешение — `CLAUDE_SECRET_READ_ALLOW`.
 
-Проверка — таблица «команда → ожидаемое решение» на каждый паттерн, плюс ложные срабатывания (`rm -rf node_modules`, `rm -rf ./build /tmp/x`, `env FOO=1 node app.js` должны проходить). Новый паттерн — новая строка в таблице до правки стража.
+Проверка — таблица «команда → ожидаемое решение» на каждый паттерн (`python3 tests/run-guard.py kit/hooks/safety-guard.sh tests/safety-guard.cases.tsv`, сейчас 41 из 41), плюс ложные срабатывания (`rm -rf node_modules`, `rm -rf ./build /tmp/x`, `env FOO=1 node app.js` должны проходить). Новый паттерн — новая строка в таблице до правки стража.
 
 Режим bypass: хуки PreToolUse работают и в нём; `ask` там превращается в отказ без вопроса — это нормально.
 

@@ -79,7 +79,8 @@ def link(target, path):
 
 def ls(kit, sub):
     d = f"{kit}/{sub}"
-    return sorted(f for f in os.listdir(d) if f != ".DS_Store") if os.path.isdir(d) else []
+    # Кэш Python и мусор Finder — не часть набора: после запуска скрипта из kit/bin появляется __pycache__.
+    return sorted(f for f in os.listdir(d) if f not in (".DS_Store", "__pycache__") and not f.endswith(".pyc")) if os.path.isdir(d) else []
 
 
 def install():
@@ -199,9 +200,9 @@ def check():
                 say("НЕТ СКИЛЛА", name); bad += 1
     guard = f"{H}/.claude/hooks/safety-guard.sh"
     if os.path.exists(guard):
-        r = subprocess.run(["bash", guard], input=json.dumps({"tool_input": {"command": "rm -rf tests/plan/ ~/"}}), capture_output=True, text=True)
+        r = subprocess.run(["bash", guard], input=json.dumps({"tool_input": {"command": "rm -rf tests/ patches/ plan/ ~/"}}), capture_output=True, text=True)
         ok = '"deny"' in r.stdout
-        say("страж" if ok else "СТРАЖ МОЛЧИТ", "rm -rf tests/plan/ ~/ → " + ("deny" if ok else r.stdout.strip() or "пропущено")); bad += not ok
+        say("страж" if ok else "СТРАЖ МОЛЧИТ", "rm -rf tests/ patches/ plan/ ~/ → " + ("deny" if ok else r.stdout.strip() or "пропущено")); bad += not ok
     print(f"\nПроверка: {'всё на месте' if not bad else f'проблем: {bad}'}")
     return bad
 
