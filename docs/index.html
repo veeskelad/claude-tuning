@@ -7,7 +7,7 @@
 <meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт стереть лишнее и не показывает ключи. Ставится одним сообщением агенту.">
 <meta name="theme-color" content="#050505">
 <meta property="og:title" content="claude-tuning: гениальный стажёр получает блокнот">
-<meta property="og:description" content="Память между сессиями, замок на опасные команды, ключи вне чата. Одно сообщение агенту.">
+<meta property="og:description" content="Помнит задачу между сессиями, не стирает лишнего и не показывает пароли. Ставится одним сообщением агенту.">
 <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:Onest;src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
@@ -307,7 +307,7 @@ footer a{color:var(--muted);text-decoration:none}
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="cssPane" aria-hidden="true"></div>
   <div class="corner tl mono">Claude Code kit<br><b>2.0</b> · бесплатно</div>
-  <div class="corner tr mono">память · замок<br>ключи · лимиты</div>
+  <div class="corner tr mono">память · защита<br>пароли · лимиты</div>
   <div class="corner br">
     <div class="mono">стекло</div>
     <div class="glassPick" id="glassPick" role="group" aria-label="Тип стекла">
@@ -320,10 +320,10 @@ footer a{color:var(--muted);text-decoration:none}
   </div>
   <div class="wrap hero-in">
     <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-    <p class="lead">Таким Claude Code приходит из коробки. Я дал ему блокнот, список дел и замок на опасный шкаф. Теперь это напарник, и ставится всё одним сообщением.</p>
+    <p class="lead">Таким Claude Code приходит из коробки: умный, но каждое утро с чистой головой. Я дал ему блокнот и список дел, а опасные команды закрыл: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
     <div class="ctas">
       <a class="btn" href="#install">Поставить бесплатно <span class="arr">→</span></a>
-      <a class="ghost" href="#effects">Посмотреть разницу</a>
+      <a class="ghost" href="#effects">Как я тюню своего Claude</a>
     </div>
   </div>
   <div class="scrollHint" aria-hidden="true"></div>
@@ -337,15 +337,15 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <div class="mono">пять эффектов · <b>переключай</b></div>
-      <h2 style="margin-top:18px">Тот же Claude.<br>Другие привычки.</h2>
-      <p class="lead">В каждом окне два режима: из коробки и с набором. Сообщения сторожей на экране взяты из самого набора.</p>
+      <h2 style="margin-top:18px">Что меняется после тюнинга</h2>
+      <p class="lead">В каждом окне два Claude: из коробки и мой, после тюнинга. Переключай и сравнивай. Предупреждения в окнах настоящие, их пишет сам набор.</p>
     </div>
 
     <div class="fx">
       <div class="txt rise">
-        <div class="num">01 · замок</div>
+        <div class="num">01 · защита от удаления</div>
         <h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3>
-        <p>Один лишний символ в команде, и вместо папки с дублями уходит вся домашняя. Так уже случалось у живых людей. Сторож смотрит на каждую команду до запуска: необратимое останавливает, рискованное сначала спрашивает у тебя.</p>
+        <p>Один лишний символ в команде, и вместо папки с дублями уходит вся домашняя. Такое уже случалось, и не однажды. Теперь каждую команду до запуска проверяет набор: то, что нельзя отменить, не выполнится, а про рискованное агент сначала спросит тебя.</p>
         <span class="fact">реальный случай, декабрь 2025: лишний ~/ в конце команды</span>
       </div>
       <div class="stage rise" data-demo="lock"></div>
@@ -353,7 +353,7 @@ footer a{color:var(--muted);text-decoration:none}
 
     <div class="fx flip">
       <div class="txt rise">
-        <div class="num">02 · блокнот</div>
+        <div class="num">02 · память</div>
         <h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3>
         <p>У каждой задачи свой список дел. Новая сессия начинается с него, а не с «Привет! Чем займёмся?». Вечером агент сам записывает итог дня, а после сжатия контекста получает список обратно.</p>
         <span class="fact">/morning · /endday · session-handoff</span>
@@ -363,9 +363,9 @@ footer a{color:var(--muted);text-decoration:none}
 
     <div class="fx">
       <div class="txt rise">
-        <div class="num">03 · ключи</div>
+        <div class="num">03 · пароли</div>
         <h3>Пароли остаются у&nbsp;тебя</h3>
-        <p>Попросишь разобраться с базой, и агент из коробки откроет .env целиком. Всё, что попало в чат, уже лежит в истории. С набором он видит только имена переменных и проверяет, заданы ли они.</p>
+        <p>Попросишь разобраться с базой, и агент из коробки откроет файл с паролями целиком. Всё, что попало в чат, уже лежит в истории. С набором он видит только имена переменных и проверяет, заданы ли они.</p>
         <span class="fact">.env, ssh-ключи, *.pem, файлы сессий</span>
       </div>
       <div class="stage rise" data-demo="keys"></div>
@@ -373,7 +373,7 @@ footer a{color:var(--muted);text-decoration:none}
 
     <div class="fx flip">
       <div class="txt rise">
-        <div class="num">04 · повтор</div>
+        <div class="num">04 · повторы</div>
         <h3>Не жмёт одну кнопку по&nbsp;кругу</h3>
         <p>Пять одинаковых шагов подряд, и агент получает сигнал остановиться: назвать, где он может ошибаться, и зайти с другой стороны.</p>
         <span class="fact">сигнал после пяти одинаковых шагов</span>
@@ -396,9 +396,9 @@ footer a{color:var(--muted);text-decoration:none}
 <section aria-label="Цифры">
   <div class="stats">
     <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передал дела между сессиями. Набор вырос из этой привычки</p></div>
-    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке сторожа: опасные остановлены, обычные прошли</p></div>
+    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: опасные остановлены, обычные прошли</p></div>
     <div class="stat rise"><div class="n" data-count="8">8</div><p>навыков: передача дел, утро, итог дня, память, поиск по сессиям, уборка, баги, ревью</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>сторожей и подсказок, которые работают сами, без твоих просьб</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>автоматических проверок и подсказок: работают сами, просить не нужно</p></div>
   </div>
 </section>
 
@@ -425,7 +425,7 @@ footer a{color:var(--muted);text-decoration:none}
       <div class="step"><div class="dot">01</div><div><h4>Копируешь промпт</h4><p>И отправляешь его Claude Code на своём компьютере.</p></div></div>
       <div class="step"><div class="dot">02</div><div><h4>Агент смотрит</h4><p>Что у тебя уже настроено, чего не хватает и что трогать не надо.</p></div></div>
       <div class="step"><div class="dot">03</div><div><h4>Показывает план</h4><p>Простыми словами. Без твоего «да» ничего не меняется.</p></div></div>
-      <div class="step"><div class="dot">04</div><div><h4>Проверяет замок</h4><p>Сам пробует опасную команду и показывает, что сторож её остановил.</p></div></div>
+      <div class="step"><div class="dot">04</div><div><h4>Проверяет защиту</h4><p>Сам пробует опасную команду и показывает, что она не прошла.</p></div></div>
     </div>
   </div>
 </section>
@@ -468,7 +468,7 @@ footer a{color:var(--muted);text-decoration:none}
       <details><summary>Агент увидит мои пароли?</summary><p>Наоборот: после установки он не может открыть файлы с ключами и вывести их в чат. Значения остаются только у тебя.</p></details>
       <details><summary>Почему бесплатно?</summary><p>Я собирал это для себя и пользуюсь каждый день. Код открыт: можно прочитать каждую строку до установки.</p></details>
       <details><summary>А если не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
-      <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Сторожа и автоматические подсказки работают в Claude Code.</p></details>
+      <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Защита и автоматические подсказки работают в Claude Code.</p></details>
     </div>
   </div>
 </section>
@@ -477,7 +477,7 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="giant" aria-hidden="true">напарник</div>
   <div class="wrap rise">
     <h2>Тот же Claude.<br>Теперь напарник.</h2>
-    <p class="lead">После установки агент сам предложит, с чего начать: сократить инструкцию, проверить замок или записать итог дня.</p>
+    <p class="lead">После установки агент сам предложит, с чего начать: сократить инструкцию, проверить защиту или записать итог дня.</p>
     <a class="btn" href="#install">Взять промпт <span class="arr">→</span></a>
   </div>
 </section>
@@ -563,18 +563,19 @@ var glassType=0;
   "vec3 disp(vec2 px,vec2 off,float lod){return vec3(S(px+off,lod).r,S(px+off*1.05,lod).g,S(px+off*1.1,lod).b);}\n"+
   "vec3 glass(vec2 px){\n"+
   " if(uType<=2){float x=px.x+uPh;if(uType==2)x+=sin(px.y*.0055/uD+uT*.35)*uRib*1.1;float u=fract(x/uRib),s=u*2.-1.;float off,dy=0.;\n"+
-  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.9/sqrt(max(1.-s*s*.9,.08));\n"+
-  "  float lod=.4+abs(s)*1.3;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(4.+abs(s)*9.)*uD),vec2(off,0.),lod);c/=5.;\n"+
-  "  float sp=exp(-pow((s+.42)/.09,2.))*.16;float gr=smoothstep(.72,1.,abs(s))*.38;return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
+  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.38/sqrt(max(1.-s*s*.9,.08));\n"+
+  "  float lod=abs(s)*.35;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(.6+abs(s)*1.6)*uD),vec2(off,0.),lod);c/=5.;\n"+
+  "  float sp=exp(-pow((s+.42)/.07,2.))*.2;float gr=smoothstep(.8,1.,abs(s))*.42+(1.-smoothstep(0.,1.4*uD/uRib*2.,1.-abs(s)))*.35;return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
   " if(uType==3){vec3 f=vec3(0.);for(int i=0;i<12;i++)f+=S(px+P[i]*20.*uD,2.6);f/=12.;float l=dot(f,vec3(.2126,.7152,.0722));f=max(mix(vec3(l),f,1.4),0.)*vec3(1.03,.94,.84);return mix(f,vec3(1.),.03)+(h21(px*.9)-.5)*.01;}\n"+
   " vec2 cell=vec2(uRib*3.2);vec2 g=fract((px+vec2(uPh,0.))/cell)*2.-1.;float lod=.9+length(g)*1.1;vec3 c=disp(px,-g*cell*.24,lod);float e=max(abs(g.x),abs(g.y));\n"+
   " return c*(1.-smoothstep(.8,1.,e)*.35)+exp(-pow((g.x+g.y+1.1)/.22,2.))*.05*c*3.;}\n"+
   "void main(){vec2 px=gl_FragCoord.xy;vec3 col=S(px,0.);\n"+
   " float dP=sdR(px,uP,uR);float m=1.-smoothstep(-1.,1.,dP);\n"+
-  " float dS=sdR(px+vec2(0.,34.*uD),uP,uR);col*=1.-.5*exp(-max(dS,0.)/(70.*uD))*step(0.,dP);\n"+
+  " float dS=sdR(px+vec2(0.,34.*uD),uP,uR);float out_=step(0.,dP);col*=1.-.45*exp(-max(dS,0.)/(70.*uD))*out_;col*=1.-.35*exp(-max(dP,0.)/(5.*uD))*out_;\n"+
   " if(m>0.)col=mix(col,glass(px)+.012,m);\n"+
   " vec2 cc=(uP.xy+uP.zw)*.5;float lit=max(dot(normalize(px-cc),normalize(vec2(-.6,1.))),0.);\n"+
-  " col+=exp(-pow(dP/(1.2*uD),2.))*(.08+.3*lit);\n"+
+  " float rim=1.-smoothstep(.0,1.1*uD,abs(dP+.6*uD));col=mix(col,vec3(1.),rim*(.5+.45*lit));\n"+
+  " float bev=smoothstep(-7.*uD,-1.*uD,dP)*m;col+=bev*lit*.10;col*=1.-bev*(1.-lit)*.22;\n"+
   " vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(px+fract(uT*30.)*91.7)-.5)*.03;s+=(h21(px*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
   function sh(t,s){var x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x}
   function prog(fs){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,"p");gl.linkProgram(p);
@@ -590,7 +591,7 @@ var glassType=0;
   function resize(){
     D=Math.min(window.devicePixelRatio||1,1.75);
     W=Math.max(2,Math.round(cv.clientWidth*D));H=Math.max(2,Math.round(cv.clientHeight*D));cv.width=W;cv.height=H;
-    bw=Math.max(2,W>>1);bh=Math.max(2,H>>1);
+    bw=W;bh=H;
     gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,bw,bh,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
@@ -609,8 +610,8 @@ var glassType=0;
     sx+=(mx-sx)*Math.min(1,dt*3);sy+=(my-sy)*Math.min(1,dt*3);
     var cw=cv.clientWidth,ch=cv.clientHeight,mob=cw<720;
     // Лист: на десктопе справа ~28% ширины, на телефоне сверху справа. Координаты GL: y снизу.
-    var pw=mob?cw*.4:Math.min(cw*.27,420),ph=mob?ch*.29:Math.min(ch*.62,600);
-    var cx=mob?cw*.7:cw*.72,cy=mob?ch*.235:ch*.5;
+    var pw=mob?cw*.4:Math.min(cw*.27,420),ph=mob?ch*.24:Math.min(ch*.62,600);
+    var cx=mob?cw*.7:cw*.72,cy=mob?ch*.205:ch*.5;
     cx+=sx*28;cy+=sy*22;
     var x0=(cx-pw/2)*D,x1=(cx+pw/2)*D,y0=(ch-(cy+ph/2))*D,y1=(ch-(cy-ph/2))*D;
     // проход 1: свет
@@ -652,7 +653,7 @@ var DEMOS={
       ["burn","удалено ~/Desktop/договор-final.pdf"],["burn","удалено ~/Documents/диплом/"],["burn","удалено ~/Фото/2024/свадьба/"],["burn","удалено ~/Projects/сайт/"],["burn","удалено ~/Library/…"],["ai","Готово! Папка очищена."]],
     with:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],["deny",DENY_RM],
       ["ai","В конце команды лишний ~/, это вся домашняя папка. Удаляю только дубли."],["tool","Bash(rm -rf ./Фото/дубли)"],["out","готово"]],
-    cap:{without:"Агент из коробки выполнил команду целиком, вместе с лишним ~/",with:"Сторож остановил команду до запуска, агент сам нашёл ошибку"}},
+    cap:{without:"Агент выполнил команду целиком, вместе с лишним ~/",with:"Набор остановил команду до запуска, агент сам нашёл ошибку"}},
   memory:{title:"claude · ~/Work/сайт · утро",
     without:[["sys","новая сессия"],["you","Продолжим сайт?"],["ai","Привет! С удовольствием. Расскажи, что за сайт и на каком он этапе?"],["you","Мы же вчера весь день его делали…"],["ai","Извини, у меня нет доступа к прошлым разговорам. Опиши проект ещё раз?"]],
     with:[["sys","новая сессия"],["hook","📋 Незакрытые задачи (.tasks/ и TASKS.md):\n~/Work/сайт/.tasks/сайт-визитка.md — открыто 2 из 5, правка 0 дн. назад\n   цель: Сайт-визитка для студии\n   - [ ] Меню на телефоне\n   - [ ] Форма заявки"],
@@ -674,7 +675,7 @@ function shell(stage,title){
   var win=el("div","win"),bar=el("div","bar");
   bar.appendChild(el("div","dots","<i></i><i></i><i></i>"));bar.appendChild(el("div","ttl",esc(title)));
   var seg=el("div","seg");seg.setAttribute("role","group");seg.setAttribute("aria-label","Режим");
-  seg.innerHTML='<span class="thumb"></span><button type="button" data-m="without">из коробки</button><button type="button" data-m="with">с набором</button>';
+  seg.innerHTML='<span class="thumb"></span><button type="button" data-m="without">из коробки</button><button type="button" data-m="with">после тюнинга</button>';
   bar.appendChild(seg);win.appendChild(bar);stage.appendChild(win);
   win.addEventListener("pointermove",function(e){var r=win.getBoundingClientRect();win.style.setProperty("--mx",(e.clientX-r.left)+"px");win.style.setProperty("--my",(e.clientY-r.top)+"px")});
   var cap=el("div","cap");stage.appendChild(cap);
@@ -683,7 +684,7 @@ function shell(stage,title){
 function setMode(st,ui,m,capText){
   st.dataset.mode=m;ui.seg.dataset.mode=m;
   [].forEach.call(ui.seg.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.dataset.m===m?"true":"false")});
-  ui.cap.innerHTML="<i>"+(m==="with"?"с набором":"из коробки")+"</i><span>"+esc(capText)+"</span>";
+  ui.cap.innerHTML="<i>"+(m==="with"?"после тюнинга":"из коробки")+"</i><span>"+esc(capText)+"</span>";
 }
 function termDemo(stage,d){
   var ui=shell(stage,d.title),term=el("div","term");ui.win.appendChild(term);
