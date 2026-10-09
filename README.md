@@ -22,9 +22,10 @@ Claude Code из коробки и после настройки — одна и
 |---|---|
 | Забывает между сессиями | чек-лист задачи `.tasks/<slug>.md` и хук, показывающий открытые задачи на старте; возврат задачи после сжатия контекста; скиллы `session-handoff`, `endday`, `morning` с общим `~/.claude/global-handoff.md` |
 | Токены | шаблон CLAUDE.md-карты на 40–60 строк; сжатие handoff (целиком читаются только последние 3 дня); автокомпакт на 60 % |
-| Удаление | `safety-guard.sh`: блок необратимого (`rm -rf` по корню и домашней папке, `drop database`, `terraform destroy`, `git reset --hard origin/…`, `npm publish`…), вопрос на рискованное (`git reset --hard`, `git push --force`, `git clean -f`), пропуск остального |
+| Удаление | `safety-guard.sh`: вопрос перед запуском скрипта, который удаляет файлы; блок необратимого (`rm -rf` по корню и домашней папке, `drop database`, `terraform destroy`, `git reset --hard origin/…`, `npm publish`…), вопрос на рискованное (`git reset --hard`, `git push --force`, `git clean -f`), пропуск остального |
 | Ключи | `guard-secret-read.sh` и `safety-guard.sh`: агент не читает `.env`, ssh-ключи, `*.pem` и не печатает окружение целиком; шаблон `~/.claude/.env` |
-| Ходит по кругу | правило остановок в CLAUDE.md, `loop-detector.sh` |
+| Ходит по кругу | правило остановок в CLAUDE.md, `loop-detector.sh`: пять одинаковых шагов подряд или круг из 2–4 шагов три раза |
+| Одно и то же приходится просить снова | скилл `self-tune` и `repeat-scan.py`: раз в неделю агент находит повторённые просьбы и действия и сам переписывает инструкции и скиллы под тебя, каждая правка — с копией и журналом `~/.claude/tuning-log.md` |
 | Ветки и копии репо | `worktree-cleanup`, `repo-freshness.sh`, worktree от свежего `origin/main` |
 | Качество | `systematic-debugging` (причина до фикса), `review-triage` (замечания ревью классами), `memory-consolidate`, `session-search` |
 

@@ -97,6 +97,29 @@ if printf '%s' "$SCAN_RM" | grep -qE 'rm +(-[a-zA-Z-]+ +)+([^;&|]* +)?["'"'"']?(
   emit ask "⚠️ rm -rf за пределами рабочей папки. Проверь путь перед подтверждением."
 fi
 
+# Скрипт, который удаляет файлы. 48 218 файлов за 103 с (сентябрь 2026) стёр не rm, а скрипт
+# очистки, который агент написал сам: в команде запуска удаления не видно. Поэтому при запуске
+# интерпретатора смотрим в сам файл (и во встроенный код) и показываем человеку до запуска.
+DEL_RE='shutil\.rmtree|os\.(remove|unlink|rmdir|removedirs)\(|\.unlink\(|\.rmtree\(|send2trash|fs\.(rm|rmSync|unlink|unlinkSync|rmdir|rmdirSync)\(|fs\.promises\.(rm|unlink)|Remove-Item|(^|[[:space:];&|])rm +-[a-zA-Z]*[rR]'
+INTERP='(^|[[:space:]])(python[0-9.]*|node|deno|bun|tsx|ts-node|bash|sh|zsh|ruby|perl|pwsh|powershell)([[:space:]]|$)'
+if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
+  HCWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+  for f in $(printf '%s' "$SCAN" | grep -oE '[^[:space:]"'"'"']+\.(py|js|mjs|cjs|ts|sh|bash|zsh|rb|pl|ps1)([[:space:]]|$)'); do
+    p=$f
+    case "$p" in
+      /*) ;;
+      '~/'*) p="$HOME/${p#'~/'}" ;;
+      *) [ -n "$HCWD" ] && p="$HCWD/$p" ;;
+    esac
+    if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null; then
+      emit ask "⚠️ Скрипт $f удаляет файлы. Посмотри, какие папки он трогает, прежде чем подтвердить."
+    fi
+  done
+  if printf '%s' "$ORIGINAL_CMD" | grep -qE 'shutil\.rmtree|os\.(remove|unlink|rmdir|removedirs)\(|\.unlink\(|\.(rm|rmSync|unlinkSync|rmdirSync)\(|Remove-Item'; then
+    emit ask "⚠️ Встроенный скрипт удаляет файлы. Посмотри, какие папки он трогает, прежде чем подтвердить."
+  fi
+fi
+
 if printf '%s' "$SCAN" | grep -qiE '(docker stop|systemctl restart|systemctl stop|systemctl disable|reboot|shutdown|git push +([^|;]* )?(--force|-f)( |$)|git reset +--hard|git clean +-[a-z]*f|git checkout +-- +\.|git branch +-D)'; then
   emit ask "⚠️ Команда останавливает сервис, переписывает историю или стирает незакоммиченное. Проверь цель перед подтверждением."
 fi
