@@ -48,20 +48,33 @@ section{position:relative}
 .nav .go{font-size:14px;font-weight:700;text-decoration:none;background:var(--signal);color:#050505;padding:9px 16px;border-radius:999px;white-space:nowrap}
 
 /* ---------- шапка ---------- */
-.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;overflow:hidden;isolation:isolate}
+.hero{position:relative;overflow:hidden;isolation:isolate;padding:150px 0 70px}
 #gl{position:absolute;inset:0;width:100%;height:100%;z-index:-2;display:block}
-.hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(90deg,rgba(5,5,5,.78) 0,rgba(5,5,5,.42) 38%,rgba(5,5,5,0) 62%),linear-gradient(0deg,var(--canvas) 0,rgba(5,5,5,0) 22%)}
-.hero.nogl{background:radial-gradient(40% 55% at 74% 46%,#FF7A1A 0,#E85002 30%,rgba(232,80,2,0) 70%),radial-gradient(40% 40% at 10% 100%,rgba(163,58,5,.8),rgba(163,58,5,0) 70%),#0a0605}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(0deg,var(--canvas) 0,rgba(5,5,5,0) 18%)}
+.hero.nogl{background:radial-gradient(45% 55% at 52% 40%,#FF7A1A 0,#E85002 30%,rgba(232,80,2,0) 70%),radial-gradient(40% 40% at 10% 100%,rgba(163,58,5,.8),rgba(163,58,5,0) 70%),#0a0605}
 .hero.nogl .cssPane{display:block}
-.cssPane{display:none;position:absolute;right:12%;top:18%;width:28%;height:62%;border-radius:28px;z-index:-1;
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0,rgba(255,255,255,.03) 5px,rgba(0,0,0,.16) 20px,rgba(255,255,255,.07) 26px);box-shadow:0 40px 70px -24px rgba(0,0,0,.7)}
-.hero-in{width:100%;padding:120px 0 90px}
-.hero h1{font-size:clamp(46px,8.4vw,118px);line-height:.94;max-width:780px}
+.cssPane{display:none;position:absolute;left:0;top:0;bottom:0;width:var(--split,50%);z-index:-1;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-right:1px solid rgba(255,255,255,.35);background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0,rgba(255,255,255,.03) 5px,rgba(0,0,0,.14) 20px,rgba(255,255,255,.06) 26px)}
+.hero-labels{position:absolute;left:0;right:0;top:92px;z-index:2}
+.hero-labels .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+.hero-labels span:nth-child(2){text-align:center}
+.hero-labels span:nth-child(3){text-align:right}
+.hero-labels span{text-shadow:0 1px 10px rgba(5,5,5,.5);color:#F3E7DC}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center}
+.hero-left{height:420px}
+.hero-card{min-height:420px}
+.hero-card .term{height:auto;padding:16px 18px 20px}
+.hero-card .l{animation-delay:calc(var(--i)*140ms + 500ms)}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.hero-chips a{display:inline-flex;align-items:center;gap:7px;font:600 13.5px var(--sans);color:var(--ink);text-decoration:none;padding:8px 13px 8px 9px;border-radius:999px;
+  background:rgba(14,10,8,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);transition:background .25s,transform .25s var(--ease)}
+.hero-chips a:hover{background:rgba(232,80,2,.35);transform:translateY(-1px)}
+.hero-chips a i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--signal);color:#050505;font-size:11px}
+.hero-in{width:100%;padding-top:64px}
+.hero h1{font-size:clamp(46px,8.4vw,124px);line-height:.92;text-shadow:0 4px 40px rgba(5,5,5,.35)}
 .hero h1 .w{display:inline-block;will-change:transform,filter,opacity}
-.hero h1 .accent{color:var(--signal-hot)}
-.hero .lead{margin:26px 0 34px;text-shadow:0 2px 24px rgba(5,5,5,.6)}
+.hero h1 .accent{color:#FFB37E}
+.hero .lead{margin:24px 0 32px;max-width:640px;text-shadow:0 2px 24px rgba(5,5,5,.6)}
 .ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .btn{position:relative;display:inline-flex;align-items:center;gap:10px;background:var(--signal);color:#050505;font-weight:700;font-size:16px;text-decoration:none;padding:16px 26px;border-radius:999px;border:0;cursor:pointer;
   box-shadow:0 12px 40px -8px rgba(232,80,2,.6),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .3s var(--ease),box-shadow .3s var(--ease);font-family:var(--sans)}
@@ -264,13 +277,16 @@ footer a{color:var(--muted);text-decoration:none}
   body{font-size:16px}
   .wrap{padding:0 16px}
   .nav{top:10px;width:calc(100% - 20px);justify-content:space-between}
-  .hero{align-items:flex-end}
-  .hero::before{background:linear-gradient(0deg,var(--canvas) 0,rgba(5,5,5,.75) 42%,rgba(5,5,5,.1) 70%,rgba(5,5,5,0) 100%)}
-  .hero-in{padding:0 0 84px}
+  .hero{padding:110px 0 56px}
+  .hero-labels{top:78px}
+  .hero-labels .wrap{grid-template-columns:1fr 1fr}
+  .hero-labels span:nth-child(2){display:none}
+  .hero-grid{grid-template-columns:1fr;gap:28px}
+  .hero-left{height:250px}
+  .hero-card{min-height:0}
+  .hero-in{padding-top:40px}
   .hero h1{font-size:clamp(42px,12.5vw,64px)}
   .hero .lead{margin:18px 0 26px}
-  .cssPane{right:8%;top:12%;width:44%;height:34%}
-  .corner.tl{top:76px;left:16px}.corner.tr{display:none}
   .scrollHint{display:none}
   .tip-b{left:-8px;transform:translate(0,8px)}
   .tip:hover .tip-b,.tip:focus .tip-b,.tip.open .tip-b{transform:translate(0,0)}
@@ -319,8 +335,27 @@ footer a{color:var(--muted);text-decoration:none}
 <section class="hero" id="hero">
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="cssPane" aria-hidden="true"></div>
-  <div class="corner tl mono">Claude Code kit<br><b>2.0</b></div>
-  <div class="corner tr mono">память · защита<br>пароли · лимиты</div>
+  <div class="hero-labels mono"><div class="wrap"><span>✕ из коробки</span><span>Claude Code kit 2.0</span><span>✓ после тюнинга</span></div></div>
+  <div class="wrap hero-grid">
+    <div class="hero-left" id="heroLeft" aria-hidden="true"></div>
+    <div>
+      <div class="card after hero-card">
+        <div class="top"><span class="badge"><i>✓</i>после тюнинга</span><span class="ttl">claude · ~/Work/сайт · утро</span></div>
+        <div class="term">
+          <div class="l t-hook" style="--i:0">📋 Незакрытые задачи: сайт-визитка, открыто 2 из 5
+   - [ ] Меню на телефоне</div>
+          <div class="l t-you" style="--i:1">Продолжим сайт?</div>
+          <div class="l t-ai" style="--i:2">Да. Вчера закончили главную и галерею. Следующий пункт: меню на телефоне.</div>
+          <div class="l t-tool" style="--i:3">Bash(rm -rf ./дубли ~/)</div>
+          <div class="l t-deny" style="--i:4">⛔ Необратимая команда заблокирована.</div>
+          <div class="l t-ai" style="--i:5">В конце лишний ~/, это вся домашняя папка. Удаляю только дубли.</div>
+        </div>
+      </div>
+      <div class="hero-chips">
+        <a href="#fx-memory"><i>✓</i>помнит дела</a><a href="#fx-lock"><i>✓</i>не стирает лишнего</a><a href="#fx-keys"><i>✓</i>прячет пароли</a><a href="#fx-limits"><i>✓</i>бережёт лимит</a>
+      </div>
+    </div>
+  </div>
   <div class="wrap hero-in">
     <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
     <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему <span class="tip" tabindex="0">опасные команды<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span>: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
@@ -329,7 +364,6 @@ footer a{color:var(--muted);text-decoration:none}
       <a class="ghost" href="#effects">Как я тюню своего Claude</a>
     </div>
   </div>
-  <div class="scrollHint" aria-hidden="true"></div>
 </section>
 
 <div class="ticker" aria-hidden="true"><div class="track" id="ticker">
@@ -342,35 +376,35 @@ footer a{color:var(--muted);text-decoration:none}
       <h2>Твой Claude до&nbsp;и&nbsp;после тюнинга</h2>
       <p class="lead">Сравни, как меняется твоя работа с Claude после установки <span class="tip" tabindex="0">скилла<span class="tip-b" role="tooltip">Скилл: инструкция для Claude, которую он открывает, когда она нужна. Этот набор ставится как скилл и сам настраивает остальное.</span></span>.</p>
     </div>
-    <article class="fx">
+    <article class="fx" id="fx-lock">
       <div class="fx-head rise">
         <div><div class="num">01 · защита от удаления</div><h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3></div>
         <div><p class="lead-in">Опасные команды: те, после которых ничего не вернуть. Удалить папку целиком, стереть базу данных, затереть историю проекта или опубликовать что-то от твоего имени.</p><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
     </article>
-    <article class="fx">
+    <article class="fx" id="fx-memory">
       <div class="fx-head rise">
         <div><div class="num">02 · память</div><h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3></div>
         <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам. Раньше сессии не видели друг друга, и дела приходилось передавать записками. Теперь Claude Code умеет спросить соседнюю открытую сессию напрямую, и набор этим пользуется. Записи остались для закрытых сессий: по ним он вспомнит, что там делали.</p><span class="fact">команды <span class="tip" tabindex="0">/morning и /endday<span class="tip-b" role="tooltip">Их пишешь ты в чате Claude Code: /morning утром, чтобы продолжить, /endday вечером, чтобы записать итог дня.</span></span></span></div>
       </div>
       <div class="scene g2 rise" data-demo="memory"></div>
     </article>
-    <article class="fx">
+    <article class="fx" id="fx-keys">
       <div class="fx-head rise">
         <div><div class="num">03 · пароли и ключи</div><h3>Секреты не&nbsp;попадут в&nbsp;чат</h3></div>
         <div><p>У любого бота, сайта или автоматизации есть секреты: пароли, <span class="tip" tabindex="0">API-ключи<span class="tip-b" role="tooltip">API-ключ: длинный пароль, по которому сервис вроде OpenAI или Telegram узнаёт тебя и списывает деньги. Кто его увидел, тот может им пользоваться.</span></span>, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p><span class="fact">файлы .env, токены, ключи доступа</span></div>
       </div>
       <div class="scene g3 rise" data-demo="keys"></div>
     </article>
-    <article class="fx">
+    <article class="fx" id="fx-loop">
       <div class="fx-head rise">
         <div><div class="num">04 · повторы</div><h3>Не&nbsp;делает одно и&nbsp;то&nbsp;же по&nbsp;кругу</h3></div>
         <div><p>Бывает, агент упирается в ошибку и пробует снова, и снова, а лимит тает. После тюнинга на пятом одинаковом шаге хук его останавливает: агент должен назвать, где мог ошибиться, и попробовать по-другому.</p><span class="fact">подсказка после пяти повторов</span></div>
       </div>
       <div class="scene g4 rise" data-demo="loop"></div>
     </article>
-    <article class="fx">
+    <article class="fx" id="fx-limits">
       <div class="fx-head rise">
         <div><div class="num">05 · лимиты</div><h3>Лимита хватает до&nbsp;вечера</h3></div>
         <div><p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит <span class="tip" tabindex="0">лимит<span class="tip-b" role="tooltip">Лимит: сколько работы Claude даёт по твоей подписке за несколько часов. Всё, что агент читает, расходует его.</span></span>, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой <span class="tip" tabindex="0">шпаргалкой<span class="tip-b" role="tooltip">Шпаргалка: короткий файл CLAUDE.md на 40–60 строк. В нём не все правила целиком, а где что лежит.</span></span>, а из старых заметок он читает только последние три дня.</p><span class="fact">шпаргалка на 40–60 строк</span></div>
@@ -507,67 +541,50 @@ try{
 /* ---------- бегущая строка: дублируем для бесшовного круга ---------- */
 var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
 
-/* ---------- стекло в шапке: WebGL2 ---------- */
-var glassType=0;
+/* ---------- шапка: половина за рифлёным матовым стеклом (WebGL2, рисуется один раз) ---------- */
 (function(){
-  var hero=document.getElementById("hero"),cv=document.getElementById("gl");
+  var hero=document.getElementById("hero"),cv=document.getElementById("gl"),left=document.getElementById("heroLeft");
   var gl=null;try{gl=cv.getContext("webgl2",{antialias:false,premultipliedAlpha:false})}catch(e){}
-  if(!gl){hero.classList.add("nogl");return}
+  function split(){var r=hero.getBoundingClientRect(),l=left.getBoundingClientRect();return {mob:r.width<720,x:l.right-r.left,y:l.bottom-r.top,l:l,r:r}}
+  if(!gl){hero.classList.add("nogl");var g=split();hero.style.setProperty("--split",(g.mob?100:(g.x+48)/g.r.width*100)+"%");return}
   var VS="#version 300 es\nin vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
   var COM="#version 300 es\nprecision highp float;\n"+
   "float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\n"+
   "float vn(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}\n"+
   "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.02+3.1;a*=.5;}return s;}\n"+
   "float sdR(vec2 p,vec4 r,float rad){vec2 c=(r.xy+r.zw)*.5,h=(r.zw-r.xy)*.5;vec2 q=abs(p-c)-h+rad;return length(max(q,0.))+min(max(q.x,q.y),0.)-rad;}\n";
-  // Свет: многоцветный градиент с искривлением, смешивание в OKLab.
+  // Свет (смешивание в OKLab) и карточка «из коробки», которая лежит за стеклом.
   var BG=COM+
-  "uniform vec2 uRes;uniform float uT;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uFig,uPq,uFq;uniform float uCool;uniform sampler2D uFg;out vec4 o;\n"+
+  "uniform vec2 uRes;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uCq;uniform sampler2D uCard;out vec4 o;\n"+
   "vec3 lab(vec3 c){vec3 l=vec3(.4122214708*c.r+.5363325363*c.g+.0514459929*c.b,.2119034982*c.r+.6806995451*c.g+.1073969566*c.b,.0883024619*c.r+.2817188376*c.g+.6299787005*c.b);l=pow(max(l,0.),vec3(1./3.));"+
   "return vec3(.2104542553*l.x+.7936177850*l.y-.0040720468*l.z,1.9779984951*l.x-2.4285922050*l.y+.4505937099*l.z,.0259040371*l.x+.7827717662*l.y-.8086757660*l.z);}\n"+
   "vec3 lin(vec3 c){vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.2914855480*c.z);l=l*l*l;"+
   "return vec3(4.0767416621*l.x-3.3077115913*l.y+.2309699292*l.z,-1.2684380046*l.x+2.6097574011*l.y-.3413193965*l.z,-.0041960863*l.x-.7034186147*l.y+1.7076147010*l.z);}\n"+
   "vec3 ramp(float v){v=clamp(v,0.,1.);vec3 k;if(v<.35)k=mix(lab(c0),lab(c1),v/.35);else if(v<.6)k=mix(lab(c1),lab(c2),(v-.35)/.25);else if(v<.85)k=mix(lab(c2),lab(c3),(v-.6)/.25);else k=mix(lab(c3),lab(c4),(v-.85)/.15);return max(lin(k),0.);}\n"+
-  // Силуэт стажёра за стеклом (как в шаблоне ember-glass), в координатах кадра 1920 px, ось y вниз.
-  "float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}\n"+
-  "float fig(vec2 p){float head=(length((p-vec2(0.,-270.))/vec2(122.,158.))-1.)*122.;vec2 nq=abs(p-vec2(6.,-80.))-vec2(52.,90.);float neck=length(max(nq,0.))+min(max(nq.x,nq.y),0.);"+
-  "float sh=(length((p-vec2(0.,300.))/vec2(430.,250.))-1.)*250.;float body=(length((p-vec2(0.,760.))/vec2(470.,520.))-1.)*470.;return smin(smin(smin(head,neck,36.),sh,70.),body,90.);}\n"+
-  "vec2 toP(vec2 q){return vec2(q.x-uFig.x,uFig.y-q.y)*1920./uFig.z;}\n"+
-  "void main(){vec2 q=gl_FragCoord.xy/uRes.y;float A=uRes.x/uRes.y;float t=uT;\n"+
+  "void main(){vec2 q=gl_FragCoord.xy/uRes.y;float A=uRes.x/uRes.y;float t=8.;\n"+
   "vec2 w=vec2(fbm(q*2.1+vec2(0.,t*.05)),fbm(q*2.1+vec2(5.2,1.3)-t*.04));vec2 qw=q+(w-.5)*.26;\n"+
   "float dS=length(q-uSun.xy+(w-.5)*.14)/uSun.z;float sun=exp(-dS*dS);\n"+
-  "float dE=length((q-vec2(.1*A,-.06))*vec2(1.,1.5)+(w.yx-.5)*.22)/.5;float em=exp(-dE*dE);\n"+
+  "float dE=length((q-vec2(.08*A,-.05))*vec2(1.,1.5)+(w.yx-.5)*.22)/.55;float em=exp(-dE*dE);\n"+
   "float band=.5+.5*sin(qw.y*8.+fbm(qw*2.5+t*.06)*5.+t*.3);\n"+
   "float v=sun*.95+em*.6+band*.18*(sun+em)+fbm(qw*4.-t*.05)*.06;v=1.-exp(-v*1.15);vec3 col=ramp(v);\n"+
-  "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC)*uCool;\n"+
-  "vec2 fu=(q-uFq.xy)/(uFq.zw-uFq.xy);if(fu.x>0.&&fu.x<1.&&fu.y>0.&&fu.y<1.){vec4 f=texture(uFg,vec2(fu.x,1.-fu.y));col=mix(col,pow(f.rgb,vec3(2.2)),f.a);}\n"+
-  "float a=uFig.w*(1.-smoothstep(-.025,0.,sdR(q,uPq,.03)));\n"+
-  "if(a>0.){vec2 p=toP(q);float d=fig(p);float e=1.5;vec2 n=normalize(vec2(fig(p+vec2(e,0.))-fig(p-vec2(e,0.)),fig(p+vec2(0.,e))-fig(p-vec2(0.,e)))+1e-5);\n"+
-  " float ins=1.-smoothstep(-1.5,1.5,d);float rim=exp(-max(-d,0.)/14.)*ins*max(dot(n,normalize(toP(uSun.xy)-p)),0.);\n"+
-  " vec3 fc=c0*.6+ramp(.25)*.25+rim*ramp(.9)*1.7;col*=1.-.55*a*exp(-max(d,0.)/90.)*(1.-ins);col=mix(col,fc,ins*a);}\n"+
+  "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC);\n"+
+  "vec2 cu=(q-uCq.xy)/(uCq.zw-uCq.xy);if(cu.x>0.&&cu.x<1.&&cu.y>0.&&cu.y<1.){vec4 f=texture(uCard,vec2(cu.x,1.-cu.y));col=mix(col,pow(f.rgb,vec3(2.2)),f.a);}\n"+
   "o=vec4(pow(max(col,0.),vec3(1./2.2)),1.);}";
-  // Стекло: лист меньше блока, тень под ним, кромка, зерно.
+  // Рифлёное матовое стекло: рёбра-линзы плюс размытие, светлая кромка по краю листа, тень за ним.
   var GL=COM+
-  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uT,uD,uRib,uPh,uK;uniform int uType;uniform vec4 uP;uniform float uR;out vec4 o;\n"+
+  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uD,uRib;uniform vec4 uP;out vec4 o;\n"+
   "vec3 S(vec2 px,float lod){return pow(textureLod(uBg,px/uRes,lod).rgb,vec3(2.2));}\n"+
   "const vec2 P[12]=vec2[](vec2(-.326,-.406),vec2(-.840,-.074),vec2(-.696,.457),vec2(-.203,.621),vec2(.962,-.195),vec2(.473,-.480),vec2(.519,.767),vec2(.185,-.893),vec2(.507,.064),vec2(.896,.412),vec2(-.322,-.933),vec2(-.792,-.598));\n"+
-  "vec3 disp(vec2 px,vec2 off,float lod){return vec3(S(px+off,lod).r,S(px+off*1.05,lod).g,S(px+off*1.1,lod).b);}\n"+
-  "vec3 glass(vec2 px){\n"+
-  " if(uType<=2){float x=px.x+uPh;if(uType==2)x+=sin(px.y*.0055/uD+uT*.35)*uRib*1.1;float u=fract(x/uRib),s=u*2.-1.;float off,dy=0.;\n"+
-  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.45*uK/sqrt(max(1.-s*s*.9,.08));\n"+
-  "  float lod=abs(s)*.9*uK;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(.6+abs(s)*3.)*uD*uK),vec2(off,0.),lod);c/=5.;\n"+
-  "  float sp=exp(-pow((s+.42)/.07,2.))*(.08+.14*uK);float gr=smoothstep(.85,1.,abs(s))*(.1+.3*uK)+(1.-smoothstep(0.,1.4*uD/uRib*2.,1.-abs(s)))*(.1+.15*uK);return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
-  " if(uType==3){vec3 f=vec3(0.);for(int i=0;i<12;i++)f+=S(px+P[i]*20.*uD,2.6);f/=12.;float l=dot(f,vec3(.2126,.7152,.0722));f=max(mix(vec3(l),f,1.4),0.)*vec3(1.03,.94,.84);return mix(f,vec3(1.),.03)+(h21(px*.9)-.5)*.01;}\n"+
-  " vec2 cell=vec2(uRib*3.2);vec2 g=fract((px+vec2(uPh,0.))/cell)*2.-1.;float lod=.9+length(g)*1.1;vec3 c=disp(px,-g*cell*.24,lod);float e=max(abs(g.x),abs(g.y));\n"+
-  " return c*(1.-smoothstep(.8,1.,e)*.35)+exp(-pow((g.x+g.y+1.1)/.22,2.))*.05*c*3.;}\n"+
-  "void main(){vec2 px=gl_FragCoord.xy;vec3 col=S(px,0.);\n"+
-  " float dP=sdR(px,uP,uR);float m=1.-smoothstep(-1.,1.,dP);\n"+
-  " float dS=sdR(px+vec2(0.,34.*uD),uP,uR);float out_=step(0.,dP);col*=1.-.45*exp(-max(dS,0.)/(70.*uD))*out_;col*=1.-.35*exp(-max(dP,0.)/(5.*uD))*out_;\n"+
-  " if(m>0.)col=mix(col,glass(px)+.012,m);\n"+
-  " vec2 cc=(uP.xy+uP.zw)*.5;float lit=max(dot(normalize(px-cc),normalize(vec2(-.6,1.))),0.);\n"+
-  " float rim=1.-smoothstep(.0,1.1*uD,abs(dP+.6*uD));col=mix(col,vec3(1.),rim*(.5+.45*lit));\n"+
-  " float bev=smoothstep(-7.*uD,-1.*uD,dP)*m;col+=bev*lit*.10;col*=1.-bev*(1.-lit)*.22;\n"+
-  " vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(px+fract(uT*30.)*91.7)-.5)*.03;s+=(h21(px*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
-  function sh(t,s){var x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x}
+  // матовость: пуассоновские выборки вместо грубых мипмапов (мипмапы дают «ромбики» на тексте)
+  "vec3 glass(vec2 px){float u=fract(px.x/uRib),s=u*2.-1.;vec2 o2=vec2(-s*uRib*.14,0.);\n"+
+  " vec3 c=vec3(0.);for(int i=0;i<12;i++){vec2 d=P[i]*vec2(7.,13.)*uD*(1.+abs(s)*.4);c+=vec3(S(px+o2+d,1.4).r,S(px+o2*1.06+d,1.4).g,S(px+o2*1.12+d,1.4).b);}c/=12.;\n"+
+  " float sp=exp(-pow((s+.42)/.08,2.))*.16;float gr=smoothstep(.8,1.,abs(s))*.24;c=mix(c,vec3(dot(c,vec3(.2126,.7152,.0722))),.12)*vec3(1.02,.96,.92);return c*(1.-gr)+sp*(.05+c*1.4)+.018;}\n"+
+  "void main(){vec2 px=gl_FragCoord.xy;vec3 col=S(px,0.);float dP=sdR(px,uP,0.);float m=1.-smoothstep(-.7,.7,dP);\n"+
+  " col*=1.-.3*exp(-max(dP,0.)/(22.*uD))*step(0.,dP);\n"+
+  " if(m>0.)col=mix(col,glass(px),m);\n"+
+  " float rim=1.-smoothstep(0.,1.2*uD,abs(dP+.6*uD));col=mix(col,vec3(1.),rim*.55);\n"+
+  " vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(px*1.91)-.5)*.028;s+=(h21(px*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
+  function sh(t,src){var x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x}
   function prog(fs){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,"p");gl.linkProgram(p);
     if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));var u={},n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
     for(var i=0;i<n;i++){var nm=gl.getActiveUniform(p,i).name.replace(/\[0\]$/,"");u[nm]=gl.getUniformLocation(p,nm)}return{p:p,u:u}}
@@ -575,89 +592,51 @@ var glassType=0;
   try{pB=prog(BG);pG=prog(GL)}catch(e){hero.classList.add("nogl");return}
   var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  var tex=gl.createTexture(),fb=gl.createFramebuffer(),W=0,H=0,D=1,bw=0,bh=0;
+  function tex(){var t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t}
+  var bgTex=tex(),cardTex=tex(),fb=gl.createFramebuffer();
   function hex(v){var n=parseInt(v.slice(1),16);return[(n>>16)/255,((n>>8)&255)/255,(n&255)/255].map(function(c){return Math.pow(c,2.2)})}
   var PAL=["#050505","#2A0B03","#A33A05","#E85002","#FFB070"].map(hex);
-  function resize(){
-    D=Math.min(window.devicePixelRatio||1,1.75);
-    W=Math.max(2,Math.round(cv.clientWidth*D));H=Math.max(2,Math.round(cv.clientHeight*D));cv.width=W;cv.height=H;
-    bw=W;bh=H;
-    gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,bw,bh,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
-  }
-  // Что лежит за стеклом: карточки самого набора — список дел и остановленная команда.
-  var fgTex=gl.createTexture(),fgW=0,fgH=0,fgDirty=true;
-  function drawFg(w,h){
-    // Тёмная плашка и четыре строки крупным шрифтом: рёбра их ломают, но читать можно.
-    var c=document.createElement("canvas");c.width=w;c.height=h;var x=c.getContext("2d"),u=w/360;
-    function rr(X,Y,W,H,R){x.beginPath();if(x.roundRect)x.roundRect(X,Y,W,H,R);else x.rect(X,Y,W,H)}
-    var rows=["помнит дела","не стирает лишнего","прячет пароли","бережёт лимит"],lh=62*u,top=h/2-lh*2;
-    rr(18*u,top-34*u,w-36*u,lh*4+46*u,24*u);x.fillStyle="rgba(10,7,6,.62)";x.fill();
-    x.textBaseline="middle";
-    rows.forEach(function(t,i){
-      var y=top+lh*i+lh*.5-12*u,on=i<fgStep;
-      x.beginPath();x.arc(52*u,y,15*u,0,Math.PI*2);x.fillStyle=on?"#E85002":"rgba(255,255,255,.12)";x.fill();
-      if(on){x.strokeStyle="#050505";x.lineWidth=3.4*u;x.lineCap="round";x.beginPath();x.moveTo(45*u,y);x.lineTo(50*u,y+5*u);x.lineTo(59*u,y-6*u);x.stroke()}
-      x.font="700 "+(24*u)+"px Onest, sans-serif";x.fillStyle=on?"#F9F1E8":"rgba(249,241,232,.35)";x.fillText(t,80*u,y);
-    });
+  // Карточка «из коробки»: та же сцена, что справа, но агент ничего не помнит.
+  function drawCard(w,h,D){
+    var c=document.createElement("canvas");c.width=w;c.height=h;var x=c.getContext("2d"),u=Math.min(w/460,h/420);
+    x.beginPath();if(x.roundRect)x.roundRect(0,0,w,h,26*D);else x.rect(0,0,w,h);x.fillStyle="rgba(14,10,8,.88)";x.fill();
+    x.fillStyle="rgba(255,255,255,.1)";x.fillRect(0,58*u,w,1.5*D);
+    x.beginPath();if(x.roundRect)x.roundRect(16*u,14*u,150*u,32*u,16*u);else x.rect(16*u,14*u,150*u,32*u);x.fillStyle="rgba(255,255,255,.12)";x.fill();
+    x.fillStyle="#FF5A4E";x.beginPath();x.arc(34*u,30*u,10*u,0,Math.PI*2);x.fill();
+    x.textBaseline="middle";x.fillStyle="#F9F9F9";x.font="700 "+(15*u)+"px Onest, sans-serif";x.fillText("из коробки",52*u,30*u);
+    x.fillStyle="#8a817a";x.font="500 "+(13*u)+"px 'JetBrains Mono', monospace";x.fillText("НОВЫЙ РАЗГОВОР",w/2-58*u,92*u);
+    x.fillStyle="#F9F9F9";x.font="500 "+(19*u)+"px 'JetBrains Mono', monospace";x.fillText("› Продолжим сайт?",24*u,140*u);
+    x.font="700 "+(34*u)+"px Onest, sans-serif";x.fillText("Привет! Чем",24*u,210*u);x.fillText("займёмся?",24*u,252*u);
+    x.fillStyle="#DCD5CF";x.font="400 "+(19*u)+"px Onest, sans-serif";x.fillText("Расскажи, что за сайт",24*u,312*u);x.fillText("и на каком он этапе?",24*u,340*u);
     return c;
   }
-  var fgStep=reduce?4:0;
-  function stepFg(){if(fgStep>=4)return;fgStep++;fgDirty=true;if(window.__redrawHero)window.__redrawHero();setTimeout(stepFg,650)}
-  setTimeout(stepFg,900);
-  function uploadFg(w,h){
-    fgW=w;fgH=h;fgDirty=false;
-    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,fgTex);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,drawFg(w,h));
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.activeTexture(gl.TEXTURE0);
-  }
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){fgDirty=true;if(window.__redrawHero)window.__redrawHero()});
-  resize();window.addEventListener("resize",resize);
-  // Лист следует за курсором с запаздыванием (пружина без перелёта).
-  var mx=0,my=0,sx=0,sy=0;
-  hero.addEventListener("pointermove",function(e){var r=hero.getBoundingClientRect();mx=(e.clientX-r.left)/r.width-.5;my=(e.clientY-r.top)/r.height-.5});
-  hero.addEventListener("pointerleave",function(){mx=0;my=0});
-  var visible=true,running=false,t0=performance.now(),last=t0;
-  function kick(){if(!running&&visible&&!reduce&&!document.hidden){running=true;last=performance.now();requestAnimationFrame(frame)}}
-  new IntersectionObserver(function(es){visible=es[0].isIntersecting;kick()}).observe(hero);
-  function frame(now){
-    var dt=Math.min(.05,(now-last)/1000);last=now;var t=reduce?8:(now-t0)/1000+6;
-    sx+=(mx-sx)*Math.min(1,dt*3);sy+=(my-sy)*Math.min(1,dt*3);
-    var cw=cv.clientWidth,ch=cv.clientHeight,mob=cw<720;
-    // Лист: на десктопе справа ~28% ширины, на телефоне сверху справа. Координаты GL: y снизу.
-    var pw=mob?cw*.4:Math.min(cw*.27,420),ph=mob?ch*.24:Math.min(ch*.62,600);
-    var cx=mob?cw*.7:cw*.72,cy=mob?ch*.205:ch*.5;
-    cx+=sx*28;cy+=sy*22;
-    var x0=(cx-pw/2)*D,x1=(cx+pw/2)*D,y0=(ch-(cy+ph/2))*D,y1=(ch-(cy-ph/2))*D;
-    // проход 1: свет
-    gl.useProgram(pB.p);gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.viewport(0,0,bw,bh);
-    gl.uniform2f(pB.u.uRes,bw,bh);gl.uniform1f(pB.u.uT,t);
-    var A=bw/bh,qx=(cx/cw)*A,qTop=1-(cy-ph/2)/ch,qBot=1-(cy+ph/2)/ch,qw2=(pw/2)/ch;
-    var z=(qTop-qBot)*.78*1920/728,fy=qTop-.07-428*z/1920;
-    gl.uniform4f(pB.u.uFig,0,0,1,0);
-    // Карточки за стеклом чуть отстают от листа — так видно, что стекло их преломляет.
-    var fx=-sx*.025,fy2=sy*.02;gl.uniform4f(pB.u.uFq,qx-qw2+fx,qBot+fy2,qx+qw2+fx,qTop+fy2);
-    var fw=Math.round(pw*D),fh=Math.round(ph*D);if(fw!==fgW||fh!==fgH||fgDirty)uploadFg(fw,fh);
-    gl.uniform1i(pB.u.uFg,1);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,fgTex);gl.activeTexture(gl.TEXTURE0);
-    gl.uniform4f(pB.u.uPq,qx-qw2,qBot,qx+qw2,qTop);
-    gl.uniform3f(pB.u.uSun,qx-qw2*.55+Math.sin(t*.3)*.02-sx*.05,fy+270*z/1920+.07,mob?.26:.42);gl.uniform1f(pB.u.uCool,mob?.15:1);
+  var W=0,H=0,D=1;
+  function draw(){
+    D=Math.min(window.devicePixelRatio||1,1.75);
+    W=Math.max(2,Math.round(cv.clientWidth*D));H=Math.max(2,Math.round(cv.clientHeight*D));cv.width=W;cv.height=H;
+    var g=split(),cw=cv.clientWidth,ch=cv.clientHeight,A=W/H;
+    gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,bgTex,0);
+    var lx=g.l.left-g.r.left,ly=g.l.top-g.r.top,lw=g.l.width,lh=g.l.height;
+    gl.bindTexture(gl.TEXTURE_2D,cardTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,drawCard(Math.round(lw*D),Math.round(lh*D),D));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    // проход 1: свет и карточка
+    gl.useProgram(pB.p);gl.viewport(0,0,W,H);gl.uniform2f(pB.u.uRes,W,H);
+    var sx=g.mob?.5*A:(g.x+48)/cw*A,sy=g.mob?1-(g.y+14)/ch:1-(ly+lh*.45)/ch;
+    gl.uniform3f(pB.u.uSun,sx,sy,g.mob?.32:.48);
     ["c0","c1","c2","c3","c4"].forEach(function(n,i){gl.uniform3fv(pB.u[n],PAL[i])});
-    gl.drawArrays(gl.TRIANGLES,0,3);gl.bindTexture(gl.TEXTURE_2D,tex);gl.generateMipmap(gl.TEXTURE_2D);
-    // проход 2: стекло на экран
+    gl.uniform4f(pB.u.uCq,lx/ch,1-(ly+lh)/ch,(lx+lw)/ch,1-ly/ch);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,cardTex);gl.uniform1i(pB.u.uCard,1);gl.activeTexture(gl.TEXTURE0);
+    gl.drawArrays(gl.TRIANGLES,0,3);gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.generateMipmap(gl.TEXTURE_2D);
+    // проход 2: стекло — на телефоне верхняя полоса, на компьютере левая половина
     gl.useProgram(pG.p);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
-    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(pG.u.uBg,0);
-    gl.uniform2f(pG.u.uRes,W,H);gl.uniform1f(pG.u.uT,t);gl.uniform1f(pG.u.uD,D);gl.uniform1f(pG.u.uRib,30*D);gl.uniform1f(pG.u.uPh,t*9*D);
-    var kt=reduce?1:Math.min(1,Math.max(0,(now-t0-900)/3000));kt=kt*kt*(3-2*kt);gl.uniform1f(pG.u.uK,1-kt);gl.uniform1i(pG.u.uType,glassType);gl.uniform4f(pG.u.uP,x0,y0,x1,y1);gl.uniform1f(pG.u.uR,28*D);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.uniform1i(pG.u.uBg,0);
+    gl.uniform2f(pG.u.uRes,W,H);gl.uniform1f(pG.u.uD,D);gl.uniform1f(pG.u.uRib,28*D);
+    if(g.mob)gl.uniform4f(pG.u.uP,-100,H-(g.y+14)*D,W+100,H+100);else gl.uniform4f(pG.u.uP,-100,-100,(g.x+48)*D,H+100);
     gl.drawArrays(gl.TRIANGLES,0,3);
-    if(running&&visible&&!reduce&&!document.hidden)requestAnimationFrame(frame);else running=false;
   }
-  window.__redrawHero=function(){if(!running)frame(performance.now())};
-  document.addEventListener("visibilitychange",kick);
-  if(reduce)frame(performance.now());else kick();
+  var tmr;function later(){clearTimeout(tmr);tmr=setTimeout(draw,120)}
+  draw();window.addEventListener("resize",later);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
 })();
 
 /* ---------- демо: два режима, сообщения сторожей дословно из набора ---------- */
