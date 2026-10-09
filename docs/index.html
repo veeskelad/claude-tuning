@@ -96,6 +96,7 @@ section{position:relative}
 .fx .num::after{content:"";height:1px;width:56px;background:linear-gradient(90deg,var(--signal),transparent)}
 .fx h3{font-size:clamp(30px,3.6vw,46px)}
 .fx p{color:var(--ink-2);font-size:17.5px;margin-bottom:12px}
+.fx p.lead-in{color:var(--ink);font-weight:600}
 .fact{display:inline-flex;align-items:center;gap:8px;font:500 12.5px/1.4 var(--mono);color:var(--sand);padding:9px 13px;border-radius:999px;border:1px solid rgba(217,195,171,.25);background:rgba(217,195,171,.05)}
 .fact::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sand);flex:none}
 
@@ -322,7 +323,7 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="corner tr mono">память · защита<br>пароли · лимиты</div>
   <div class="wrap hero-in">
     <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-    <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему опасные команды: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
+    <p class="lead">Таким <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: читает файлы, запускает команды и сам доводит задачу до конца.</span></span> приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему <span class="tip" tabindex="0">опасные команды<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span>: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
     <div class="ctas">
       <a class="btn" href="#install">Поставить <span class="arr">→</span></a>
       <a class="ghost" href="#effects">Как я тюню своего Claude</a>
@@ -344,14 +345,14 @@ footer a{color:var(--muted);text-decoration:none}
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">01 · защита от удаления</div><h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3></div>
-        <div><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
+        <div><p class="lead-in">Опасные команды: те, после которых ничего не вернуть. Удалить папку целиком, стереть базу данных, затереть историю проекта или опубликовать что-то от твоего имени.</p><p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p><span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span></div>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
     </article>
     <article class="fx">
       <div class="fx-head rise">
         <div><div class="num">02 · память</div><h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3></div>
-        <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам. Соседнюю открытую сессию он теперь может просто спросить, что она делает. Закрытую вспомнит по её записи.</p><span class="fact">команды <span class="tip" tabindex="0">/morning и /endday<span class="tip-b" role="tooltip">Их пишешь ты в чате Claude Code: /morning утром, чтобы продолжить, /endday вечером, чтобы записать итог дня.</span></span></span></div>
+        <div><p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам. Раньше сессии не видели друг друга, и дела приходилось передавать записками. Теперь Claude Code умеет спросить соседнюю открытую сессию напрямую, и набор этим пользуется. Записи остались для закрытых сессий: по ним он вспомнит, что там делали.</p><span class="fact">команды <span class="tip" tabindex="0">/morning и /endday<span class="tip-b" role="tooltip">Их пишешь ты в чате Claude Code: /morning утром, чтобы продолжить, /endday вечером, чтобы записать итог дня.</span></span></span></div>
       </div>
       <div class="scene g2 rise" data-demo="memory"></div>
     </article>
@@ -381,7 +382,7 @@ footer a{color:var(--muted);text-decoration:none}
 
 <section aria-label="Цифры" style="padding:20px 0 0"><div class="wrap">
   <div class="stats scene g2">
-    <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передавал дела из одного разговора с Claude в другой. Из этой привычки и вырос набор</p></div>
+    <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я вручную передавал дела между сессиями, пока они не умели читать друг друга. Теперь живую сессию можно просто спросить</p></div>
     <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: все опасные остановлены, обычные прошли</p></div>
     <div class="stat rise"><div class="n" data-count="8">8</div><p>готовых навыков. Например, «начни утро» и «подведи итог дня»</p></div>
     <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков: срабатывают сами, просить их не нужно</p></div>
@@ -538,7 +539,7 @@ var glassType=0;
   "float band=.5+.5*sin(qw.y*8.+fbm(qw*2.5+t*.06)*5.+t*.3);\n"+
   "float v=sun*.95+em*.6+band*.18*(sun+em)+fbm(qw*4.-t*.05)*.06;v=1.-exp(-v*1.15);vec3 col=ramp(v);\n"+
   "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC)*uCool;\n"+
-  "vec2 fu=(q-uFq.xy)/(uFq.zw-uFq.xy);if(fu.x>0.&&fu.x<1.&&fu.y>0.&&fu.y<1.){vec4 f=texture(uFg,vec2(fu.x,1.-fu.y));col=col*(1.-.35*f.a)+pow(f.rgb,vec3(2.2))*f.a*.9;}\n"+
+  "vec2 fu=(q-uFq.xy)/(uFq.zw-uFq.xy);if(fu.x>0.&&fu.x<1.&&fu.y>0.&&fu.y<1.){vec4 f=texture(uFg,vec2(fu.x,1.-fu.y));col=mix(col,pow(f.rgb,vec3(2.2)),f.a);}\n"+
   "float a=uFig.w*(1.-smoothstep(-.025,0.,sdR(q,uPq,.03)));\n"+
   "if(a>0.){vec2 p=toP(q);float d=fig(p);float e=1.5;vec2 n=normalize(vec2(fig(p+vec2(e,0.))-fig(p-vec2(e,0.)),fig(p+vec2(0.,e))-fig(p-vec2(0.,e)))+1e-5);\n"+
   " float ins=1.-smoothstep(-1.5,1.5,d);float rim=exp(-max(-d,0.)/14.)*ins*max(dot(n,normalize(toP(uSun.xy)-p)),0.);\n"+
@@ -546,15 +547,15 @@ var glassType=0;
   "o=vec4(pow(max(col,0.),vec3(1./2.2)),1.);}";
   // Стекло: лист меньше блока, тень под ним, кромка, зерно.
   var GL=COM+
-  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uT,uD,uRib,uPh;uniform int uType;uniform vec4 uP;uniform float uR;out vec4 o;\n"+
+  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uT,uD,uRib,uPh,uK;uniform int uType;uniform vec4 uP;uniform float uR;out vec4 o;\n"+
   "vec3 S(vec2 px,float lod){return pow(textureLod(uBg,px/uRes,lod).rgb,vec3(2.2));}\n"+
   "const vec2 P[12]=vec2[](vec2(-.326,-.406),vec2(-.840,-.074),vec2(-.696,.457),vec2(-.203,.621),vec2(.962,-.195),vec2(.473,-.480),vec2(.519,.767),vec2(.185,-.893),vec2(.507,.064),vec2(.896,.412),vec2(-.322,-.933),vec2(-.792,-.598));\n"+
   "vec3 disp(vec2 px,vec2 off,float lod){return vec3(S(px+off,lod).r,S(px+off*1.05,lod).g,S(px+off*1.1,lod).b);}\n"+
   "vec3 glass(vec2 px){\n"+
   " if(uType<=2){float x=px.x+uPh;if(uType==2)x+=sin(px.y*.0055/uD+uT*.35)*uRib*1.1;float u=fract(x/uRib),s=u*2.-1.;float off,dy=0.;\n"+
-  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.38/sqrt(max(1.-s*s*.9,.08));\n"+
-  "  float lod=abs(s)*.35;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(.6+abs(s)*1.6)*uD),vec2(off,0.),lod);c/=5.;\n"+
-  "  float sp=exp(-pow((s+.42)/.07,2.))*.2;float gr=smoothstep(.8,1.,abs(s))*.42+(1.-smoothstep(0.,1.4*uD/uRib*2.,1.-abs(s)))*.35;return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
+  "  if(uType==1){off=s*uRib*2.4;dy=s*70.*uD;}else off=-s*uRib*.45*uK/sqrt(max(1.-s*s*.9,.08));\n"+
+  "  float lod=abs(s)*.9*uK;vec3 c=vec3(0.);for(int k=-2;k<=2;k++)c+=disp(px+vec2(0.,dy+float(k)*(.6+abs(s)*3.)*uD*uK),vec2(off,0.),lod);c/=5.;\n"+
+  "  float sp=exp(-pow((s+.42)/.07,2.))*(.08+.14*uK);float gr=smoothstep(.85,1.,abs(s))*(.1+.3*uK)+(1.-smoothstep(0.,1.4*uD/uRib*2.,1.-abs(s)))*(.1+.15*uK);return c*(1.-gr)+sp*(.04+c*1.6);}\n"+
   " if(uType==3){vec3 f=vec3(0.);for(int i=0;i<12;i++)f+=S(px+P[i]*20.*uD,2.6);f/=12.;float l=dot(f,vec3(.2126,.7152,.0722));f=max(mix(vec3(l),f,1.4),0.)*vec3(1.03,.94,.84);return mix(f,vec3(1.),.03)+(h21(px*.9)-.5)*.01;}\n"+
   " vec2 cell=vec2(uRib*3.2);vec2 g=fract((px+vec2(uPh,0.))/cell)*2.-1.;float lod=.9+length(g)*1.1;vec3 c=disp(px,-g*cell*.24,lod);float e=max(abs(g.x),abs(g.y));\n"+
   " return c*(1.-smoothstep(.8,1.,e)*.35)+exp(-pow((g.x+g.y+1.1)/.22,2.))*.05*c*3.;}\n"+
@@ -589,23 +590,23 @@ var glassType=0;
   // Что лежит за стеклом: карточки самого набора — список дел и остановленная команда.
   var fgTex=gl.createTexture(),fgW=0,fgH=0,fgDirty=true;
   function drawFg(w,h){
+    // Тёмная плашка и четыре строки крупным шрифтом: рёбра их ломают, но читать можно.
     var c=document.createElement("canvas");c.width=w;c.height=h;var x=c.getContext("2d"),u=w/360;
     function rr(X,Y,W,H,R){x.beginPath();if(x.roundRect)x.roundRect(X,Y,W,H,R);else x.rect(X,Y,W,H)}
-    x.save();x.translate(w*.5,h*.3);x.rotate(-.06);
-    rr(-140*u,-95*u,280*u,190*u,22*u);x.fillStyle="rgba(243,217,189,.96)";x.fill();
-    x.fillStyle="#2a1206";x.font="700 "+(21*u)+"px Onest, sans-serif";x.fillText("Сайт-визитка",-116*u,-52*u);
-    x.font="500 "+(15*u)+"px 'JetBrains Mono', monospace";
-    [["☑","главная",1],["☑","галерея",1],["☐","меню",0],["☐","форма",0]].forEach(function(r,i){x.fillStyle=r[2]?"#C24104":"#7a5a45";x.fillText(r[0]+"  "+r[1],-116*u,(-14+i*27)*u)});
-    x.restore();
-    x.save();x.translate(w*.52,h*.71);x.rotate(.05);
-    rr(-150*u,-78*u,300*u,156*u,22*u);x.fillStyle="rgba(12,9,8,.95)";x.fill();
-    x.font="500 "+(14*u)+"px 'JetBrains Mono', monospace";x.fillStyle="#D9C3AB";x.fillText("› rm -rf ./дубли ~/",-126*u,-38*u);
-    rr(-126*u,-20*u,86*u,30*u,15*u);x.fillStyle="#E85002";x.fill();
-    x.fillStyle="#050505";x.font="700 "+(14*u)+"px Onest, sans-serif";x.fillText("стоп",-103*u,0);
-    x.fillStyle="#A7A7A7";x.font="500 "+(13*u)+"px 'JetBrains Mono', monospace";x.fillText("открыто 2 из 5 · утро",-126*u,40*u);
-    x.restore();
+    var rows=["помнит дела","не стирает лишнего","прячет пароли","бережёт лимит"],lh=62*u,top=h/2-lh*2;
+    rr(18*u,top-34*u,w-36*u,lh*4+46*u,24*u);x.fillStyle="rgba(10,7,6,.62)";x.fill();
+    x.textBaseline="middle";
+    rows.forEach(function(t,i){
+      var y=top+lh*i+lh*.5-12*u,on=i<fgStep;
+      x.beginPath();x.arc(52*u,y,15*u,0,Math.PI*2);x.fillStyle=on?"#E85002":"rgba(255,255,255,.12)";x.fill();
+      if(on){x.strokeStyle="#050505";x.lineWidth=3.4*u;x.lineCap="round";x.beginPath();x.moveTo(45*u,y);x.lineTo(50*u,y+5*u);x.lineTo(59*u,y-6*u);x.stroke()}
+      x.font="700 "+(24*u)+"px Onest, sans-serif";x.fillStyle=on?"#F9F1E8":"rgba(249,241,232,.35)";x.fillText(t,80*u,y);
+    });
     return c;
   }
+  var fgStep=reduce?4:0;
+  function stepFg(){if(fgStep>=4)return;fgStep++;fgDirty=true;if(window.__redrawHero)window.__redrawHero();setTimeout(stepFg,650)}
+  setTimeout(stepFg,900);
   function uploadFg(w,h){
     fgW=w;fgH=h;fgDirty=false;
     gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,fgTex);
@@ -650,7 +651,7 @@ var glassType=0;
     gl.useProgram(pG.p);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.uniform1i(pG.u.uBg,0);
     gl.uniform2f(pG.u.uRes,W,H);gl.uniform1f(pG.u.uT,t);gl.uniform1f(pG.u.uD,D);gl.uniform1f(pG.u.uRib,30*D);gl.uniform1f(pG.u.uPh,t*9*D);
-    gl.uniform1i(pG.u.uType,glassType);gl.uniform4f(pG.u.uP,x0,y0,x1,y1);gl.uniform1f(pG.u.uR,28*D);
+    var kt=reduce?1:Math.min(1,Math.max(0,(now-t0-900)/3000));kt=kt*kt*(3-2*kt);gl.uniform1f(pG.u.uK,1-kt);gl.uniform1i(pG.u.uType,glassType);gl.uniform4f(pG.u.uP,x0,y0,x1,y1);gl.uniform1f(pG.u.uR,28*D);
     gl.drawArrays(gl.TRIANGLES,0,3);
     if(running&&visible&&!reduce&&!document.hidden)requestAnimationFrame(frame);else running=false;
   }
