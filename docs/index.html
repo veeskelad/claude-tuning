@@ -43,7 +43,7 @@ section{position:relative}
   box-shadow:0 10px 30px -10px rgba(0,0,0,.6);transition:opacity .4s var(--ease),transform .4s var(--ease)}
 .nav .logo{display:flex;align-items:center;gap:8px;font:600 14px var(--mono);letter-spacing:.02em;text-decoration:none;margin-right:8px;white-space:nowrap}
 .nav .logo svg{width:16px;height:16px;color:var(--signal)}
-.nav a.l{font-size:14px;text-decoration:none;color:var(--ink-2);padding:8px 12px;border-radius:999px;transition:background .2s}
+.nav a.l{white-space:nowrap;font-size:14px;text-decoration:none;color:var(--ink-2);padding:8px 12px;border-radius:999px;transition:background .2s}
 .nav a.l:hover{background:rgba(255,255,255,.06)}
 .nav .go{font-size:14px;font-weight:700;text-decoration:none;background:var(--signal);color:#050505;padding:9px 16px;border-radius:999px;white-space:nowrap}
 
@@ -120,6 +120,16 @@ section{position:relative}
 .nc.big .save .t{font-size:17px}
 .nc .save .go{display:block;margin-top:8px;font:600 13px var(--sans);color:var(--sand)}
 .nc.wide{grid-column:span 2}
+.nc.sub{display:grid;grid-row:span 5;grid-template-rows:subgrid;row-gap:12px;align-content:start}
+.nc.sub .save{align-self:start}
+.nc .clock{margin:auto 0;padding:18px 0 20px}
+.nc .clock .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.nc .clock .bar i{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--signal),var(--bad));transform-origin:left;transform:scaleX(0);transition:transform 2.2s cubic-bezier(.3,0,.2,1) .3s}
+.nc.on .clock .bar i,.nc.rise.on .clock .bar i{transform:scaleX(1)}
+.nc .clock .ts{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;font:500 12px var(--mono);color:var(--muted)}
+.nc .clock .ts b{font:700 15px var(--sans);color:var(--ink)}
+.nc .clock p{margin-top:12px;font-size:14.5px}
+@media (prefers-reduced-motion:reduce){.nc .clock .bar i{transform:none;transition:none}}
 .nc .fix{display:inline-flex;align-items:center;gap:8px;width:max-content;max-width:100%;font:600 13.5px/1.35 var(--sans);color:var(--ink);text-decoration:none;
   padding:8px 13px 8px 9px;border-radius:999px;background:rgba(232,80,2,.14);border:1px solid rgba(232,80,2,.4);transition:background .25s}
 .nc .fix:hover{background:rgba(232,80,2,.3)}
@@ -356,6 +366,7 @@ footer a{color:var(--muted);text-decoration:none}
   .stats.scene{grid-template-columns:repeat(2,1fr)}
   .nav a.l{display:none}
   .ngrid{grid-template-columns:1fr 1fr}
+  .nc.sub{display:flex;grid-row:auto}
   .nc.big{grid-column:span 2;grid-row:auto}
   .qgrid{grid-template-columns:1fr 1fr}
 }
@@ -468,24 +479,25 @@ footer a{color:var(--muted);text-decoration:none}
         <span class="when">сентябрь 2026 · Reddit</span>
         <h3>48&nbsp;218 файлов удалено за&nbsp;103 секунды</h3>
         <p>По словам автора поста, Claude Code написал скрипт очистки, прошёл по ссылкам обратно в рабочую папку и удалил файлы проекта.</p>
+        <div class="clock" aria-label="Удаление шло 103 секунды, с 22:10:31 до 22:12:14"><div class="bar"><i></i></div><div class="ts"><span>22:10:31</span><b>103 секунды</b><span>22:12:14</span></div><p>Почти 470 файлов в секунду. Заметить и остановить это вручную не успеть.</p></div>
         <a class="save" href="#fx-lock"><span class="k">с claude-tuning</span><span class="t">Удаляла не команда, а скрипт, поэтому набор смотрит и внутрь скриптов. Прежде чем запустить такой, агент показал бы его тебе и спросил разрешения.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.techradar.com/pro/security/i-broke-something-a-claude-code-ai-agent-deleted-48-000-files-in-just-over-100-seconds-then-apologized-for-doing-so" target="_blank" rel="noopener">TechRadar</a></span>
       </article>
-      <article class="nc rise">
+      <article class="nc sub rise">
         <span class="when">31 марта 2026 · The Register</span>
         <h3>«Лимиты кончаются гораздо быстрее, чем ожидалось»</h3>
         <p>Так написала сама Anthropic и пообещала, что команда займётся этим в первую очередь.</p>
         <a class="save" href="#fx-limits"><span class="k">с claude-tuning</span><span class="t">Агент начинал бы разговор с короткой шпаргалки и заметок за три дня, а не со всей истории, и лимит уходил бы на работу.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://www.theregister.com/2026/03/31/anthropic_claude_code_limits/" target="_blank" rel="noopener">The Register</a></span>
       </article>
-      <article class="nc rise">
+      <article class="nc sub rise">
         <span class="when">февраль 2026 · GitHub</span>
         <h3>Claude вписывает ключи прямо в&nbsp;команды</h3>
         <p>Он открывает файл с ключами и вставляет токены в скрипты, а скрипты остаются в истории разговора. Тикет об этом закрыли, так ничего и не исправив.</p>
         <a class="save" href="#fx-keys"><span class="k">с claude-tuning</span><span class="t">Хук не дал бы открыть файл с ключами. Агент увидел бы только их названия, а сами токены остались бы у тебя.</span><span class="go">Посмотреть, как это работает →</span></a>
         <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/24185" target="_blank" rel="noopener">GitHub #24185</a></span>
       </article>
-      <article class="nc rise">
+      <article class="nc sub rise">
         <span class="when">июль 2026 · GitHub</span>
         <h3>Claude ничего не запоминает от&nbsp;сессии к&nbsp;сессии</h3>
         <p>Так назвал свою жалобу человек, который часами объяснял агенту, как устроены его проекты, а в новом разговоре от этого ничего не осталось. Тикет закрыли за давностью, так и не ответив.</p>
