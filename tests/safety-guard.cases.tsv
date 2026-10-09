@@ -1,0 +1,41 @@
+deny	rm -rf tests/ patches/ plan/ ~/
+deny	rm -rf tests/patches/plan/ ~/
+deny	rm -rf ~
+deny	rm -rf ~/
+deny	rm -rf $HOME
+deny	rm -rf /
+deny	sudo rm -rf /*
+deny	rm -rf "$HOME/"
+deny	terraform destroy -auto-approve
+deny	npx drizzle-kit push --force
+deny	npx prisma migrate reset --force
+deny	git reset --hard origin/main
+deny	psql -c "DROP DATABASE prod"
+deny	psql -c "drop table users"
+deny	kubectl delete namespace prod
+deny	docker system prune -a -f
+deny	npm publish
+deny	chmod -R 777 .
+deny	cat .env
+deny	cat ~/.config/app/.env.production
+deny	printenv
+deny	env
+allow	ls -la
+allow	git status
+allow	git diff --stat
+allow	rm -rf ./node_modules
+allow	rm -rf dist
+allow	rm -rf ./Фото/дубли
+allow	rm photo-copy.jpg
+allow	npm test
+allow	npm run build
+allow	grep -rn TODO src
+allow	python3 make_reel.py Отпуск
+allow	git commit -m "fix"
+allow	git push origin feature
+allow	docker ps
+allow	terraform plan
+allow	grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env
+allow	cat README.md
+allow	echo "$PATH"
+allow	mkdir -p build

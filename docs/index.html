@@ -84,12 +84,57 @@ section{position:relative}
 .scrollHint::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:7px;border-radius:2px;background:var(--ink);transform:translateX(-50%);animation:sh 2s var(--ease) infinite}
 @keyframes sh{0%{opacity:0;transform:translate(-50%,0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
 
-/* ---------- бегущая строка болей ---------- */
-.ticker{overflow:hidden;padding:18px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-.ticker .track{display:flex;gap:44px;width:max-content;animation:tick 48s linear infinite}
-.ticker span{font:500 15px var(--mono);color:var(--muted);white-space:nowrap;letter-spacing:.02em}
-.ticker span i{font-style:normal;color:var(--signal);margin-right:12px}
-@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ---------- раздел: это уже случилось ---------- */
+.news .head{margin-bottom:56px}
+.ngrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.nc{position:relative;display:flex;flex-direction:column;gap:12px;padding:26px 24px 22px;border-radius:26px;background:var(--surface);border:1px solid var(--line);
+  transition:transform .4s var(--ease),border-color .4s,background .4s}
+.nc:hover{transform:translateY(-3px);border-color:rgba(232,80,2,.45);background:var(--surface-2)}
+.nc.big{grid-column:span 2;grid-row:span 2;padding:36px 34px 30px;overflow:hidden;isolation:isolate;
+  background:radial-gradient(80% 70% at 100% 0%,rgba(193,8,1,.38),rgba(193,8,1,0) 70%),radial-gradient(60% 60% at 0% 100%,rgba(232,80,2,.22),rgba(232,80,2,0) 70%),var(--surface)}
+.nc .when{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.nc h3{font-size:clamp(22px,2.2vw,28px);line-height:1.1}
+.nc.big h3{font-size:clamp(34px,4.4vw,58px);line-height:1}
+.nc p{margin:0;color:var(--ink-2);font-size:15.5px;line-height:1.55}
+.nc.big p{font-size:17.5px;max-width:560px}
+.nc code{display:block;width:max-content;max-width:100%;overflow-x:auto;font:500 clamp(15px,1.7vw,20px) var(--mono);color:#FFD9C2;padding:14px 18px;border-radius:14px;
+  background:rgba(255,90,78,.1);border:1px solid rgba(255,90,78,.35)}
+.nc code b{color:#fff;background:var(--bad);border-radius:6px;padding:0 6px;font-weight:700}
+.nc .lost{display:flex;flex-wrap:wrap;gap:8px}
+.nc .lost span{font:500 13px var(--mono);color:#C9A79A;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,90,78,.22);text-decoration:line-through;text-decoration-color:rgba(255,90,78,.8)}
+.nc .lost span:last-child{text-decoration:none;border-style:dashed;color:var(--muted)}
+.nc .src{margin-top:auto;padding-top:6px;font:500 13px var(--sans);color:var(--muted)}
+.nc .src a{color:var(--muted);text-decoration-color:rgba(156,149,143,.45);text-underline-offset:3px}
+.nc .src a:hover{color:var(--ink)}
+.nc .fix{display:inline-flex;align-items:center;gap:8px;width:max-content;max-width:100%;font:600 13.5px/1.35 var(--sans);color:var(--ink);text-decoration:none;
+  padding:8px 13px 8px 9px;border-radius:999px;background:rgba(232,80,2,.14);border:1px solid rgba(232,80,2,.4);transition:background .25s}
+.nc .fix:hover{background:rgba(232,80,2,.3)}
+.nc .fix i{font-style:normal;flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--signal);color:#050505;font-size:11px}
+
+/* ---------- раздел: узнаёшь себя ---------- */
+.quiz .head{margin-bottom:48px}
+.qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.qi{position:relative;display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:start;text-align:left;font:inherit;color:var(--ink);cursor:pointer;
+  padding:22px 22px 20px;border-radius:22px;background:var(--surface);border:1px solid var(--line);transition:border-color .3s,background .3s,transform .3s var(--ease),box-shadow .3s}
+.qi:hover{border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
+.qi:focus-visible{outline:2px solid var(--signal-hot);outline-offset:3px}
+.qi .bx{width:30px;height:30px;border-radius:10px;border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:15px;font-weight:800;color:transparent;transition:background .25s,border-color .25s,color .25s}
+.qi b{display:block;font-size:18px;line-height:1.3;font-weight:650;letter-spacing:-.01em}
+.qi small{display:block;margin-top:6px;color:var(--muted);font-size:14px;line-height:1.45}
+.qi .cure{display:block;max-height:0;opacity:0;overflow:hidden;margin-top:0;font:600 13.5px/1.45 var(--sans);color:var(--signal-hot);transition:max-height .5s var(--ease),opacity .4s,margin .4s}
+.qi[aria-pressed=true]{border-color:var(--signal);background:linear-gradient(180deg,rgba(232,80,2,.16),rgba(232,80,2,.05)),var(--surface);box-shadow:0 18px 40px -24px rgba(232,80,2,.8)}
+.qi[aria-pressed=true] .bx{background:var(--signal);border-color:var(--signal);color:#050505}
+.qi[aria-pressed=true] .cure{max-height:80px;opacity:1;margin-top:10px}
+.qres{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px 28px;margin-top:22px;padding:24px 28px;border-radius:26px;
+  background:var(--surface-2);border:1px solid var(--line);transition:border-color .4s,background .4s}
+.qres.hit{border-color:rgba(232,80,2,.5);background:radial-gradient(70% 140% at 0% 50%,rgba(232,80,2,.22),rgba(232,80,2,0) 70%),var(--surface-2)}
+.qres .sc{display:flex;align-items:baseline;gap:12px}
+.qres .sc strong{font-size:clamp(44px,5vw,64px);font-weight:700;letter-spacing:-.05em;line-height:1;color:var(--ink)}
+.qres.hit .sc strong{color:var(--signal-hot)}
+.qres .sc span{font:500 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qres p{flex:1 1 320px;margin:0;font-size:17px;color:var(--ink-2)}
+.qres .ctas .btn{padding:14px 22px}
 
 /* ---------- раздел: эффекты ---------- */
 .block{padding:130px 0}
@@ -282,7 +327,7 @@ footer a{color:var(--muted);text-decoration:none}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .js .rise{opacity:1;transform:none;filter:none;transition:none}
-  .ticker .track,.scrollHint::after,.caret{animation:none}
+  .scrollHint::after,.caret{animation:none}
   .term .l{animation:none}
 }
 
@@ -293,6 +338,9 @@ footer a{color:var(--muted);text-decoration:none}
   .scene{padding:28px}
   .stats.scene{grid-template-columns:repeat(2,1fr)}
   .nav a.l{display:none}
+  .ngrid{grid-template-columns:1fr 1fr}
+  .nc.big{grid-column:span 2;grid-row:auto}
+  .qgrid{grid-template-columns:1fr 1fr}
 }
 @media (max-width:720px){
   body{font-size:16px}
@@ -320,6 +368,12 @@ footer a{color:var(--muted);text-decoration:none}
   .meter{height:56px}
   .meter div{font-size:10px;padding:0 6px}
   .stats.scene{padding:14px;gap:12px;grid-template-columns:1fr}
+  .ngrid,.qgrid{grid-template-columns:1fr}
+  .nc.big{grid-column:auto;padding:26px 20px 22px}
+  .nc{padding:22px 18px 18px}
+  .nc code{font-size:13.5px;padding:12px 14px}
+  .qi{padding:18px 16px}
+  .qres{padding:20px 18px}
   .stat{padding:22px 16px}
   .author{grid-template-columns:1fr;gap:22px}
   .steps{grid-template-columns:1fr;gap:28px;margin-top:46px}
@@ -375,9 +429,84 @@ footer a{color:var(--muted);text-decoration:none}
   </div>
 </section>
 
-<div class="ticker" aria-hidden="true"><div class="track" id="ticker">
-  <span><i>01</i>каждое утро объясняешь всё заново</span><span><i>02</i>лимит кончился к обеду</span><span><i>03</i>«продолжить?» на каждом шагу</span><span><i>04</i>пароль или API-ключ улетел в чат</span><span><i>05</i>одна команда, и папки нет</span><span><i>06</i>пятый раз делает одно и то же</span><span><i>07</i>посреди работы забыл, что делал</span>
-</div></div>
+<section class="block news" id="news">
+  <div class="wrap">
+    <div class="head rise">
+      <div class="mono" style="margin-bottom:18px">это уже случилось</div>
+      <h2>Не страшилки. Новости.</h2>
+      <p class="lead">Всё это было на самом деле, с обычным Claude Code и похожими агентами. Под каждой историей источник и ссылка на пример: что поменяет набор.</p>
+    </div>
+    <div class="ngrid">
+      <article class="nc big rise">
+        <span class="when">декабрь 2025 · Reddit</span>
+        <h3>Одна команда стёрла весь&nbsp;Mac</h3>
+        <p>Агент чистил тестовые папки и дописал в конец команды <span class="mono" style="font-size:inherit;text-transform:none;letter-spacing:0;color:var(--ink)">~/</span>, то есть всю домашнюю папку. Пропали документы, настройки и связка ключей с паролями.</p>
+        <code>rm -rf tests/ patches/ plan/ <b>~/</b></code>
+        <div class="lost" aria-label="Что удалила команда"><span>~/Documents</span><span>~/Desktop</span><span>~/Pictures</span><span>~/Library/Keychains</span><span>…и всё остальное</span></div>
+        <a class="fix" href="#fx-lock"><i>✓</i>Хук остановит её до запуска. Пример 01</a>
+        <span class="src">Источник: <a href="https://www.reddit.com/r/ClaudeAI/comments/1pgxckk/claude_cli_deleted_my_entire_home_directory_wiped/" target="_blank" rel="noopener">пост на Reddit</a>, <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-rm-rf-incident/" target="_blank" rel="noopener">разбор Docker</a></span>
+      </article>
+      <article class="nc rise">
+        <span class="when">сентябрь 2026 · Reddit</span>
+        <h3>48&nbsp;218 файлов за&nbsp;103 секунды</h3>
+        <p>По словам автора поста, Claude Code написал скрипт очистки, прошёл по ссылкам обратно в рабочую папку и удалил файлы проекта.</p>
+        <a class="fix" href="#fx-lock"><i>✓</i>Пример 01</a>
+        <span class="src">Источник: <a href="https://www.techradar.com/pro/security/i-broke-something-a-claude-code-ai-agent-deleted-48-000-files-in-just-over-100-seconds-then-apologized-for-doing-so" target="_blank" rel="noopener">TechRadar</a></span>
+      </article>
+      <article class="nc rise">
+        <span class="when">31 марта 2026 · The Register</span>
+        <h3>«Лимиты кончаются гораздо быстрее, чем ожидалось»</h3>
+        <p>Это написала сама Anthropic и назвала разбор главной задачей команды.</p>
+        <a class="fix" href="#fx-limits"><i>✓</i>Пример 05</a>
+        <span class="src">Источник: <a href="https://www.theregister.com/2026/03/31/anthropic_claude_code_limits/" target="_blank" rel="noopener">The Register</a></span>
+      </article>
+      <article class="nc rise">
+        <span class="when">2 сентября · Хабр</span>
+        <h3>Один файл прочитан 266&nbsp;раз</h3>
+        <p>Автор полгода считал токены. Лимиты подписки кончались к обеду, а агент снова и снова перечитывал одну и ту же таблицу стилей.</p>
+        <a class="fix" href="#fx-limits"><i>✓</i>Пример 05</a>
+        <span class="src">Источник: <a href="https://habr.com/ru/articles/1077658/" target="_blank" rel="noopener">Хабр</a></span>
+      </article>
+      <article class="nc rise">
+        <span class="when">февраль 2026 · GitHub</span>
+        <h3>Ключи из .env прямо в&nbsp;командах</h3>
+        <p>Claude Code открывает файл с ключами и вписывает токены в скрипты. Они остаются в истории разговора. Тикет закрыли без исправления.</p>
+        <a class="fix" href="#fx-keys"><i>✓</i>Пример 03</a>
+        <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/24185" target="_blank" rel="noopener">GitHub #24185</a></span>
+      </article>
+      <article class="nc rise">
+        <span class="when">июль 2026 · GitHub</span>
+        <h3>«Claude remembers NOTHING»</h3>
+        <p>Человек часами объяснял агенту, как устроены его проекты. В новом разговоре от этого ничего не осталось. Тикет закрыт за давностью.</p>
+        <a class="fix" href="#fx-memory"><i>✓</i>Пример 02</a>
+        <span class="src">Источник: <a href="https://github.com/anthropics/claude-code/issues/73024" target="_blank" rel="noopener">GitHub #73024</a></span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block quiz" id="quiz" style="padding-top:0">
+  <div class="wrap">
+    <div class="head rise">
+      <div class="mono" style="margin-bottom:18px">а у тебя?</div>
+      <h2>Узнаёшь себя?</h2>
+      <p class="lead">Отметь, что уже было с тобой. Под каждым пунктом появится, что из набора это закрывает.</p>
+    </div>
+    <div class="qgrid rise" id="qgrid">
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро объясняю всё заново</b><small>Что за проект, на чём остановились, что решили вчера.</small><span class="cure">→ Список дел и запись в конце дня. Пример 02</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончается раньше работы</b><small>Ещё ничего толком не сделал, а уже ждать до вечера.</small><span class="cure">→ Короткая шпаргалка и только свежие заметки. Пример 05</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Боюсь пускать агента в важные папки</b><small>Вдруг удалит лишнее, и вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды. Пример 01</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент видел мои пароли или ключи</b><small>Открыл файл с настройками, и токен оказался в чате.</small><span class="cure">→ Хук не даёт открыть файл с ключами. Пример 03</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Он пятый раз делает одно и то же</b><small>Та же ошибка, тот же запуск, а лимит тает.</small><span class="cure">→ После пяти повторов хук его останавливает. Пример 04</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он забыл, что делал</b><small>Разговор стал длинным, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список правленых файлов</span></span></button>
+    </div>
+    <div class="qres" id="qres" aria-live="polite">
+      <div class="sc"><strong id="qn">0</strong><span>из 6</span></div>
+      <p id="qt">Отметь хотя бы один пункт. Или тебе очень везёт.</p>
+      <div class="ctas"><a class="btn" href="#install">Поставить <span class="arr">→</span></a><a class="ghost" href="#effects">Как это выглядит</a></div>
+    </div>
+  </div>
+</section>
 
 <section class="block" id="effects">
   <div class="wrap">
@@ -391,7 +520,7 @@ footer a{color:var(--muted);text-decoration:none}
         <h3>Не&nbsp;сотрёт лишнего</h3>
         <p class="lead-in">Опасные команды: удалить папку целиком, стереть базу данных, затереть историю проекта. После них ничего не вернуть.</p>
         <p>Например, ты просишь убрать дубли фотографий. В команду случайно попадает лишний символ, и вместо одной папки она удалит всё, что лежит на компьютере. Из коробки агент выполнит её не глядя. После тюнинга каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. Необратимое не запустится, агент сам найдёт ошибку и удалит только дубли.</p>
-        <span class="fact">проверено на 40 командах</span>
+        <span class="fact">остановлены 22 опасные команды из 22, обычные проходят</span>
       </div>
       <div class="scene g1 rise" data-demo="lock"></div>
     </article>
@@ -436,10 +565,10 @@ footer a{color:var(--muted);text-decoration:none}
 
 <section aria-label="Цифры" style="padding:20px 0 0"><div class="wrap">
   <div class="stats scene g2">
-    <div class="stat rise"><div class="n o" data-count="108">108</div><p>записей о передаче дел я сделал за месяц. Теперь открытый разговор агент спрашивает сам, а записи остались для закрытых</p></div>
-    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: опасные остановлены, обычные прошли</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>готовых навыков, например «начни утро» и «подведи итог дня»</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков: срабатывают сами, просить их не нужно</p></div>
+    <div class="stat rise"><div class="n o" data-count="22" data-suffix="/22">22/22</div><p>опасные команды остановлены до запуска, в том числе команда, стёршая Mac в декабре. 19 обычных прошли без вопросов</p></div>
+    <div class="stat rise"><div class="n" data-count="25" data-suffix="×">25×</div><p>меньше заметок читает агент по утрам: из 860&nbsp;КБ за 60 дней только свежие 34&nbsp;КБ. Замер на моей машине</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков срабатывают сами: просить и помнить о них не нужно</p></div>
+    <div class="stat rise"><div class="n" data-count="1">1</div><p>сообщение агенту, и набор стоит. Без твоего «да» он ничего не меняет</p></div>
   </div>
 </div>
 </section>
@@ -558,8 +687,6 @@ try{
   }
 }catch(e){}
 
-/* ---------- бегущая строка: дублируем для бесшовного круга ---------- */
-var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
 
 /* ---------- шапка: живой свет за окном-демо (WebGL2, рисуется один раз) ---------- */
 (function(){
@@ -611,6 +738,21 @@ var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
   var tmr;function later(){clearTimeout(tmr);tmr=setTimeout(draw,120)}
   draw();window.addEventListener("resize",later);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+})();
+
+/* ---------- самопроверка «Узнаёшь себя?» ---------- */
+(function(){
+  var items=[].slice.call(document.querySelectorAll("#qgrid .qi")),res=document.getElementById("qres"),qn=document.getElementById("qn"),qt=document.getElementById("qt");
+  if(!items.length)return;
+  function upd(){
+    var n=items.filter(function(b){return b.getAttribute("aria-pressed")==="true"}).length;
+    qn.textContent=n;res.classList.toggle("hit",n>0);
+    qt.textContent=n===0?"Отметь хотя бы один пункт. Или тебе очень везёт."
+      :n===items.length?"Все шесть. Набор закрывает каждый, ставится одним сообщением и бесплатно."
+      :"Набор закрывает "+(n===1?"его":"все "+n)+". Ставится одним сообщением и бесплатно.";
+  }
+  items.forEach(function(b){b.addEventListener("click",function(){b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true"?"false":"true");upd()})});
+  upd();
 })();
 
 /* ---------- демо: переключатель «из коробки / после тюнинга», сообщения хуков дословно из набора ---------- */
@@ -738,7 +880,7 @@ document.addEventListener("click",function(e){var t=e.target.closest(".tip");[].
   if(reduce||!("IntersectionObserver" in window))return;
   var to=+n.dataset.count;n.textContent="0";
   var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();
-    (function f(now){var k=Math.min(1,(now-t0)/1400);k=1-Math.pow(1-k,4);n.textContent=Math.round(to*k);if(k<1)requestAnimationFrame(f)})(t0)},{threshold:.5});o.observe(n);
+    (function f(now){var k=Math.min(1,(now-t0)/1400);k=1-Math.pow(1-k,4);n.textContent=Math.round(to*k)+(n.dataset.suffix||"");if(k<1)requestAnimationFrame(f)})(t0)},{threshold:.5});o.observe(n);
 });
 
 /* ---------- шаги ---------- */
