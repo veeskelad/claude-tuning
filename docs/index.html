@@ -104,12 +104,14 @@ section{position:relative}
 .fact::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sand);flex:none}
 
 /* окно-демо */
-.stage{position:relative;padding:34px;border-radius:36px;overflow:hidden;isolation:isolate}
-.stage::before{content:"";position:absolute;inset:0;z-index:-2;transition:opacity .9s var(--ease);
-  background:radial-gradient(70% 80% at 85% 10%,rgba(232,80,2,.55),rgba(232,80,2,0) 60%),radial-gradient(60% 70% at 0% 100%,rgba(163,58,5,.45),rgba(163,58,5,0) 65%),linear-gradient(160deg,#1a0d06,#0b0807)}
-.stage::after{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .9s var(--ease);
-  background:radial-gradient(70% 80% at 85% 10%,rgba(255,90,78,.35),rgba(255,90,78,0) 60%),linear-gradient(160deg,#140707,#090606)}
+.stage{position:relative;padding:34px;isolation:isolate}
+/* Подсветка за окном без границ блока: свет растворяется в фоне страницы */
+.stage::before{content:"";position:absolute;inset:-22% -18%;z-index:-2;pointer-events:none;transition:opacity .9s var(--ease);
+  background:radial-gradient(closest-side at 50% 50%,rgba(232,80,2,.3),rgba(163,58,5,.12) 55%,rgba(163,58,5,0) 100%)}
+.stage::after{content:"";position:absolute;inset:-22% -18%;z-index:-1;opacity:0;pointer-events:none;transition:opacity .9s var(--ease);
+  background:radial-gradient(closest-side at 50% 50%,rgba(255,90,78,.14),rgba(255,90,78,.05) 55%,rgba(255,90,78,0) 100%)}
 .stage[data-mode="without"]::after{opacity:1}
+.stage[data-mode="without"]::before{opacity:0}
 .win{position:relative;border-radius:20px;background:rgba(10,9,8,.82);border:1px solid rgba(255,255,255,.09);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07);overflow:hidden}
 .win::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
@@ -263,7 +265,7 @@ footer a{color:var(--muted);text-decoration:none}
   .block{padding:90px 0}
   .head{margin-bottom:54px}
   .fx{margin-bottom:96px}
-  .stage{padding:14px;border-radius:26px}
+  .stage{padding:14px 0}
   .bar{flex-wrap:wrap}
   .bar .ttl{flex-basis:calc(100% - 60px)}
   .seg{width:100%}
@@ -295,8 +297,8 @@ footer a{color:var(--muted);text-decoration:none}
 
 <nav class="nav" aria-label="Навигация">
   <a class="logo" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><g stroke="currentColor" stroke-width="9" stroke-linecap="square"><path d="M32 4v56M4 32h56M12 12l40 40M52 12L12 52"/></g></svg>claude-tuning</a>
-  <a class="l" href="#effects">Что меняется</a>
-  <a class="l" href="#how">Как ставится</a>
+  <a class="l" href="#effects">Что умеет</a>
+  <a class="l" href="#how">Как поставить</a>
   <a class="l" href="#faq">Вопросы</a>
   <a class="go" href="#install">Поставить</a>
 </nav>
@@ -320,7 +322,7 @@ footer a{color:var(--muted);text-decoration:none}
   </div>
   <div class="wrap hero-in">
     <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-    <p class="lead">Таким Claude Code приходит из коробки: умный, но каждое утро с чистой головой. Я дал ему блокнот и список дел, а опасные команды закрыл: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
+    <p class="lead">Таким Claude Code приходит из коробки: умный, но каждое утро всё забывает. Я научил его помнить дела и закрыл ему опасные команды: стереть папку или показать пароль он больше не может. Ставится одним сообщением.</p>
     <div class="ctas">
       <a class="btn" href="#install">Поставить бесплатно <span class="arr">→</span></a>
       <a class="ghost" href="#effects">Как я тюню своего Claude</a>
@@ -330,23 +332,22 @@ footer a{color:var(--muted);text-decoration:none}
 </section>
 
 <div class="ticker" aria-hidden="true"><div class="track" id="ticker">
-  <span><i>01</i>каждое утро знакомитесь заново</span><span><i>02</i>лимит кончился к обеду</span><span><i>03</i>«продолжить?» на каждом шагу</span><span><i>04</i>ключ от базы прямо в чате</span><span><i>05</i>одна команда, и папки нет</span><span><i>06</i>пятый раз жмёт ту же кнопку</span><span><i>07</i>после сжатия забыл задачу</span>
+  <span><i>01</i>каждое утро объясняешь всё заново</span><span><i>02</i>лимит кончился к обеду</span><span><i>03</i>«продолжить?» на каждом шагу</span><span><i>04</i>пароль или API-ключ улетел в чат</span><span><i>05</i>одна команда, и папки нет</span><span><i>06</i>пятый раз делает одно и то же</span><span><i>07</i>посреди работы забыл, что делал</span>
 </div></div>
 
 <section class="block" id="effects">
   <div class="wrap">
     <div class="head rise">
-      <div class="mono">пять эффектов · <b>переключай</b></div>
-      <h2 style="margin-top:18px">Что меняется после тюнинга</h2>
-      <p class="lead">В каждом окне два Claude: из коробки и мой, после тюнинга. Переключай и сравнивай. Предупреждения в окнах настоящие, их пишет сам набор.</p>
+      <h2>Твой Claude до&nbsp;и&nbsp;после тюнинга</h2>
+      <p class="lead">Сравни, как меняется твоя работа с Claude после установки скилла.</p>
     </div>
 
     <div class="fx">
       <div class="txt rise">
         <div class="num">01 · защита от удаления</div>
         <h3>Стереть лишнее он&nbsp;не&nbsp;сможет</h3>
-        <p>Один лишний символ в команде, и вместо папки с дублями уходит вся домашняя. Такое уже случалось, и не однажды. Теперь каждую команду до запуска проверяет набор: то, что нельзя отменить, не выполнится, а про рискованное агент сначала спросит тебя.</p>
-        <span class="fact">реальный случай, декабрь 2025: лишний ~/ в конце команды</span>
+        <p>Один лишний символ в команде, и вместо папки с дублями пропадает всё, что лежит на компьютере. Такое уже случалось, и не однажды. После тюнинга каждую команду сначала проверяет хук. Это маленькая проверка, которую Claude Code запускает сам. То, что нельзя отменить, не выполнится, а про рискованное агент спросит тебя заранее.</p>
+        <span class="fact">так было в декабре 2025: один лишний символ стёр домашнюю папку</span>
       </div>
       <div class="stage rise" data-demo="lock"></div>
     </div>
@@ -355,18 +356,18 @@ footer a{color:var(--muted);text-decoration:none}
       <div class="txt rise">
         <div class="num">02 · память</div>
         <h3>Утром он помнит, на&nbsp;чём вы&nbsp;остановились</h3>
-        <p>У каждой задачи свой список дел. Новая сессия начинается с него, а не с «Привет! Чем займёмся?». Вечером агент сам записывает итог дня, а после сжатия контекста получает список обратно.</p>
-        <span class="fact">/morning · /endday · session-handoff</span>
+        <p>У каждой задачи появляется свой список дел. Утром агент начинает с него, а не с «Привет! Чем займёмся?». Вечером сам записывает, что сделано и что дальше. Если в длинном разговоре он начнёт забывать начало, список вернётся к нему сам.</p>
+        <span class="fact">команды /morning и /endday</span>
       </div>
       <div class="stage rise" data-demo="memory"></div>
     </div>
 
     <div class="fx">
       <div class="txt rise">
-        <div class="num">03 · пароли</div>
-        <h3>Пароли остаются у&nbsp;тебя</h3>
-        <p>Попросишь разобраться с базой, и агент из коробки откроет файл с паролями целиком. Всё, что попало в чат, уже лежит в истории. С набором он видит только имена переменных и проверяет, заданы ли они.</p>
-        <span class="fact">.env, ssh-ключи, *.pem, файлы сессий</span>
+        <div class="num">03 · пароли и ключи</div>
+        <h3>Секреты не&nbsp;попадут в&nbsp;чат</h3>
+        <p>У любого бота, сайта или автоматизации есть секреты: пароли, API-ключи, токены. Из коробки агент спокойно откроет файл с ними и покажет всё в чате, а чат сохраняется в истории. После тюнинга хук не даёт открыть такой файл: агент видит только названия, а сами значения остаются у тебя.</p>
+        <span class="fact">файлы .env, токены, ключи доступа</span>
       </div>
       <div class="stage rise" data-demo="keys"></div>
     </div>
@@ -374,9 +375,9 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="fx flip">
       <div class="txt rise">
         <div class="num">04 · повторы</div>
-        <h3>Не жмёт одну кнопку по&nbsp;кругу</h3>
-        <p>Пять одинаковых шагов подряд, и агент получает сигнал остановиться: назвать, где он может ошибаться, и зайти с другой стороны.</p>
-        <span class="fact">сигнал после пяти одинаковых шагов</span>
+        <h3>Не&nbsp;делает одно и&nbsp;то&nbsp;же по&nbsp;кругу</h3>
+        <p>Бывает, агент упирается в ошибку и пробует снова, и снова, а лимит тает. После тюнинга на пятом одинаковом шаге хук его останавливает: агент должен назвать, где мог ошибиться, и попробовать по-другому.</p>
+        <span class="fact">подсказка после пяти повторов</span>
       </div>
       <div class="stage rise" data-demo="loop"></div>
     </div>
@@ -385,8 +386,8 @@ footer a{color:var(--muted);text-decoration:none}
       <div class="txt rise">
         <div class="num">05 · лимиты</div>
         <h3>Лимита хватает до&nbsp;вечера</h3>
-        <p>Каждая сессия перечитывает инструкцию и заметки, и это съедает лимит ещё до первого вопроса. Набор сворачивает простыню правил в короткую карту, а из передачи дел целиком читает только последние три дня.</p>
-        <span class="fact">карта вместо инструкции: 40–60 строк</span>
+        <p>Перед каждым разговором агент перечитывает свои инструкции и заметки. На это уходит лимит, хотя ты ещё ничего не спросил. После тюнинга длинная инструкция становится короткой шпаргалкой, а из старых заметок он читает только последние три дня.</p>
+        <span class="fact">шпаргалка на 40–60 строк</span>
       </div>
       <div class="stage rise" data-demo="limits"></div>
     </div>
@@ -395,10 +396,10 @@ footer a{color:var(--muted);text-decoration:none}
 
 <section aria-label="Цифры">
   <div class="stats">
-    <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передал дела между сессиями. Набор вырос из этой привычки</p></div>
-    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: опасные остановлены, обычные прошли</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>навыков: передача дел, утро, итог дня, память, поиск по сессиям, уборка, баги, ревью</p></div>
-    <div class="stat rise"><div class="n" data-count="8">8</div><p>автоматических проверок и подсказок: работают сами, просить не нужно</p></div>
+    <div class="stat rise"><div class="n o" data-count="108">108</div><p>раз за месяц я передавал дела из одного разговора с Claude в другой. Из этой привычки и вырос набор</p></div>
+    <div class="stat rise"><div class="n" data-count="40">40</div><p>команд в проверке защиты: все опасные остановлены, обычные прошли</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>готовых навыков. Например, «начни утро» и «подведи итог дня»</p></div>
+    <div class="stat rise"><div class="n" data-count="8">8</div><p>хуков: срабатывают сами, просить их не нужно</p></div>
   </div>
 </section>
 
@@ -423,7 +424,7 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="steps" id="steps">
       <div class="track"><div class="fill"></div></div>
       <div class="step"><div class="dot">01</div><div><h4>Копируешь промпт</h4><p>И отправляешь его Claude Code на своём компьютере.</p></div></div>
-      <div class="step"><div class="dot">02</div><div><h4>Агент смотрит</h4><p>Что у тебя уже настроено, чего не хватает и что трогать не надо.</p></div></div>
+      <div class="step"><div class="dot">02</div><div><h4>Агент осматривается</h4><p>Что у тебя уже настроено, чего не хватает и что трогать не надо.</p></div></div>
       <div class="step"><div class="dot">03</div><div><h4>Показывает план</h4><p>Простыми словами. Без твоего «да» ничего не меняется.</p></div></div>
       <div class="step"><div class="dot">04</div><div><h4>Проверяет защиту</h4><p>Сам пробует опасную команду и показывает, что она не прошла.</p></div></div>
     </div>
@@ -463,12 +464,13 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="mono rise">вопросы</div>
     <h2 class="rise" style="margin:18px 0 30px">Коротко и&nbsp;честно</h2>
     <div class="rise">
-      <details><summary>Я не программист. Мне это нужно?</summary><p>Особенно нужно. Тебе не надо знать, где лежат настройки: агент их найдёт, объяснит и спросит разрешения. От тебя одно слово «да».</p></details>
+      <details><summary>Я не программист. Мне это нужно?</summary><p>Да. Набор пригодится всем, кто работает в Claude Code: пишешь ли ты код, тексты или собираешь автоматизации. Где лежат настройки, знать не нужно: агент сам их найдёт, объяснит и спросит разрешения.</p></details>
+      <details><summary>Что такое хуки?</summary><p>Маленькие проверки, которые Claude Code запускает сам в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</p></details>
       <details><summary>Он не сломает то, что у меня уже работает?</summary><p>Свои файлы агент не перезаписывает. Если что-то совпало по имени, оставляет твою версию и говорит об этом. Перед правкой настроек делает копию.</p></details>
-      <details><summary>Агент увидит мои пароли?</summary><p>Наоборот: после установки он не может открыть файлы с ключами и вывести их в чат. Значения остаются только у тебя.</p></details>
+      <details><summary>Агент увидит мои пароли?</summary><p>Нет. После установки он не может открыть файлы с секретами и вывести их в чат. Значения остаются только у тебя.</p></details>
       <details><summary>Почему бесплатно?</summary><p>Я собирал это для себя и пользуюсь каждый день. Код открыт: можно прочитать каждую строку до установки.</p></details>
       <details><summary>А если не понравится?</summary><p>Попроси агента убрать набор. Он снимет ровно то, что поставил, и оставит твои правки.</p></details>
-      <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Защита и автоматические подсказки работают в Claude Code.</p></details>
+      <details><summary>Работает с Codex?</summary><p>Навыки становятся видны и Codex, если он у тебя стоит. Хуки работают только в Claude Code.</p></details>
     </div>
   </div>
 </section>
@@ -653,20 +655,20 @@ var DEMOS={
       ["burn","удалено ~/Desktop/договор-final.pdf"],["burn","удалено ~/Documents/диплом/"],["burn","удалено ~/Фото/2024/свадьба/"],["burn","удалено ~/Projects/сайт/"],["burn","удалено ~/Library/…"],["ai","Готово! Папка очищена."]],
     with:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],["deny",DENY_RM],
       ["ai","В конце команды лишний ~/, это вся домашняя папка. Удаляю только дубли."],["tool","Bash(rm -rf ./Фото/дубли)"],["out","готово"]],
-    cap:{without:"Агент выполнил команду целиком, вместе с лишним ~/",with:"Набор остановил команду до запуска, агент сам нашёл ошибку"}},
+    cap:{without:"Агент выполнил команду целиком, вместе с лишним символом",with:"Хук остановил команду до запуска, агент сам нашёл ошибку"}},
   memory:{title:"claude · ~/Work/сайт · утро",
-    without:[["sys","новая сессия"],["you","Продолжим сайт?"],["ai","Привет! С удовольствием. Расскажи, что за сайт и на каком он этапе?"],["you","Мы же вчера весь день его делали…"],["ai","Извини, у меня нет доступа к прошлым разговорам. Опиши проект ещё раз?"]],
-    with:[["sys","новая сессия"],["hook","📋 Незакрытые задачи (.tasks/ и TASKS.md):\n~/Work/сайт/.tasks/сайт-визитка.md — открыто 2 из 5, правка 0 дн. назад\n   цель: Сайт-визитка для студии\n   - [ ] Меню на телефоне\n   - [ ] Форма заявки"],
+    without:[["sys","новый разговор"],["you","Продолжим сайт?"],["ai","Привет! С удовольствием. Расскажи, что за сайт и на каком он этапе?"],["you","Мы же вчера весь день его делали…"],["ai","Извини, у меня нет доступа к прошлым разговорам. Опиши проект ещё раз?"]],
+    with:[["sys","новый разговор"],["hook","📋 Незакрытые задачи (.tasks/ и TASKS.md):\n~/Work/сайт/.tasks/сайт-визитка.md: открыто 2 из 5, правка 0 дн. назад\n   цель: Сайт-визитка для студии\n   - [ ] Меню на телефоне\n   - [ ] Форма заявки"],
       ["you","Продолжим сайт?"],["ai","Да. Вчера закончили главную, галерею и цены. Следующий пункт: меню на телефоне. Начинаю."]],
-    cap:{without:"Каждая сессия начинается с чистого листа",with:"Список дел подхватывается сам, агент идёт со следующего пункта"}},
+    cap:{without:"Каждый новый разговор начинается с чистого листа",with:"Список дел подхватывается сам, агент идёт со следующего пункта"}},
   keys:{title:"claude · ~/Work/бот",
-    without:[["you","Почему бот не подключается к базе?"],["tool","Read(.env)"],["leak","DATABASE_URL=postgres://admin:<b>Xq7-gR2k</b>@db.host/bot\nOPENAI_API_KEY=<b>sk-proj-4fJ9…k2Qa</b>"],["ai","Вижу пароль от базы и ключ OpenAI, сейчас проверю их…"]],
-    with:[["you","Почему бот не подключается к базе?"],["tool","Read(.env)"],["deny",DENY_ENV],["tool","Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env)"],["out","DATABASE_URL=\nOPENAI_API_KEY="],["ai","Переменная DATABASE_URL на месте. Проверю, отвечает ли сама база."]],
-    cap:{without:"Ключи попали в чат и остались в истории",with:"Агент видит только имена переменных, значения остаются в файле"}},
-  loop:{title:"claude · ~/Work/бот · тесты",
-    without:[["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Попробую ещё раз."],["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Ещё раз."],["tool","Bash(npm test)"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["ai","Странно. Запущу снова."]],
-    with:[["tool","Bash(npm test) ×5"],["out","✗ 1 тест упал: connect ECONNREFUSED"],["hook",LOOP],["ai","Я пять раз запускал одно и то же. Предположение: тест ждёт базу, а она не поднята. Проверяю это."],["tool","Bash(docker ps)"],["out","база не запущена"]],
-    cap:{without:"Агент жмёт одну кнопку, пока не кончится лимит",with:"После пяти повторов он останавливается и ищет причину"}}
+    without:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)"],["leak","TELEGRAM_BOT_TOKEN=<b>7712…:AAF3xQ</b>\nOPENAI_API_KEY=<b>sk-proj-4fJ9…k2Qa</b>"],["ai","Вижу токен бота и API-ключ, сейчас проверю их…"]],
+    with:[["you","Почему бот не отвечает в Телеграме?"],["tool","Read(.env)"],["deny",DENY_ENV],["tool","Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env)"],["out","TELEGRAM_BOT_TOKEN=\nOPENAI_API_KEY="],["ai","Токен бота на месте. Проверю, запущен ли сам бот."]],
+    cap:{without:"Секреты попали в чат и остались в истории",with:"Агент видит только названия, значения остаются в файле"}},
+  loop:{title:"claude · ~/Видео",
+    without:[["you","Собери ролик из фото в папке «Отпуск»"],["tool","Bash(python make_reel.py Отпуск)"],["out","ошибка: папка не найдена"],["ai","Попробую ещё раз."],["tool","Bash(python make_reel.py Отпуск)"],["out","ошибка: папка не найдена"],["ai","Ещё раз."],["tool","Bash(python make_reel.py Отпуск)"],["out","ошибка: папка не найдена"],["ai","Странно. Запущу снова."]],
+    with:[["you","Собери ролик из фото в папке «Отпуск»"],["tool","Bash(python make_reel.py Отпуск) ×5"],["out","ошибка: папка не найдена"],["hook",LOOP],["ai","Я пять раз запускал одно и то же. Похоже, папка называется иначе. Проверяю."],["tool","Bash(ls)"],["out","Отпуск 2026/"]],
+    cap:{without:"Агент повторяет одно и то же, пока не кончится лимит",with:"После пяти повторов хук его останавливает, и агент ищет причину"}}
 };
 function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
@@ -716,14 +718,14 @@ function termDemo(stage,d){
   return function start(){if(reduce){play("with")}else loop()};
 }
 function limitsDemo(stage){
-  var ui=shell(stage,"контекст сессии · до первого вопроса"),box=el("div","ctx");ui.win.appendChild(box);
-  box.innerHTML='<div class="lbl"><span>окно контекста</span><span>начало сессии</span></div>'+
+  var ui=shell(stage,"память разговора · до первого вопроса"),box=el("div","ctx");ui.win.appendChild(box);
+  box.innerHTML='<div class="lbl"><span>память разговора</span><span>начало сессии</span></div>'+
     '<div class="meter"><div class="m-rules"></div><div class="m-notes"></div><div class="m-hand"></div><div class="m-task">твоя задача</div></div>'+
     '<div class="legend"><span style="--c:#6b625b">инструкция</span><span style="--c:#4d4641">заметки</span><span style="--c:#3a3430">передача дел</span><span style="--c:#E85002">место для работы</span></div>'+
     '<div class="big"></div>';
   var segs=box.querySelectorAll(".meter div"),big=box.querySelector(".big");
   var S={without:[[30,"простыня правил"],[20,"все заметки"],[22,"вся история"],[28,"задача"]],with:[[6,""],[5,""],[7,"3 дня"],[82,"твоя задача"]]};
-  var cap={without:"Половину окна съедает то, что агент перечитывает каждый раз",with:"Карта вместо простыни, из передачи дел только последние три дня"};
+  var cap={without:"Половину памяти разговора съедает то, что агент перечитывает каждый раз",with:"Шпаргалка вместо длинной инструкции, из заметок только последние три дня"};
   var BIG={without:"Лимит уходит <em>до</em> первого вопроса",with:"Почти всё окно <em>под работу</em>"};
   var auto=true,run=0;
   function show(m){setMode(stage,ui,m,cap[m]);S[m].forEach(function(s,i){segs[i].style.flexGrow=s[0];segs[i].textContent=s[1]});big.innerHTML=BIG[m]}
