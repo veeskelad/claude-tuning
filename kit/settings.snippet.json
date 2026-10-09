@@ -9,7 +9,8 @@
   "hooks": {
     "PreToolUse": [
       {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/safety-guard.sh\"", "timeout": 10}]},
-      {"matcher": "Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-read.sh\"", "timeout": 10}]}
+      {"matcher": "Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-read.sh\"", "timeout": 10}]},
+      {"matcher": "Write", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/home-clutter.sh\"", "timeout": 10}]}
     ],
     "PostToolUse": [
       {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/agents-md-drift.sh\"", "timeout": 10}]},

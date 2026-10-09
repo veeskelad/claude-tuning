@@ -7,7 +7,7 @@
 <meta name="description" content="Набор для Claude Code: помнит задачу между сессиями, бережёт лимиты, не даёт стереть лишнее и не показывает ключи. Ставится одним сообщением агенту.">
 <meta name="theme-color" content="#050505">
 <meta property="og:title" content="claude-tuning: гениальный стажёр со списком дел">
-<meta property="og:description" content="Модель у всех одна, разница в системе вокруг неё. Помнит твои дела, тормозит перед необратимым и учится на твоих поправках.">
+<meta property="og:description" content="Модель у всех одна, разница в системе вокруг неё. Помнит твои дела, не даст снести полдиска одной командой и учится на твоих поправках.">
 <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:Onest;src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
@@ -151,6 +151,7 @@ section{position:relative}
 .qi[aria-pressed=true]{border-color:var(--signal);background:linear-gradient(180deg,rgba(232,80,2,.16),rgba(232,80,2,.05)),var(--surface);box-shadow:0 18px 40px -24px rgba(232,80,2,.8)}
 .qi[aria-pressed=true] .bx{background:var(--signal);border-color:var(--signal);color:#050505}
 .qi[aria-pressed=true] .cure{max-height:80px;opacity:1;margin-top:10px}
+.qgrid .qi:last-child:nth-child(3n+1){grid-column:1/-1}
 .qres{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px 28px;margin-top:22px;padding:24px 28px;border-radius:26px;
   background:var(--surface-2);border:1px solid var(--line);transition:border-color .4s,background .4s}
 .qres.hit{border-color:rgba(232,80,2,.5);background:radial-gradient(70% 140% at 0% 50%,rgba(232,80,2,.22),rgba(232,80,2,0) 70%),var(--surface-2)}
@@ -442,13 +443,13 @@ footer a{color:var(--muted);text-decoration:none}
     <div>
       <div class="mono hero-kick">claude-tuning · система вокруг Claude Code</div>
       <h1 id="h1"><span class="w">Гениальный</span> <span class="w">стажёр</span><br><span class="w accent">без</span> <span class="w accent">памяти.</span></h1>
-      <p class="lead">Модель у всех одна, разница в том, что стоит вокруг неё. У тебя <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> каждое утро знакомится заново и выполнит любую команду, даже ту, что сотрёт полдиска. У меня за неделю 179 разговоров с агентами, каждый начинается со списка открытых задач, а <span class="tip" tabindex="0">необратимое<span class="tip-b" role="tooltip">Команды, после которых ничего не вернуть: удалить папку целиком, стереть базу данных, затереть историю проекта.</span></span> просто не запускается. Ставится одним сообщением.</p>
+      <p class="lead">Модель у всех одна, разница в том, что стоит вокруг неё. У тебя <span class="tip" tabindex="0">Claude Code<span class="tip-b" role="tooltip">Claude, который работает прямо на твоём компьютере: во вкладке Code приложения Claude или в терминале. Он читает файлы, запускает команды и сам доводит задачу до конца.</span></span> каждое утро знакомится заново и выполнит любую команду, даже самую разрушительную. У меня за неделю 179 разговоров с агентами, каждый начинается со списка открытых задач, а снести полдиска одной <span class="tip" tabindex="0">командой<span class="tip-b" role="tooltip">Агент сам запускает команды на твоём компьютере. Некоторые из них ничего не спрашивают: удаляют папку целиком, стирают базу, переписывают историю проекта.</span></span> у него уже не выйдет. Ставится одним сообщением.</p>
       <div class="ctas">
         <a class="btn" href="#install">Поставить себе <span class="arr">→</span></a>
         <a class="ghost" href="#effects">Как это устроено у меня</a>
       </div>
       <div class="hero-chips">
-        <a href="#fx-memory"><i>✓</i>помнит дела</a><a href="#fx-lock"><i>✓</i>тормозит перед необратимым</a><a href="#fx-keys"><i>✓</i>не светит ключи</a><a href="#fx-limits"><i>✓</i>бережёт лимит</a><a href="#fx-learn"><i>✓</i>учится у тебя</a>
+        <a href="#fx-memory"><i>✓</i>помнит дела</a><a href="#fx-lock"><i>✓</i>полдиска не снесёт</a><a href="#fx-keys"><i>✓</i>не светит ключи</a><a href="#fx-limits"><i>✓</i>бережёт лимит</a><a href="#fx-learn"><i>✓</i>учится у тебя</a>
       </div>
     </div>
     <div class="hdemo" id="hdemo">
@@ -514,20 +515,21 @@ footer a{color:var(--muted);text-decoration:none}
   <div class="wrap">
     <div class="head rise">
       <div class="mono" style="margin-bottom:18px">а у тебя?</div>
-      <h2>На этом месте большинство сходит с&nbsp;дистанции</h2>
-      <p class="path">ставишь Claude <i>→</i> неделю кайфуешь <i>→</i> лимит к обеду, пропавшая папка, пятый пересказ проекта <i>→</i> «агенты пока сырые» <i>→</i> закрываешь</p>
-      <p class="lead">Модель тут ни при чём, просто вокруг неё пусто. Отмечай честно, что из этого уже было, и под каждым пунктом увидишь, какая часть системы это закрывает.</p>
+      <h2>Узнаёшь себя?</h2>
+      <p class="path">ставишь Claude <i>→</i> неделю кайфуешь <i>→</i> лимиты кончаются за пару сессий <i>→</i> Claude оброс мусором: заметки, черновики и файлы где попало, и уже непонятно, что актуально</p>
+      <p class="lead">Модель тут ни при чём, просто вокруг неё пусто. Отмечай, что уже было, и под каждым пунктом увидишь, какая часть системы это закрывает.</p>
     </div>
     <div class="qgrid rise" id="qgrid">
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Каждое утро заново объясняешь проект</b><small>Что строим и где остановились, и так изо дня в день.</small><span class="cure">→ Набор ведёт список дел, и утром агент сам вспоминает, на чём вчера остановилась работа</span></span></button>
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Лимит кончился, а работа нет</b><small>Только разогнался, и до вечера стоишь.</small><span class="cure">→ Агент читает короткую шпаргалку и только свежие заметки, так что лимит уходит на работу</span></span></button>
-      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Не пускаешь агента к важному</b><small>Потому что одна кривая команда, и вернуть будет нечем.</small><span class="cure">→ Хук останавливает необратимые команды ещё до запуска</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Не пускаешь агента к важному</b><small>Потому что одна кривая команда, и вернуть будет нечем.</small><span class="cure">→ Хук не пропускает команды, которые стирают папки, базы и историю проекта</span></span></button>
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Ключ уже светился в чате</b><small>Агент открыл настройки, и токен теперь живёт в истории разговора.</small><span class="cure">→ Хук не даёт открыть файл с ключами, агент видит только их названия</span></span></button>
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Агент ходит по кругу</b><small>Правит, откатывает, снова правит то же место, а лимит тает.</small><span class="cure">→ Хук замечает, что шаги повторяются, и просит агента зайти с другой стороны</span></span></button>
       <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Посреди задачи он всё забыл</b><small>Разговор разросся, Claude его сжал, и задача потерялась.</small><span class="cure">→ После сжатия хук возвращает ему задачу и список файлов, которые он правил</span></span></button>
+      <button class="qi" type="button" aria-pressed="false"><span class="bx">✓</span><span><b>Claude оброс мусором</b><small>Черновики, дампы и заметки по всему компьютеру, и уже непонятно, что из этого живое.</small><span class="cure">→ Временное он держит в черновиках сессии, результат кладёт в папку темы, а старые заметки уходят в архив</span></span></button>
     </div>
     <div class="qres" id="qres" aria-live="polite">
-      <div class="sc"><strong id="qn">0</strong><span>из 6</span></div>
+      <div class="sc"><strong id="qn">0</strong><span>из 7</span></div>
       <p id="qt">Ни одного? Значит, ты либо только начал, либо уже собрал своё.</p>
       <div class="ctas"><a class="btn" href="#install">Поставить <span class="arr">→</span></a><a class="ghost" href="#effects">Посмотреть в деле</a></div>
     </div>
@@ -543,7 +545,7 @@ footer a{color:var(--muted);text-decoration:none}
     <article class="fx" id="fx-lock">
       <div class="fx-head rise">
         <div class="num">01 · защита от удаления</div>
-        <h3>Тормозит перед необратимым</h3>
+        <h3>Снести полдиска одной командой не&nbsp;выйдет</h3>
         <p class="lead-in">Есть команды, после которых ничего не вернуть: удалить папку целиком, стереть базу, переписать историю проекта.</p>
         <p>Просишь убрать дубли фотографий, а в команду попадает лишний символ, и под удаление уходит весь компьютер. Из коробки агент выполнит это не моргнув. В системе каждую команду сначала проверяет <span class="tip" tabindex="0">хук<span class="tip-b" role="tooltip">Хук: маленькая программа-проверка. Claude Code сам запускает её в нужный момент: перед командой, в начале разговора, после ошибки. Правило в инструкции агент может забыть, а хук пропустить не может.</span></span>. Необратимое не запустится, агент сам найдёт ошибку и удалит только дубли.</p>
         <span class="fact">все 22 опасные команды из проверки остановлены, обычные проходят</span>
@@ -779,7 +781,7 @@ try{
   function upd(){
     var n=items.filter(function(b){return b.getAttribute("aria-pressed")==="true"}).length;
     qn.textContent=n;res.classList.toggle("hit",n>0);
-    var W=["","это","оба","все три","все четыре","все пять","все шесть"];
+    var W=["","это","оба","все три","все четыре","все пять","все шесть","все семь"];
     qt.textContent=n===0?"Ни одного? Значит, ты либо только начал, либо уже собрал своё."
       :"Система закрывает "+W[n]+", а ставится одним сообщением агенту.";
   }
