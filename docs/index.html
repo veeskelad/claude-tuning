@@ -54,25 +54,11 @@ section{position:relative}
 .hero.nogl{background:radial-gradient(45% 55% at 72% 45%,#FF7A1A 0,#E85002 30%,rgba(232,80,2,0) 70%),radial-gradient(40% 40% at 10% 100%,rgba(163,58,5,.8),rgba(163,58,5,0) 70%),#0a0605}
 .hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:start}
 .hero-kick{margin-bottom:22px;color:#F3E7DC;text-shadow:0 1px 10px rgba(5,5,5,.5)}
-/* окно-демо в шапке: вчерашний разговор за рифлёным стеклом (WebGL), сегодняшний — ясный */
+/* окно-демо в шапке: ясный чат с подписью внутри */
 .hwin{position:relative;border-radius:26px;overflow:hidden;border:1px solid rgba(255,255,255,.22);box-shadow:0 40px 80px -36px rgba(0,0,0,.8)}
-.hero.nogl .hy{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);background:repeating-linear-gradient(90deg,rgba(255,255,255,.1) 0,rgba(255,255,255,.02) 6px,rgba(0,0,0,.12) 22px,rgba(255,255,255,.05) 28px)}
-.hy{position:relative;height:190px;padding:14px 16px}
-.hy .pin{display:inline-flex;gap:8px;align-items:center;font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#FFE9DA;padding:7px 12px;border-radius:999px;background:rgba(14,10,8,.6);border:1px solid rgba(255,255,255,.16)}
-.hy .pin::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--sand)}
-.ht{position:relative;background:rgba(14,10,8,.86);-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);border-top:1px solid rgba(255,255,255,.16)}
-.ht .term{height:206px;padding:18px 18px 14px}
-.note{position:absolute;left:16px;right:16px;bottom:-14px;z-index:2;padding:14px 16px 12px;border-radius:18px;color:#1b120d;
-  background:linear-gradient(180deg,#FFF6EC,#F3E2D0);box-shadow:0 24px 40px -18px rgba(0,0,0,.75),inset 0 1px 0 #fff;
-  opacity:0;transform:translateY(18px) rotate(-1deg);transition:opacity .6s var(--ease),transform .7s var(--ease);pointer-events:none}
-.note b{display:block;font:700 13px var(--mono);letter-spacing:.02em;margin-bottom:6px}
-.note span{display:inline-block;font:500 13px/1.5 var(--sans);margin-right:12px;white-space:nowrap}
-.note span.ok{color:#7a6a5d;text-decoration:line-through;text-decoration-color:rgba(122,106,93,.5)}
-.note span.nx{color:#C24104;font-weight:700}
-.mode-after .note{opacity:1;transform:none}
-.ht .term{transition:padding .6s var(--ease)}
-.mode-after .ht .term{padding-top:30px}
-.hcap{margin-top:14px;font:500 14px/1.5 var(--sans);color:#FFE3CF;text-shadow:0 1px 10px rgba(5,5,5,.6);min-height:42px}
+.ht{position:relative;background:rgba(14,10,8,.86);-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px)}
+.ht .term{height:236px;padding:20px 20px 12px}
+.hcap{margin:0;padding:13px 18px 15px;border-top:1px solid rgba(255,255,255,.08);font:500 14px/1.45 var(--sans);color:var(--ink-2);min-height:64px}
 .hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:34px}
 .hero-chips a{display:inline-flex;align-items:center;gap:7px;font:600 13.5px var(--sans);color:var(--ink);text-decoration:none;padding:8px 13px 8px 9px;border-radius:999px;
   background:rgba(14,10,8,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.16);transition:background .25s,transform .25s var(--ease)}
@@ -141,15 +127,12 @@ section{position:relative}
 @keyframes hint{0%,100%{box-shadow:0 0 0 0 rgba(255,122,26,0)}50%{box-shadow:0 0 0 6px rgba(255,122,26,.35)}}
 .sw button:focus-visible{outline:2px solid var(--signal-hot);outline-offset:2px}
 
-/* стекло со смыслом: прячет значения ключей и старые заметки */
-.vault{position:relative;display:inline-block;vertical-align:middle;min-width:150px;border-radius:8px;overflow:hidden;padding:0 10px;color:transparent;text-shadow:0 0 7px rgba(255,190,160,.95)}
-.vault::after{content:"";position:absolute;inset:0;border:1px solid rgba(255,255,255,.4);border-radius:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.2) 0,rgba(255,255,255,.04) 4px,rgba(0,0,0,.14) 9px,rgba(255,255,255,.1) 12px)}
+/* скрытые значения ключей и затенённые старые заметки */
+.vault{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;padding:1px 9px;border-radius:6px;font:600 12px var(--mono);letter-spacing:.04em;color:#FFE3CF;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.28)}
 .days{position:relative;display:grid;grid-template-columns:repeat(9,1fr);gap:5px}
 .days span{height:46px;border-radius:9px;display:grid;place-items:center;font:500 11px var(--mono);color:#1b120d;background:linear-gradient(180deg,#FFF6EC,#E9D3BD)}
-.days .fog{position:absolute;left:-4px;top:-4px;bottom:-4px;width:calc(66.6% + 2px);border-radius:12px;display:grid;place-items:center;font:600 12.5px var(--sans);color:#FFF3E8;text-shadow:0 1px 6px rgba(0,0,0,.5);
-  -webkit-backdrop-filter:blur(6px) saturate(1.2);backdrop-filter:blur(6px) saturate(1.2);border:1px solid rgba(255,255,255,.4);
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0,rgba(255,255,255,.04) 6px,rgba(0,0,0,.14) 16px,rgba(255,255,255,.08) 20px);
+.days .fog{position:absolute;left:-4px;top:-4px;bottom:-4px;width:calc(66.6% + 2px);border-radius:12px;display:grid;place-items:center;font:600 12.5px var(--sans);color:#FFF3E8;
+  background:rgba(10,7,5,.74);border:1px dashed rgba(255,255,255,.26);
   clip-path:inset(0 100% 0 0 round 12px);transition:clip-path 1.1s var(--ease)}
 .days .fog b{font-weight:600;padding:6px 11px;border-radius:999px;background:rgba(14,10,8,.62);border:1px solid rgba(255,255,255,.18);text-shadow:none}
 .mode-after .days .fog{clip-path:inset(0 0 0 0 round 12px)}
@@ -316,9 +299,7 @@ footer a{color:var(--muted);text-decoration:none}
   .wrap{padding:0 16px}
   .nav{top:10px;width:calc(100% - 20px);justify-content:space-between}
   .hero{padding:110px 0 56px}
-  .hy{height:210px}
   .ht .term{height:230px;padding:16px 14px 12px}
-  .note span{font-size:12px;margin-right:9px}
   .hero-chips{margin-top:24px}
   .sw button{padding:10px 13px;font-size:14px;gap:6px}
   .days{gap:3px}
@@ -388,12 +369,8 @@ footer a{color:var(--muted);text-decoration:none}
     <div class="hdemo" id="hdemo">
       <div class="sw" data-mode="before" role="group" aria-label="Сравнить"><span class="th"></span><button class="b" type="button" aria-pressed="true"><i>✕</i>Из коробки</button><button class="a" type="button" aria-pressed="false"><i>✓</i>После тюнинга</button></div>
       <div class="hwin" id="heroWin">
-        <div class="hy" id="heroGlass"><span class="pin">вчера · разговор закрыт</span>
-          <div class="note" aria-hidden="true"><b>📋 сайт-визитка · сделано 3 из 5</b><span class="ok">главная</span><span class="ok">галерея</span><span class="ok">цены</span><span class="nx">→ меню на телефоне</span><span>форма заявки</span></div>
-        </div>
-        <div class="ht"><div class="term" id="heroTerm"></div></div>
+        <div class="ht"><div class="term" id="heroTerm"></div><p class="hcap" id="heroCap"></p></div>
       </div>
-      <p class="hcap" id="heroCap"></p>
     </div>
   </div>
 </section>
@@ -431,7 +408,7 @@ footer a{color:var(--muted);text-decoration:none}
       <div class="fx-head rise">
         <div class="num">03 · пароли и ключи</div>
         <h3>Секреты не&nbsp;попадут в&nbsp;чат</h3>
-        <p>Например, бот в Телеграме перестал отвечать, и ты просишь агента разобраться. Из коробки он откроет файл с секретами, и токен бота вместе с <span class="tip" tabindex="0">API-ключом<span class="tip-b" role="tooltip">API-ключ: длинный пароль, по которому сервис вроде OpenAI или Telegram узнаёт тебя и списывает деньги. Кто его увидел, тот может им пользоваться.</span></span> окажутся в чате, а чат хранится в истории. После тюнинга хук не даёт открыть такой файл. Агент видит только названия ключей, а значения остаются за стеклом, у тебя.</p>
+        <p>Например, бот в Телеграме перестал отвечать, и ты просишь агента разобраться. Из коробки он откроет файл с секретами, и токен бота вместе с <span class="tip" tabindex="0">API-ключом<span class="tip-b" role="tooltip">API-ключ: длинный пароль, по которому сервис вроде OpenAI или Telegram узнаёт тебя и списывает деньги. Кто его увидел, тот может им пользоваться.</span></span> окажутся в чате, а чат хранится в истории. После тюнинга хук не даёт открыть такой файл. Агент видит только названия ключей, а значения остаются в файле, у тебя.</p>
         <span class="fact">файлы .env, токены, ключи доступа</span>
       </div>
       <div class="scene g3 rise" data-demo="keys"></div>
@@ -584,20 +561,19 @@ try{
 /* ---------- бегущая строка: дублируем для бесшовного круга ---------- */
 var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
 
-/* ---------- шапка: свет и рифлёное матовое стекло над вчерашним разговором (WebGL2, рисуется один раз) ---------- */
+/* ---------- шапка: живой свет за окном-демо (WebGL2, рисуется один раз) ---------- */
 (function(){
-  var hero=document.getElementById("hero"),cv=document.getElementById("gl"),zone=document.getElementById("heroGlass");
+  var hero=document.getElementById("hero"),cv=document.getElementById("gl"),zone=document.getElementById("heroWin");
   var gl=null;try{gl=cv.getContext("webgl2",{antialias:false,premultipliedAlpha:false})}catch(e){}
   if(!gl){hero.classList.add("nogl");return}
   var VS="#version 300 es\nin vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
   var COM="#version 300 es\nprecision highp float;\n"+
   "float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\n"+
   "float vn(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}\n"+
-  "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.02+3.1;a*=.5;}return s;}\n"+
-  "float sdR(vec2 p,vec4 r,float rad){vec2 c=(r.xy+r.zw)*.5,h=(r.zw-r.xy)*.5;vec2 q=abs(p-c)-h+rad;return length(max(q,0.))+min(max(q.x,q.y),0.)-rad;}\n";
-  // Свет (смешивание в OKLab) и вчерашний разговор, который лежит за стеклом.
+  "float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.02+3.1;a*=.5;}return s;}\n";
+  // Свет (смешивание в OKLab).
   var BG=COM+
-  "uniform vec2 uRes;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;uniform vec4 uCq;uniform sampler2D uCard;out vec4 o;\n"+
+  "uniform vec2 uRes;uniform vec3 uSun;uniform vec3 c0,c1,c2,c3,c4;out vec4 o;\n"+
   "vec3 lab(vec3 c){vec3 l=vec3(.4122214708*c.r+.5363325363*c.g+.0514459929*c.b,.2119034982*c.r+.6806995451*c.g+.1073969566*c.b,.0883024619*c.r+.2817188376*c.g+.6299787005*c.b);l=pow(max(l,0.),vec3(1./3.));"+
   "return vec3(.2104542553*l.x+.7936177850*l.y-.0040720468*l.z,1.9779984951*l.x-2.4285922050*l.y+.4505937099*l.z,.0259040371*l.x+.7827717662*l.y-.8086757660*l.z);}\n"+
   "vec3 lin(vec3 c){vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z,c.x-.1055613458*c.y-.0638541728*c.z,c.x-.0894841775*c.y-1.2914855480*c.z);l=l*l*l;"+
@@ -610,63 +586,26 @@ var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
   "float band=.5+.5*sin(qw.y*8.+fbm(qw*2.5+t*.06)*5.+t*.3);\n"+
   "float v=sun*.95+em*.6+band*.18*(sun+em)+fbm(qw*4.-t*.05)*.06;v=1.-exp(-v*1.15);vec3 col=ramp(v);\n"+
   "float dC=length((q-vec2(1.02*A,.95))*vec2(1.3,1.)+(w-.5)*.25)/.42;col+=vec3(.025,.045,.16)*exp(-dC*dC);\n"+
-  "vec2 cu=(q-uCq.xy)/(uCq.zw-uCq.xy);if(cu.x>0.&&cu.x<1.&&cu.y>0.&&cu.y<1.){vec4 f=texture(uCard,vec2(cu.x,1.-cu.y));col=mix(col,pow(f.rgb,vec3(2.2)),f.a);}\n"+
-  "o=vec4(pow(max(col,0.),vec3(1./2.2)),1.);}";
-  // Рифлёное матовое стекло: рёбра-линзы плюс размытие, светлая кромка по краю листа.
-  var GL=COM+
-  "uniform sampler2D uBg;uniform vec2 uRes;uniform float uD,uRib,uRad;uniform vec4 uP;out vec4 o;\n"+
-  "vec3 S(vec2 px,float lod){return pow(textureLod(uBg,px/uRes,lod).rgb,vec3(2.2));}\n"+
-  "const vec2 P[12]=vec2[](vec2(-.326,-.406),vec2(-.840,-.074),vec2(-.696,.457),vec2(-.203,.621),vec2(.962,-.195),vec2(.473,-.480),vec2(.519,.767),vec2(.185,-.893),vec2(.507,.064),vec2(.896,.412),vec2(-.322,-.933),vec2(-.792,-.598));\n"+
-  // матовость: пуассоновские выборки вместо грубых мипмапов (мипмапы дают «ромбики» на тексте)
-  "vec3 glass(vec2 px){float u=fract(px.x/uRib),s=u*2.-1.;vec2 o2=vec2(-s*uRib*.14,0.);\n"+
-  " vec3 c=vec3(0.);for(int i=0;i<12;i++){vec2 d=P[i]*vec2(7.,13.)*uD*(1.+abs(s)*.4);c+=vec3(S(px+o2+d,2.).r,S(px+o2*1.06+d,2.).g,S(px+o2*1.12+d,2.).b);}c/=12.;\n"+
-  " float sp=exp(-pow((s+.42)/.08,2.))*.16;float gr=smoothstep(.8,1.,abs(s))*.24;c=mix(c,vec3(dot(c,vec3(.2126,.7152,.0722))),.12)*vec3(1.02,.96,.92);return c*(1.-gr)+sp*(.05+c*1.4)+.018;}\n"+
-  "void main(){vec2 px=gl_FragCoord.xy;vec3 col=S(px,0.);float dP=sdR(px,uP,uRad);float m=1.-smoothstep(-.7,.7,dP);\n"+
-  " if(m>0.)col=mix(col,glass(px),m);\n"+
-  " vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(px*1.91)-.5)*.028;s+=(h21(px*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
+    "vec3 s=pow(max(col,0.),vec3(1./2.2));s+=(h21(gl_FragCoord.xy*1.91)-.5)*.028;s+=(h21(gl_FragCoord.xy*1.37+11.)-.5)/255.;o=vec4(s,1.);}";
   function sh(t,src){var x=gl.createShader(t);gl.shaderSource(x,src);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x}
   function prog(fs){var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,"p");gl.linkProgram(p);
     if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));var u={},n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
     for(var i=0;i<n;i++){var nm=gl.getActiveUniform(p,i).name.replace(/\[0\]$/,"");u[nm]=gl.getUniformLocation(p,nm)}return{p:p,u:u}}
-  var pB,pG;
-  try{pB=prog(BG);pG=prog(GL)}catch(e){hero.classList.add("nogl");return}
+  var pB;
+  try{pB=prog(BG)}catch(e){hero.classList.add("nogl");return}
   var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  function tex(){var t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t}
-  var bgTex=tex(),cardTex=tex(),fb=gl.createFramebuffer();
   function hex(v){var n=parseInt(v.slice(1),16);return[(n>>16)/255,((n>>8)&255)/255,(n&255)/255].map(function(c){return Math.pow(c,2.2)})}
   var PAL=["#050505","#2A0B03","#A33A05","#E85002","#FFB070"].map(hex);
-  // Вчерашний разговор: он есть, но за стеклом его не прочитать.
-  function drawChat(w,h,D){
-    var c=document.createElement("canvas");c.width=w;c.height=h;var x=c.getContext("2d"),u=D;
-    x.beginPath();if(x.roundRect)x.roundRect(0,0,w,h+40*u,[26*u,26*u,0,0]);else x.rect(0,0,w,h);x.fillStyle="rgba(14,10,8,.72)";x.fill();
-    var L=[["› ","Сделай главную страницу",1],["● ","Готово. Главная, галерея и цены на месте.",0],["› ","Завтра меню на телефоне и форма заявки",1],["● ","Записал. До завтра!",0]];
-    x.textBaseline="middle";
-    L.forEach(function(l,i){var y=(64+i*30)*u;x.font=(l[2]?"500 ":"400 ")+(16*u)+"px "+(l[2]?"'JetBrains Mono', monospace":"Onest, sans-serif");
-      x.fillStyle=l[2]?"#FF7A1A":"#D9C3AB";x.fillText(l[0],18*u,y);x.fillStyle=l[2]?"#F9F9F9":"#DCD5CF";x.fillText(l[1],38*u,y)});
-    return c;
-  }
   var W=0,H=0,D=1;
   function draw(){
     D=Math.min(window.devicePixelRatio||1,1.75);
     W=Math.max(2,Math.round(cv.clientWidth*D));H=Math.max(2,Math.round(cv.clientHeight*D));cv.width=W;cv.height=H;
     var r=hero.getBoundingClientRect(),z=zone.getBoundingClientRect(),ch=cv.clientHeight,A=W/H;
     var zx=z.left-r.left,zy=z.top-r.top,zw=z.width,zh=z.height;
-    gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
-    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,bgTex,0);
-    gl.bindTexture(gl.TEXTURE_2D,cardTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,drawChat(Math.round(zw*D),Math.round(zh*D),D));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-    // проход 1: свет и вчерашний разговор
     gl.useProgram(pB.p);gl.viewport(0,0,W,H);gl.uniform2f(pB.u.uRes,W,H);
     gl.uniform3f(pB.u.uSun,(zx+zw*.5)/ch,1-(zy+zh)/ch,r.width<720?.4:.55);
     ["c0","c1","c2","c3","c4"].forEach(function(n,i){gl.uniform3fv(pB.u[n],PAL[i])});
-    gl.uniform4f(pB.u.uCq,zx/ch,1-(zy+zh)/ch,(zx+zw)/ch,1-zy/ch);
-    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,cardTex);gl.uniform1i(pB.u.uCard,1);gl.activeTexture(gl.TEXTURE0);
-    gl.drawArrays(gl.TRIANGLES,0,3);gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.generateMipmap(gl.TEXTURE_2D);
-    // проход 2: стекло ровно над верхней частью окна; низ листа уходит под ясную часть
-    gl.useProgram(pG.p);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,W,H);
-    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bgTex);gl.uniform1i(pG.u.uBg,0);
-    gl.uniform2f(pG.u.uRes,W,H);gl.uniform1f(pG.u.uD,D);gl.uniform1f(pG.u.uRib,24*D);gl.uniform1f(pG.u.uRad,26*D);
-    gl.uniform4f(pG.u.uP,zx*D,H-(zy+zh+60)*D,(zx+zw)*D,H-zy*D);
     gl.drawArrays(gl.TRIANGLES,0,3);
   }
   var tmr;function later(){clearTimeout(tmr);tmr=setTimeout(draw,120)}
@@ -678,12 +617,12 @@ var tk=document.getElementById("ticker");if(tk)tk.innerHTML+=tk.innerHTML;
 var DENY_RM="⛔ Необратимая команда заблокирована. Если она нужна, запусти вручную в терминале.";
 var DENY_ENV="Файл с ключами (.env) агенту не читается: значение попадёт в чат и транскрипт. Имена ключей: grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env.";
 var LOOP="Одно и то же действие (тот же инструмент, те же аргументы) повторено 5 раз подряд. Остановись: назови предположение, которое может быть неверным, и попробуй другой подход.";
-var VAULT=function(v){return '<span class="vault" title="значение скрыто">'+v+"</span>"};
+var VAULT=function(){return '<span class="vault" title="значение скрыто">🔒 скрыто</span>'};
 var DEMOS={
   hero:{
     without:[["sys","сегодня · новый разговор"],["you","Продолжим сайт?"],["ai","Привет! С удовольствием. Расскажи, что за сайт и на каком он этапе?"]],
     with:[["sys","сегодня · новый разговор"],["hook","📋 Незакрытые задачи: сайт-визитка, сделано 3 из 5"],["you","Продолжим сайт?"],["ai","Да. Главная, галерея и цены готовы. Дальше меню на телефоне, начинаю."]],
-    cap:{without:"Вчерашний разговор остался за стеклом: он есть, но агент его не видит.",with:"Главное из вчерашнего лежит в списке дел. Агент читает его и продолжает с нужного места."}},
+    cap:{without:"Вчера всё обсудили, сегодня он ничего не помнит и спрашивает заново.",with:"Главное из вчерашнего лежит в списке дел. Агент читает его и продолжает с нужного места."}},
   lock:{title:"claude · ~/Фото",
     without:[["you","Убери дубли фотографий в папке Фото"],["ai","Сейчас почищу."],["tool","Bash(rm -rf ./Фото/дубли ~/)"],
       ["burn","удалено ~/Desktop/договор-final.pdf"],["burn","удалено ~/Documents/диплом/"],["burn","удалено ~/Фото/2024/свадьба/"],["burn","удалено ~/Projects/сайт/"],["burn","удалено ~/Library/…"],["ai","Готово! Папка очищена."]],
@@ -769,7 +708,7 @@ function limitsDemo(scene){
   var c=cardFor(demo,"память разговора · до первого вопроса","ctx");
   var S={before:[[34,"длинная инструкция"],[30,"все заметки"],[36,"задача"]],after:[[7,""],[9,"3 дня"],[84,"место для твоей задачи"]]};
   var BIG={before:"Лимит уходит <em>до</em> первого вопроса",after:"Почти вся память <em>под работу</em>"};
-  var cap={before:"Каждый раз агент перечитывает длинную инструкцию и все заметки подряд.",after:"Шпаргалка вместо длинной инструкции. Старые заметки за стеклом: лежат на месте, но не читаются."};
+  var cap={before:"Каждый раз агент перечитывает длинную инструкцию и все заметки подряд.",after:"Шпаргалка вместо длинной инструкции. Старые заметки лежат на месте, но агент их не читает."};
   var days=["9 дн","8 дн","7 дн","6 дн","5 дн","4 дн","3 дн","2 дн","вчера"].map(function(d){return "<span>"+d+"</span>"}).join("");
   c.body.innerHTML='<div class="lbl">память разговора</div><div class="meter"><div class="m-rules"></div><div class="m-notes"></div><div class="m-task"></div></div>'+
     '<div class="legend"><span style="--c:#8a7f77">инструкция</span><span style="--c:#62574f">заметки</span><span style="--c:#E85002">место для работы</span></div>'+
