@@ -189,6 +189,15 @@ fi
 # интерпретатора смотрим в сам файл (и во встроенный код) и показываем человеку до запуска.
 DEL_RE='shutil\.rmtree|os\.(remove|unlink|rmdir|removedirs)\(|\.unlink\(|\.rmtree\(|send2trash|fs\.(rm|rmSync|unlink|unlinkSync|rmdir|rmdirSync)\(|fs\.promises\.(rm|unlink)|Remove-Item|(^|[[:space:];&|])rm +-[a-zA-Z]*[rR]'
 INTERP='(^|[[:space:]])(python[0-9.]*|node|deno|bun|tsx|ts-node|bash|sh|zsh|ruby|perl|pwsh|powershell)([[:space:]]|$)'
+# Просмотренные человеком скрипты: строки `<sha256>  <путь>`, как печатает `shasum -a 256`. Сверка по
+# содержимому, а не по имени: правка файла меняет хеш, и вопрос возвращается. Пополняет человек.
+REVIEWED=${CLAUDE_GUARD_REVIEWED:-$HOME/.claude/hooks/reviewed-scripts.sha256}
+reviewed() {
+  [ -f "$REVIEWED" ] || return 1
+  local h
+  h=$( { sha256sum "$1" 2>/dev/null || shasum -a 256 "$1" 2>/dev/null; } | cut -d' ' -f1)
+  [ -n "$h" ] && grep -q "^$h " "$REVIEWED"
+}
 if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
   HCWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
   for f in $(printf '%s' "$SCAN" | grep -oE '[^[:space:]"'"'"']+\.(py|js|mjs|cjs|ts|sh|bash|zsh|rb|pl|ps1)([[:space:]]|$)'); do
@@ -200,7 +209,7 @@ if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
     esac
     # Сам страж перечисляет шаблоны удаления и иначе ловил бы себя: `… | bash safety-guard.sh` при проверке.
     [ "$p" -ef "${BASH_SOURCE[0]}" ] && continue
-    if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null; then
+    if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null && ! reviewed "$p"; then
       emit ask "⚠️ Скрипт $f удаляет файлы. Посмотри, какие папки он трогает, прежде чем подтвердить."
     fi
   done
