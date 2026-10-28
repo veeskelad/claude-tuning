@@ -12,7 +12,7 @@
 #
 # Использование:
 #   open-tasks.sh                 — корень $CLAUDE_PROJECT_DIR (иначе текущий каталог)
-#   open-tasks.sh --all           — все рабочие корни из CLAUDE_WORK_ROOTS (через двоеточие; по умолчанию ~/Work, ~/Projects, ~/code)
+#   open-tasks.sh --all           — все рабочие корни из CLAUDE_WORK_ROOTS (через двоеточие, ~ можно; по умолчанию ~/Work, ~/Projects, ~/code)
 #   open-tasks.sh <путь> [<путь>…] — свои корни
 set -uo pipefail
 
@@ -30,6 +30,8 @@ done
 
 files=""
 for root in "${ROOTS[@]}"; do
+  # ~ в настройке: значения env в settings.json не раскрываются шеллом, а файл бывает общим для машин с разным $HOME.
+  root=${root/#\~/$HOME}
   [ -d "$root" ] || continue
   files+=$(find "$root" -maxdepth 4 \
     \( -name node_modules -o -name .git -o -name dist -o -name build -o -name done \) -prune -o \
@@ -49,7 +51,7 @@ while IFS= read -r f; do
   # Сначала GNU (-c): на Linux `stat -f` — это статус ФС, он печатает текст и ломает арифметику.
   age=$(( ( now - $(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f") ) / 86400 ))
   stale=""; [ "$age" -ge "$STALE_DAYS" ] && stale=" ⚠️ залежался: доделать или закрыть с причиной"
-  goal=$(grep -m1 -E '^# ' "$f" | sed -E 's/^# +//' | cut -c1-120)
+  goal=$(grep -m1 -E '^# ' "$f" | sed -E 's/^# +//'); goal=${goal:0:120}  # cut -c на macOS режет байты и рвёт кириллицу
   out+=("${f/#"$HOME"/"~"} — открыто $open из $((open + done_n)), правка $age дн. назад$stale")
   [ -n "$goal" ] && out+=("   цель: $goal")
   while IFS= read -r item; do
