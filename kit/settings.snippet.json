@@ -2,13 +2,16 @@
   "_comment": "Что install-kit.py вливает в ~/.claude/settings.json. Существующие ключи и хуки не перезаписываются: хук добавляется, только если такой команды в событии ещё нет.",
   "env": {
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60",
-    "ENABLE_TOOL_SEARCH": "auto:5"
+    "ENABLE_TOOL_SEARCH": "auto:5",
+    "CLAUDE_GUARD_SKIP_SECRETS": "1"
   },
   "worktree": {"baseRef": "fresh"},
   "attribution": {"commit": "", "pr": ""},
   "hooks": {
     "PreToolUse": [
       {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/safety-guard.sh\"", "timeout": 10}]},
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "python3 \"$HOME/.claude/hooks/secret-guard-bash.py\"", "timeout": 15}]},
+      {"matcher": "Write|Edit|MultiEdit|NotebookEdit", "hooks": [{"type": "command", "command": "python3 \"$HOME/.claude/hooks/secret-guard-bash.py\" --write-tool", "timeout": 10}]},
       {"matcher": "Bash", "hooks": [{"type": "command", "command": "if command -v dippy >/dev/null 2>&1; then dippy; fi", "timeout": 10}]},
       {"matcher": "Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-read.sh\"", "timeout": 10}]},
       {"matcher": "Write", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/home-clutter.sh\"", "timeout": 10}]},
@@ -16,7 +19,11 @@
     ],
     "PostToolUse": [
       {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/agents-md-drift.sh\"", "timeout": 10}]},
-      {"matcher": "*", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/loop-detector.sh\"", "timeout": 5}]}
+      {"matcher": "*", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/loop-detector.sh\"", "timeout": 5}]},
+      {"matcher": "Bash|Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-in-output.sh\"", "timeout": 10}]}
+    ],
+    "PostToolUseFailure": [
+      {"matcher": "Bash|Read", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/guard-secret-in-output.sh\"", "timeout": 10}]}
     ],
     "SessionStart": [
       {"matcher": "startup|resume|clear|compact", "hooks": [{"type": "command", "command": "bash \"$HOME/.claude/hooks/open-tasks.sh\"", "timeout": 15}]},
