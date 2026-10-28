@@ -52,12 +52,15 @@ emit() {
 }
 
 # === Ключи: значение, выведенное в терминал, попадает в чат и транскрипт ===
-if printf '%s' "$CMD" | grep -qE '(^|[[:space:];|&])(cat|less|more|head|tail|bat|strings|xxd|base64) +[^|;&]*(\.env([[:space:]]|$|\.[a-z]+)|id_rsa|id_ed25519|\.pem([[:space:]]|$)|\.netrc)' \
-   && ! printf '%s' "$CMD" | grep -qE '\.env\.(example|sample|template)'; then
-  emit deny "⛔ Вывод файла с ключами запрещён: значение попадёт в чат. Имена ключей: grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' <файл>."
-fi
-if printf '%s' "$CMD" | grep -qE '(^|[[:space:];|&])(printenv|env)([[:space:]]*$|[[:space:]]*[|;&])'; then
-  emit deny "⛔ Полный дамп переменных окружения выводит ключи в чат. Нужна одна переменная — проверь, что она задана: [ -n \"$ИМЯ\" ] && echo задана."
+# CLAUDE_GUARD_SKIP_SECRETS=1 — у тебя свой страж ключей (маска вместо отказа), этот раздел ему мешал бы.
+if [ "${CLAUDE_GUARD_SKIP_SECRETS:-}" != 1 ]; then
+  if printf '%s' "$CMD" | grep -qE '(^|[[:space:];|&])(cat|less|more|head|tail|bat|strings|xxd|base64) +[^|;&]*(\.env([[:space:]]|$|\.[a-z]+)|id_rsa|id_ed25519|\.pem([[:space:]]|$)|\.netrc)' \
+     && ! printf '%s' "$CMD" | grep -qE '\.env\.(example|sample|template)'; then
+    emit deny "⛔ Вывод файла с ключами запрещён: значение попадёт в чат. Имена ключей: grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' <файл>."
+  fi
+  if printf '%s' "$CMD" | grep -qE '(^|[[:space:];|&])(printenv|env)([[:space:]]*$|[[:space:]]*[|;&])'; then
+    emit deny "⛔ Полный дамп переменных окружения выводит ключи в чат. Нужна одна переменная — проверь, что она задана: [ -n \"$ИМЯ\" ] && echo задана."
+  fi
 fi
 
 
