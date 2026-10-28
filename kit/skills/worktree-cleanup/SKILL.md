@@ -30,7 +30,8 @@ description: Безопасная уборка git worktree после мерж�
 5. `REFUSE` — не обходить. Грязный worktree: посмотреть `git status`, убрать только то,
    что точно создал агент (кэш сборки, артефакт деплоя), и повторить `scan`.
    Игнорируемые файлы не из кэша (`tfplan`, `*.tfvars`, локальный state): `git worktree remove` унёс бы их молча,
-   `git status` их не показывает. Кэши `node_modules`, `.terraform`, `.venv`, `__pycache__`, `dist`, `build` не мешают.
+   `git status` их не показывает. Кэши `node_modules`, `.terraform`, `.venv`, `__pycache__`, `dist`, `build` не мешают,
+   как и копия `.claude/settings.local.json`, совпадающая с основным чекаутом.
    Владелец worktree забирает или удаляет файлы сам, потом `scan`. Чужой worktree не чистить.
    Открытые пункты в `.tasks/` (каталог в `.gitignore`, `git status` его не видит): закрыть
    сделанное или перенести файл туда, где задача живёт дальше, и повторить `scan`.

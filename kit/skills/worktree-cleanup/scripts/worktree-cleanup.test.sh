@@ -13,7 +13,8 @@ commit() { echo "$2" > "$tmp/repo-worktrees/$1/$1.txt"; git -C "$tmp/repo-worktr
 
 git init -q --bare -b main "$tmp/origin.git"
 git clone -q "$tmp/origin.git" "$tmp/repo" 2>/dev/null
-echo base > "$tmp/repo/base.txt"; printf '*.tfvars\nnode_modules/\n' > "$tmp/repo/.gitignore"
+echo base > "$tmp/repo/base.txt"; printf '*.tfvars\nnode_modules/\n.claude/settings.local.json\n' > "$tmp/repo/.gitignore"
+mkdir -p "$tmp/repo/.claude"; echo '{"permissions":{}}' > "$tmp/repo/.claude/settings.local.json"
 g add -A; g commit -m base; g push origin main
 
 wt merged;   commit merged x;   g push origin merged; g merge --ff-only merged; g push origin main
@@ -33,6 +34,10 @@ echo secret > "$tmp/repo-worktrees/ignored/terraform.tfvars"
 wt cached;  commit cached c;  g merge --ff-only cached;  g push origin main; g fetch origin
 mkdir -p "$tmp/repo-worktrees/cached/node_modules/x"; echo m > "$tmp/repo-worktrees/cached/node_modules/x/i.js"
 wt pushign; commit pushign q; g push origin pushign
+wt localcopy; commit localcopy l; g merge --ff-only localcopy; g push origin main; g fetch origin
+mkdir -p "$tmp/repo-worktrees/localcopy/.claude"; cp "$tmp/repo/.claude/settings.local.json" "$tmp/repo-worktrees/localcopy/.claude/"
+wt localdiff; commit localdiff m; g merge --ff-only localdiff; g push origin main; g fetch origin
+mkdir -p "$tmp/repo-worktrees/localdiff/.claude"; echo '{"mine":1}' > "$tmp/repo-worktrees/localdiff/.claude/settings.local.json"
 echo secret > "$tmp/repo-worktrees/pushign/local.tfvars"
 wt outside elsewhere
 wt fresh
@@ -53,10 +58,13 @@ expect "^REFUSE +$tmp/repo-worktrees/tasks .*чек-лист"
 expect "^REFUSE +$tmp/repo-worktrees/ignored .*terraform.tfvars"
 expect "^READY +$tmp/repo-worktrees/cached "
 expect "^REFUSE +$tmp/repo-worktrees/pushign .*local.tfvars"
+expect "^READY +$tmp/repo-worktrees/localcopy "
+expect "^REFUSE +$tmp/repo-worktrees/localdiff .*settings.local.json"
 
 out=$("$bin" clean "$tmp/repo"); echo "$out"
 [ ! -d "$tmp/repo-worktrees/merged" ] && [ ! -d "$tmp/repo-worktrees/rebased" ] && [ -d "$tmp/repo-worktrees/pushed" ]
 [ ! -d "$tmp/repo-worktrees/cached" ] && [ -f "$tmp/repo-worktrees/ignored/terraform.tfvars" ]
+[ ! -d "$tmp/repo-worktrees/localcopy" ] && [ -f "$tmp/repo-worktrees/localdiff/.claude/settings.local.json" ]
 ! git -C "$tmp/repo" show-ref -q refs/heads/merged
 out=$("$bin" clean --pushed "$tmp/repo"); echo "$out"
 [ ! -d "$tmp/repo-worktrees/pushed" ] && git -C "$tmp/repo" show-ref -q refs/heads/pushed

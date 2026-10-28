@@ -88,7 +88,11 @@ for repo in "${repos[@]}"; do
     # remove уносит и игнорируемое: tfplan, *.tfvars, локальный state (12.10.2026 так пропали чужие tfplan и tfvars).
     # Пропускаем только то, что пересобирается само; .tasks проверен выше
     ign=$(git -C "$wt" status --porcelain --ignored=matching --untracked-files=all 2>/dev/null | sed -n 's/^!! //p' |
-      grep -vE '(^|/)(node_modules|\.terraform|\.venv|__pycache__|dist|build|\.DS_Store|\.tasks)(/|$)|(^|/)\.husky/_/' | head -3)
+      grep -vE '(^|/)(node_modules|\.terraform|\.venv|__pycache__|dist|build|\.DS_Store|\.tasks)(/|$)|(^|/)\.husky/_/')
+    # Копия .claude/settings.local.json из основного чекаута (её кладут в каждый worktree) при удалении ничего не теряет
+    cmp -s "$wt/.claude/settings.local.json" "$main_wt/.claude/settings.local.json" &&
+      ign=$(grep -vxF '.claude/settings.local.json' <<<"$ign" || true)
+    ign=$(head -3 <<<"$ign")
     [ -z "$ign" ] || { say REFUSE "$wt" "игнорируемые файлы, не кэш: $(tr '\n' ' ' <<<"$ign")— забрать или удалить руками"; continue; }
 
     head=$(git -C "$wt" rev-parse HEAD)
