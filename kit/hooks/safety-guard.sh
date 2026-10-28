@@ -198,6 +198,8 @@ if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
       '~/'*) p="$HOME/${p#'~/'}" ;;
       *) [ -n "$HCWD" ] && p="$HCWD/$p" ;;
     esac
+    # Сам страж перечисляет шаблоны удаления и иначе ловил бы себя: `… | bash safety-guard.sh` при проверке.
+    [ "$p" -ef "${BASH_SOURCE[0]}" ] && continue
     if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null; then
       emit ask "⚠️ Скрипт $f удаляет файлы. Посмотри, какие папки он трогает, прежде чем подтвердить."
     fi
