@@ -6,7 +6,9 @@ description: "Аудит и консолидация файловой памят
 # Memory Consolidate
 
 Память проекта — `~/.claude/projects/<slug>/memory/`: один файл на факт, индекс `MEMORY.md`
-грузится в каждую сессию и **обрезается после 200 строк**, закрытое и узкое — в `ARCHIVE.md`.
+грузится в каждую сессию: **первые 200 строк или 25 КБ, что наступит раньше** (code.claude.com/docs/en/memory),
+остальное отбрасывается. Упирается обычно в размер, а не в строки: кириллица и ссылки `[текст](файл.md)` тяжёлые.
+Тематические файлы читаются только по запросу. Закрытое и узкое — в `ARCHIVE.md`.
 
 ## Фаза 1: Диагностика (только чтение)
 
@@ -15,7 +17,7 @@ description: "Аудит и консолидация файловой памят
 ```bash
 M=~/.claude/projects/$(pwd | sed 's/[^A-Za-z0-9]/-/g')/memory
 cd "$M" || exit 1
-echo "MEMORY.md: $(wc -l < MEMORY.md) строк (потолок 200)"
+echo "MEMORY.md: $(wc -l < MEMORY.md) строк (потолок 200), $(python3 -I -c 'print(len(open("MEMORY.md",encoding="utf-8").read()))') символов (ориентир < 17 тыс.: 25 КБ кириллицы)"
 skip='MEMORY.md|ARCHIVE.md|handoff.md|lessons-learned.md'   # служебные, проверки к ним не относятся
 refs=$(grep -ohE '\]\([^)]+\.md\)' MEMORY.md ARCHIVE.md 2>/dev/null | sed -E 's/.*\(([^)]+)\)/\1/' | grep -vxE "$skip" | sort -u)
 files=$(for f in *.md; do echo "$f"; done | grep -vxE "$skip" | sort)
@@ -44,7 +46,8 @@ for f in $files; do s=$(wc -c < "$f"); [ "$s" -gt 15360 ] && echo "$((s/1024)) �
 2. **Сирота** — вписать хук в подходящий раздел `MEMORY.md` или в `ARCHIVE.md`.
    Дубль существующей записи — слить в неё, сироту удалить.
 3. **Без frontmatter** — дописать `name`, `description`, `metadata.type`.
-4. **`MEMORY.md` ближе 180 строк** — закрытое и узкое перенести в `ARCHIVE.md`,
+4. **`MEMORY.md` ближе 180 строк или больше 17 тыс. символов** — закрытое и узкое перенести в `ARCHIVE.md`
+   (история, разовые инциденты, дубли CLAUDE.md, то, что покрыто скиллом),
    соседние хуки одной темы собрать в одну строку, как в существующих разделах.
 5. **Файл крупнее 15 КБ** — сжать до факта плюс **Why** / **How to apply**, хронологию разбора убрать.
 6. **Handoff** — если dry-run показал выигрыш, `~/.claude/bin/handoff-tier.py --apply`.

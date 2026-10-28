@@ -15,8 +15,9 @@ worktree-cleanup [scan|clean] [--pushed] [--no-fetch] [--ready-only] [REPO ...]
 
   REPO — основные чекауты. Без них: репо в $PWD, иначе репо на глубину 1.
 
-  READY    чистый, смержен в origin/main|master (предок или patch-эквивалент),
-           без активных процессов. Удаляется вместе с локальной веткой
+  READY    чистый (и без игнорируемых файлов, кроме кэшей сборки), смержен в
+           origin/main|master (предок или patch-эквивалент), без активных процессов.
+           Удаляется вместе с локальной веткой
   PUSHED   чистый, не смержен, HEAD есть на origin — удаление ничего не теряет.
            Локальная ветка остаётся
   REFUSE   всё остальное, не удаляется никогда
@@ -84,6 +85,11 @@ for repo in "${repos[@]}"; do
     # .tasks/ обычно в .gitignore: status его не видит, а remove унёс бы чек-лист с открытыми пунктами
     grep -qs '^[[:space:]]*- \[ \]' "$wt"/.tasks/*.md &&
       { say REFUSE "$wt" "в .tasks/ открытые пункты чек-листа — перенести или закрыть"; continue; }
+    # remove уносит и игнорируемое: tfplan, *.tfvars, локальный state (12.10.2026 так пропали чужие tfplan и tfvars).
+    # Пропускаем только то, что пересобирается само; .tasks проверен выше
+    ign=$(git -C "$wt" status --porcelain --ignored=matching --untracked-files=all 2>/dev/null | sed -n 's/^!! //p' |
+      grep -vE '(^|/)(node_modules|\.terraform|\.venv|__pycache__|dist|build|\.DS_Store|\.tasks)(/|$)|(^|/)\.husky/_/' | head -3)
+    [ -z "$ign" ] || { say REFUSE "$wt" "игнорируемые файлы, не кэш: $(tr '\n' ' ' <<<"$ign")— забрать или удалить руками"; continue; }
 
     head=$(git -C "$wt" rev-parse HEAD)
     if git -C "$main_wt" merge-base --is-ancestor "$head" "$ref"; then
@@ -117,7 +123,8 @@ for repo in "${repos[@]}"; do
       say REMOVED "$wt" "$(hsize "$kb"), $why"
     else
       [ "$state" = READY ] && ready=$((ready + 1)) || pushed_n=$((pushed_n + 1))
-      total_kb=$((total_kb + kb))
+      # в clean оставленные PUSHED не входят в «освобождено» (27.10.2026: «Удалено: 0, освобождено 365 МиБ»)
+      [ "$mode" = clean ] || total_kb=$((total_kb + kb))
       say "$state" "$wt" "$(hsize "$kb"), $why"
     fi
   done < <(git -C "$main_wt" worktree list --porcelain | awk '
