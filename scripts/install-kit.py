@@ -110,6 +110,9 @@ def install():
     for name, cmd in VENDOR.items():
         if not os.path.exists(f"{store}/{name}") and not os.path.exists(f"{cs}/{name}"):
             say("вручную", f"{name}: {cmd}")
+    # Хук dippy в settings.snippet.json без самой программы молча ничего не делает.
+    if not shutil.which("dippy"):
+        say("вручную", "dippy (по желанию): pipx install dippy — сам одобряет команды только на чтение, подтверждений меньше")
     if os.path.exists(f"{H}/.claude/CLAUDE.md"):
         say("есть", "~/.claude/CLAUDE.md — переписать в карту по kit/claude-md.md (шаг 2 скилла), не копией")
     else:
