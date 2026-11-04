@@ -10,7 +10,7 @@
     python3 install-kit.py --uninstall [--apply]   # убрать поставленное (только файлы, совпадающие с kit, и хуки kit)
     python3 install-kit.py --home DIR   # другой домашний каталог (проба в чистом окружении)
     python3 install-kit.py --extra DIR  # плюс свой модуль той же формы (skills/, hooks/, bin/, rules/, output-styles/, settings.snippet.json)
-    python3 install-kit.py --with code,servers   # плюс бонусы по сферам из kit/bonus/ (code, servers, content)
+    python3 install-kit.py --with code,servers   # плюс направления из kit/tracks/ (code, servers, content)
 
 Свой модуль — место для личного (свои серверы, пути, хуки): публичный kit остаётся общим, личное
 подключается поверх и в kit не попадает. --extra можно повторять.
@@ -29,15 +29,15 @@ p.add_argument("--check", action="store_true")
 p.add_argument("--uninstall", action="store_true")
 p.add_argument("--home", default=os.path.expanduser("~"))
 p.add_argument("--extra", action="append", default=[], metavar="DIR")
-p.add_argument("--with", dest="bonus", default="", metavar="СФЕРЫ", help="бонусы через запятую: " + ", ".join(sorted(os.listdir(os.path.join(KIT, "bonus")))) if os.path.isdir(os.path.join(KIT, "bonus")) else "")
+p.add_argument("--with", dest="bonus", default="", metavar="СФЕРЫ", help="направления через запятую: " + ", ".join(sorted(os.listdir(os.path.join(KIT, "tracks")))) if os.path.isdir(os.path.join(KIT, "tracks")) else "")
 a = p.parse_args()
 H = os.path.abspath(a.home)
 DRY = not a.apply
 BONUS = [b.strip() for b in a.bonus.split(",") if b.strip()]
 for b in BONUS:
-    if not os.path.isdir(f"{KIT}/bonus/{b}"):
-        sys.exit(f"--with {b}: такого бонуса нет (есть: {', '.join(sorted(os.listdir(f'{KIT}/bonus')))})")
-KITS = [KIT] + [f"{KIT}/bonus/{b}" for b in BONUS] + [os.path.abspath(os.path.expanduser(d)) for d in a.extra]
+    if not os.path.isdir(f"{KIT}/tracks/{b}"):
+        sys.exit(f"--with {b}: такого направления нет (есть: {', '.join(sorted(os.listdir(f'{KIT}/tracks')))})")
+KITS = [KIT] + [f"{KIT}/tracks/{b}" for b in BONUS] + [os.path.abspath(os.path.expanduser(d)) for d in a.extra]
 for d in KITS[1:]:
     if not os.path.isdir(d):
         sys.exit(f"--extra {d}: нет такой папки")
@@ -97,7 +97,7 @@ def install():
     cs = f"{H}/.claude/skills"
     for kit in KITS:
         if kit != KIT:
-            print(f"\n— {'бонус ' + os.path.basename(kit) if kit.startswith(KIT + '/bonus/') else 'модуль ' + kit.replace(H, '~')}")
+            print(f"\n— {'направление ' + os.path.basename(kit) if kit.startswith(KIT + '/tracks/') else 'модуль ' + kit.replace(H, '~')}")
         for name in ls(kit, "skills"):
             place(f"{kit}/skills/{name}", f"{store}/{name}", True)
         # Точки доступа: ~/.claude/skills целиком ссылкой на склад, иначе — по скиллу.
@@ -116,8 +116,8 @@ def install():
             merge_settings(kit)
         for name in ls(kit, "launchd"):
             install_agent(f"{kit}/launchd/{name}")
-        # шаблоны бонуса autonomy: задание и расписание берёт из них claude-autonomy new / schedule
-        if kit == f"{KIT}/bonus/autonomy":
+        # шаблоны направления autonomy: задание и расписание берёт из них claude-autonomy new / schedule
+        if kit == f"{KIT}/tracks/autonomy":
             for name in ls(kit, "templates"):
                 place(f"{kit}/templates/{name}", f"{H}/.claude/autonomy/templates/{name}", False, False)
     if os.path.isdir(f"{KIT}/statusline"):
@@ -129,7 +129,7 @@ def install():
         install_mods()
     print()
     vendor = dict(VENDOR)
-    # сторонние скиллы модуля и бонуса — vendor.json рядом с его skills/
+    # сторонние скиллы модуля и направления — vendor.json рядом с его skills/
     for kit in KITS:
         if os.path.exists(f"{kit}/vendor.json"):
             vendor.update({k: v for k, v in json.load(open(f"{kit}/vendor.json")).items() if not k.startswith("_")})
@@ -218,9 +218,16 @@ def mod_names():
 
 
 def install_mods():
-    """Моды — локальный marketplace в ~/.claude/mods: папка плюс два ключа в settings.json, без вызова claude."""
-    dst = f"{H}/.claude/mods"
-    place(f"{KIT}/mods", dst, True)
+    """Моды — локальный marketplace: два ключа в settings.json, без вызова claude.
+
+    Набор склонирован в домашнюю папку (обычная установка) — marketplace смотрит прямо в kit/mods клона: обновил набор
+    («обнови набор», git pull) — обновились и моды. Набор запущен из другого места (проба в пустом HOME) — копия в
+    ~/.claude/mods, чтобы установка не зависела от папки, откуда её запустили."""
+    if KIT.startswith(H + os.sep):
+        dst = f"{KIT}/mods"
+    else:
+        dst = f"{H}/.claude/mods"
+        place(f"{KIT}/mods", dst, True)
     path = f"{H}/.claude/settings.json"
     cur = json.load(open(path)) if os.path.exists(path) else {}
     new = json.loads(json.dumps(cur))
@@ -358,7 +365,7 @@ def uninstall():
     if os.path.exists(f"{KIT}/dippy/config.example"):
         drop(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False)
     for kit in KITS:
-        if kit == f"{KIT}/bonus/autonomy":
+        if kit == f"{KIT}/tracks/autonomy":
             for name in ls(kit, "templates"):
                 drop(f"{kit}/templates/{name}", f"{H}/.claude/autonomy/templates/{name}", False)
         for name in ls(kit, "launchd"):
@@ -410,5 +417,12 @@ if a.uninstall:
     sys.exit(0)
 print(f"{'Сухой прогон' if DRY else 'Установка'} kit → {H}\n")
 install()
+# что и какой версии стоит: по этому файлу «обнови набор» ставит те же направления, а проверка обновлений сравнивает версию
+if not DRY:
+    ver = open(os.path.join(os.path.dirname(KIT), "VERSION")).read().strip() if os.path.exists(os.path.join(os.path.dirname(KIT), "VERSION")) else ""
+    os.makedirs(f"{H}/.claude", exist_ok=True)
+    json.dump({"version": ver, "tracks": BONUS, "kit": os.path.dirname(KIT), "installed_at": time.strftime("%Y-%m-%d %H:%M")},
+              open(f"{H}/.claude/claude-tuning.json", "w"), ensure_ascii=False, indent=2)
+    say("записано", f"~/.claude/claude-tuning.json: версия {ver or '?'}, направления: {', '.join(BONUS) or 'только основа'}")
 if DRY:
     print("\nНичего не изменено. Поставить: --apply")

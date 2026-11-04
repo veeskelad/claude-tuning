@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Регресс-таблица guard-hard-rules.py (бонус «code»): что запрещается и что проходит (ложняки).
+"""Регресс-таблица guard-hard-rules.py (направление «code»): что запрещается и что проходит (ложняки).
 
     python3 tests/guard-hard-rules.test.py
 
-Гоняет хук из kit/bonus/code/hooks/ на песочнице во временном каталоге: ни домашний каталог, ни чужие
+Гоняет хук из kit/tracks/code/hooks/ на песочнице во временном каталоге: ни домашний каталог, ни чужие
 репозитории не нужны. Свежесть fetch задаётся mtime файла FETCH_HEAD. Сети нет: remote — заглушка.
 """
 import json
@@ -15,7 +15,7 @@ import tempfile
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-H = os.path.join(ROOT, "kit", "bonus", "code", "hooks", "guard-hard-rules.py")
+H = os.path.join(ROOT, "kit", "tracks", "code", "hooks", "guard-hard-rules.py")
 T = os.path.realpath(tempfile.mkdtemp(prefix="hard-rules-"))
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE_")}
 # ai-signature в наборе выключен по умолчанию: тесты правила — с явным включением

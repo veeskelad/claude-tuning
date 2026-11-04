@@ -1,5 +1,5 @@
 {
-  "_comment": "Бонус «autonomy»: вливается поверх базы при --with autonomy. Страж молчит вне безголовых запусков (нет CLAUDE_AUTONOMY_JOB).",
+  "_comment": "Направление «autonomy»: вливается поверх базы при --with autonomy. Страж молчит вне безголовых запусков (нет CLAUDE_AUTONOMY_JOB).",
   "hooks": {
     "PreToolUse": [
       {

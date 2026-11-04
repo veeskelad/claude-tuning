@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Проверка бонуса autonomy: раннер claude-run.sh, пульт claude-autonomy, страж autonomy-pause-guard.sh.
+# Проверка направления autonomy: раннер claude-run.sh, пульт claude-autonomy, страж autonomy-pause-guard.sh.
 # Запуск: bash tests/autonomy.test.sh. HOME — временная папка, вместо claude и launchctl — заглушки на PATH:
 # настоящий claude не зовётся, расписание не включается, ~/.claude и ~/Library не затрагиваются.
 set -uo pipefail
-K="$(cd "$(dirname "$0")/.." && pwd)/kit/bonus/autonomy"
+K="$(cd "$(dirname "$0")/.." && pwd)/kit/tracks/autonomy"
 T=$(mktemp -d)
 T=$(cd "$T" && pwd -P)
 export HOME="$T/home"; mkdir -p "$HOME"
@@ -219,7 +219,7 @@ check "schedule: слишком часто — отказ" 2 "$(A_CLI schedule d
 check "schedule: нет задания — отказ" 2 "$(A_CLI schedule nojob 07:30 >/dev/null 2>&1; echo $?)"
 check "schedule: launchctl не вызывался" нет "$(ex "$T/launchctl.calls")"
 check "schedule linux: строка cron" 1 "$(CLAUDE_AUTONOMY_PLATFORM=linux A_CLI schedule demo 07:30 | grep -c '^30 7 \* \* \* ')"
-check "в bonus/autonomy/launchd нет шаблонов для всех" 0 "$(ls "$K"/launchd/*.plist.template 2>/dev/null | wc -l | tr -d ' ')"
+check "в tracks/autonomy/launchd нет шаблонов для всех" 0 "$(ls "$K"/launchd/*.plist.template 2>/dev/null | wc -l | tr -d ' ')"
 
 # --- status ---
 st=$(A_CLI status 2>&1)
