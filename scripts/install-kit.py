@@ -127,6 +127,8 @@ def install():
         place(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False, False)
     if os.path.isdir(f"{KIT}/mods"):
         install_mods()
+    if "codex" in BONUS:
+        install_codex()
     print()
     vendor = dict(VENDOR)
     # сторонние скиллы модуля и направления — vendor.json рядом с его skills/
@@ -247,6 +249,111 @@ def install_mods():
     json.dump(new, open(path, "w"), ensure_ascii=False, indent=2)
 
 
+CODEX = f"{KIT}/tracks/codex"
+
+
+def codex_groups():
+    """Группы хуков из шаблона: событие → [(группа, набор её команд)]."""
+    tpl = json.load(open(f"{CODEX}/codex-hooks/hooks.json.template"))
+    return {ev: [(g, {hook_key(h) for h in g["hooks"]}) for g in gs] for ev, gs in tpl["hooks"].items()}
+
+
+def install_codex():
+    """Codex исполняет хуки Claude через мост claude-parity.
+
+    hooks.json правится только дописыванием в конец списка события: Codex помнит доверие к хуку по его месту и
+    содержимому, и перестановка сбросила бы доверие к чужим хукам."""
+    print("\n— Codex")
+    if not os.path.isdir(f"{H}/.codex"):
+        say("вручную", "Codex не найден (~/.codex нет): поставить Codex и повторить установку с --with codex")
+        return
+    for name in ls(CODEX, "codex-hooks"):
+        if name.endswith(".py"):
+            place(f"{CODEX}/codex-hooks/{name}", f"{H}/.codex/hooks/claude-parity/{name}", False)
+    path = f"{H}/.codex/hooks.json"
+    if not os.path.exists(path):
+        place(f"{CODEX}/codex-hooks/hooks.json.template", path, False, False)
+    else:
+        cur = json.load(open(path))
+        added = 0
+        for ev, groups in codex_groups().items():
+            have = [{hook_key(h) for h in g.get("hooks", [])} for g in cur.setdefault("hooks", {}).get(ev, [])]
+            for g, cmds in groups:
+                if cmds not in have:
+                    cur["hooks"].setdefault(ev, []).append(g)
+                    added += 1
+        if not added:
+            say("есть", "~/.codex/hooks.json — хуки моста на месте")
+        else:
+            say("поправлю" if DRY else "поправлено", f"~/.codex/hooks.json: +{added} групп хуков в конец списков")
+            if not DRY:
+                bak = f"{path}.bak-{time.strftime('%Y%m%d')}"
+                if not os.path.exists(bak):
+                    shutil.copy2(path, bak)
+                    say("бэкап", bak.replace(H, "~"))
+                json.dump(cur, open(path, "w"), ensure_ascii=False, indent=2)
+    place(f"{CODEX}/AGENTS.md.template", f"{H}/.codex/AGENTS.md", False, False)
+    say("вручную", "в Codex открыть /hooks и доверить новые хуки claude-parity — без этого Codex их не запускает")
+
+
+def uninstall_codex():
+    for name in ls(CODEX, "codex-hooks"):
+        dst = f"{H}/.codex/hooks/claude-parity/{name}"
+        if name.endswith(".py") and os.path.exists(dst):
+            if not filecmp.cmp(f"{CODEX}/codex-hooks/{name}", dst, shallow=False):
+                say("оставлю", f"{dst.replace(H, '~')} — отличается от kit (своя версия)")
+                continue
+            say("уберу" if DRY else "убрано", dst.replace(H, "~"))
+            if not DRY:
+                os.remove(dst)
+    path = f"{H}/.codex/hooks.json"
+    if not os.path.exists(path):
+        return
+    cur = json.load(open(path))
+    removed = 0
+    for ev, groups in codex_groups().items():
+        ours = [cmds for _, cmds in groups]
+        entries = cur.get("hooks", {}).get(ev, [])
+        keep = [g for g in entries if {hook_key(h) for h in g.get("hooks", [])} not in ours]
+        removed += len(entries) - len(keep)
+        if keep:
+            cur["hooks"][ev] = keep
+        elif ev in cur.get("hooks", {}):
+            del cur["hooks"][ev]
+    if removed:
+        # state/claude-parity/ остаётся: там журнал моста и доверенные проекты
+        say("уберу" if DRY else "убрано", f"~/.codex/hooks.json: {removed} групп хуков моста")
+        if not DRY:
+            json.dump(cur, open(path, "w"), ensure_ascii=False, indent=2)
+
+
+def check_codex():
+    bad = 0
+    d = f"{H}/.codex/hooks/claude-parity"
+    for name in ls(CODEX, "codex-hooks"):
+        f = f"{d}/{name}"
+        if not name.endswith(".py"):
+            continue
+        if not os.path.exists(f):
+            say("НЕТ ФАЙЛА", f.replace(H, "~")); bad += 1
+        elif subprocess.run([sys.executable, "-m", "py_compile", f]).returncode:
+            say("СИНТАКСИС", f); bad += 1
+    path = f"{H}/.codex/hooks.json"
+    have = json.load(open(path)).get("hooks", {}) if os.path.exists(path) else {}
+    for ev, groups in codex_groups().items():
+        cur = [{hook_key(h) for h in g.get("hooks", [])} for g in have.get(ev, [])]
+        for _, cmds in groups:
+            if cmds not in cur:
+                say("НЕТ ХУКА", f"~/.codex/hooks.json {ev}"); bad += 1
+    guard = f"{d}/pre_tool_guard.py"
+    if os.path.exists(guard):
+        r = subprocess.run([sys.executable, guard], input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "rm -rf tests/ patches/ plan/ ~/"}}),
+                           capture_output=True, text=True, env={**os.environ, "HOME": H})
+        ok = '"deny"' in r.stdout or r.returncode == 2
+        say("страж codex" if ok else "СТРАЖ МОЛЧИТ", "rm -rf tests/ patches/ plan/ ~/ → " + ("deny" if ok else r.stdout.strip() or "пропущено")); bad += not ok
+    return bad
+
+
 def hook_key(h):
     """Команда хука; у хуков без команды (prompt, agent) — весь объект."""
     return h.get("command") or json.dumps(h, sort_keys=True, ensure_ascii=False)
@@ -318,6 +425,8 @@ def check():
         r = subprocess.run(["bash", guard], input=json.dumps({"tool_input": {"command": "rm -rf tests/ patches/ plan/ ~/"}}), capture_output=True, text=True)
         ok = '"deny"' in r.stdout
         say("страж" if ok else "СТРАЖ МОЛЧИТ", "rm -rf tests/ patches/ plan/ ~/ → " + ("deny" if ok else r.stdout.strip() or "пропущено")); bad += not ok
+    if "codex" in BONUS and os.path.isdir(f"{H}/.codex"):
+        bad += check_codex()
     print(f"\nПроверка: {'всё на месте' if not bad else f'проблем: {bad}'}")
     return bad
 
@@ -377,6 +486,8 @@ def uninstall():
                 if H == os.path.expanduser("~"):
                     subprocess.run(["launchctl", "unload", dst], capture_output=True)
                 os.remove(dst)
+    if "codex" in BONUS:
+        uninstall_codex()
     path = f"{H}/.claude/settings.json"
     if not os.path.exists(path):
         return

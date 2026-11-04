@@ -57,6 +57,7 @@ done <<< "$files"
 total=$(printf '%s' "$ranked" | grep -c .)
 files=$(printf '%s' "$ranked" | sort -rn | head -n "$MAX_FILES" | cut -f2-)
 out=()
+tilde="~"  # bash 3.2 на macOS печатает "~" в замене буквально, с кавычками
 while IFS= read -r f; do
   [ -n "$f" ] || continue
   open=$(grep -cE "$OPEN_RE" "$f" 2>/dev/null) || open=0
@@ -64,7 +65,7 @@ while IFS= read -r f; do
   age=$(( ( now - $(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f") ) / 86400 ))
   stale=""; [ "$age" -ge "$STALE_DAYS" ] && stale=" ⚠️ залежался: доделать или закрыть с причиной"
   goal=$(grep -m1 -E '^# ' "$f" | sed -E 's/^# +//'); goal=${goal:0:120}  # cut -c на macOS режет байты и рвёт кириллицу
-  out+=("${f/#"$HOME"/"~"} — открыто $open из $((open + done_n)), правка $age дн. назад$stale")
+  out+=("${f/#"$HOME"/$tilde} — открыто $open из $((open + done_n)), правка $age дн. назад$stale")
   [ -n "$goal" ] && out+=("   цель: $goal")
   while IFS= read -r item; do
     out+=("   ${item:0:120}")

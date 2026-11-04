@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Шаблон: каждый вечер в 23:30 раскладывает сводки сессий за сутки (скилл claude-session-bridge)
+	     в ~/.claude/global-handoff.md и сворачивает старые записи (handoff-tier.py). Модель не зовётся.
+	     Компьютер спал в 23:30 — launchd запустит задачу при пробуждении.
+	     В шаблоне два плейсхолдера: домашняя папка (абсолютный путь) и префикс метки (обратный домен).
+	     install-kit.py подставляет их сам. Вручную: заменить оба через sed, сохранить как
+	     ~/Library/LaunchAgents/<префикс>.handoff-evening.plist и включить командой launchctl load.
+	     Выключить: launchctl unload и удалить файл.
+	     Linux, строка для crontab -e:
+	     30 23 * * * python3 "$HOME/.agents/skills/claude-session-bridge/scripts/daily_digest.py" evening -->
+	<key>Label</key>
+	<string>__LABEL_PREFIX__.handoff-evening</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-lc</string>
+		<string>f="$HOME/.agents/skills/claude-session-bridge/scripts/daily_digest.py"; [ -r "$f" ] || exit 0; exec python3 "$f" evening</string>
+	</array>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>23</integer>
+		<key>Minute</key>
+		<integer>30</integer>
+	</dict>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>Nice</key>
+	<integer>10</integer>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.handoff-evening.log</string>
+	<key>StandardErrorPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.handoff-evening.log</string>
+</dict>
+</plist>
