@@ -7,10 +7,10 @@ test('полоса: числа в кнопке, раскрытие, подпис
   mock.store(on)
   const clock = mock.clock(on)
   const iso = (minAgo: number) => new Date(clock.now() - minAgo * 60000).toISOString()
-  const long = 'Проверить, не оставляет ли Hermes неубранные git worktree после задач'
+  const long = 'Проверить, не оставляет ли сборщик неубранные git worktree после задач'
   let sessions = [
-    { sessionId: id(1), title: long, cwd: '/Users/x/Work/aisy', isRunning: true, lastActivityAt: iso(0), link: `claude://x/${id(1)}` },
-    { sessionId: id(2), title: 'Ответила', cwd: '/Users/x/Work', isRunning: true, lastActivityAt: iso(1), link: `claude://x/${id(2)}` },
+    { sessionId: id(1), title: long, cwd: '/home/x/work/app', isRunning: true, lastActivityAt: iso(0), link: `claude://x/${id(1)}` },
+    { sessionId: id(2), title: 'Ответила', cwd: '/home/x/work', isRunning: true, lastActivityAt: iso(1), link: `claude://x/${id(2)}` },
   ]
   on('command.register', () => ({ value: { command: 'sessions' } }))
   mock.env(on, { HOME: '/home/t' })

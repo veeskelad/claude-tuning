@@ -1,0 +1,9 @@
+{
+  "_comment": "Сторонние скиллы бонуса «контент»: ставятся их установщиком, kit их не копирует. Флаги проверить в npx skills --help.",
+  "humanizer-ru": "npx skills add vladimir-human/humanizer-ru -g",
+  "ru-text": "npx skills add talkstream/ru-text --skill ru-text -g",
+  "ru-check": "npx skills add talkstream/ru-text --skill ru-check -g",
+  "whisper": "npx skills add davila7/claude-code-templates --skill whisper -g",
+  "docx": "npx skills add anthropics/skills --skill docx -g",
+  "xlsx": "npx skills add anthropics/skills --skill xlsx -g"
+}

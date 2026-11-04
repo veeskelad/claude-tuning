@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/safety-guard.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/bypass-ask-to-deny.sh\" 'bash \"$HOME/.claude/hooks/safety-guard.sh\"'",
             "timeout": 10
           }
         ]
@@ -42,8 +42,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if command -v dippy >/dev/null 2>&1; then dippy; fi",
-            "timeout": 10
+            "command": "bash \"$HOME/.claude/hooks/unless-bypass.sh\" 'if command -v dippy >/dev/null 2>&1; then python3 \"$HOME/.claude/hooks/dippy-script.py\"; fi'",
+            "timeout": 15
           }
         ]
       },
@@ -52,7 +52,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/guard-secret-read.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/bypass-ask-to-deny.sh\" 'bash \"$HOME/.claude/hooks/guard-secret-read.sh\"'",
             "timeout": 10
           }
         ]
@@ -154,6 +154,18 @@
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/session-autosave.sh\"",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/plan-auto-allow.sh\"",
+            "timeout": 5
           }
         ]
       }

@@ -29,7 +29,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME/.claude/hooks/agents-md-drift.sh\"",
+            "command": "bash \"$HOME/.claude/hooks/unless-bypass.sh\" 'bash \"$HOME/.claude/hooks/agents-md-drift.sh\"'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/guard-hard-rules.py\"",
             "timeout": 10
           }
         ]
@@ -38,9 +50,5 @@
   },
   "worktree": {
     "baseRef": "fresh"
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
   }
 }
