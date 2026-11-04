@@ -217,6 +217,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.claude/hooks/correction-nudge.py\"",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

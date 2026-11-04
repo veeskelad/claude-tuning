@@ -16,6 +16,7 @@
 | вывод Bash, Read | `guard-secret-in-output.sh` | тревога, если значение всё же прошло: агент обязан сказать, что и где утекло |
 | ExitPlanMode | агент-проверяющий | до показа сверяет план с кодом; блокирует только дефект с конкретной причиной |
 | PermissionRequest | `plan-auto-allow.sh` | в режиме плана окно разрешения на чтение и поиск одобряется само |
+| UserPromptSubmit | `correction-nudge.py` | «опять», «я же просил», «запомни», «всегда делай…» — подсказка модели записать правило сразу (self-tune); молчит в `claude -p`, выключатель `CLAUDE_TUNING_NUDGE=0` |
 | PostToolUse `*` | `loop-detector.sh` | пять одинаковых шагов подряд или круг из 2–4 шагов три раза — подсказка сменить подход |
 | SessionStart | `open-tasks.sh`, `compact-context.py`, `tuning-update-check.sh` | открытые чек-листы; после сжатия — задача этой сессии и правленые файлы; раз в сутки — нет ли новой версии набора |
 | SessionEnd, PreCompact | `session-autosave.sh` | машинная запись о сессии в `~/.claude/handoff.md` |

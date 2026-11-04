@@ -149,6 +149,35 @@ check("--examples 1: счёт полный", "Напоминание о след
 r = run("--interventions", "--examples", "0")
 check("--examples 0: примеров нет", ".jsonl:" not in r.stdout.split("## 6.", 1)[1])
 
+# --- 4б. Уроки, которые повторяются (раздел 7, --brief) ---
+import time as _t
+today = _t.strftime("%Y-%m-%d")
+lessons_md = (
+    "# Уроки\n\n"
+    "## Миграция базы без бэкапа положила стенд оплаты (2025-03-01)\nтекст\n\n"
+    "## Миграция базы стенда оплаты снова без бэкапа (" + today + ")\nопять то же\n\n"
+    "## Новый урок про кэш раннера (" + today + ")\nничего общего\n")
+for slug in ("-demo-proj", "-demo-copy"):  # та же память под двумя slug — урок считается один раз
+    (home / f".claude/projects/{slug}/memory").mkdir(parents=True, exist_ok=True)
+    (home / f".claude/projects/{slug}/memory/lessons-learned.md").write_text(lessons_md, encoding="utf-8")
+r = run("--days", "365", "--lessons")
+sec7 = r.stdout.split("## 7.", 1)[-1] if "## 7." in r.stdout else ""
+check("раздел 7 печатается с --lessons", bool(sec7), r.stdout[-300:])
+check("раздел 7: свежий урок того же класса", "Миграция базы стенда оплаты снова" in sec7, sec7)
+check("раздел 7: прежний урок рядом", "раньше: «Миграция базы без бэкапа" in sec7, sec7)
+check("раздел 7: копия памяти не удвоила урок", sec7.count("Миграция базы стенда оплаты снова") == 1, sec7)
+check("раздел 7: несвязанный урок не в парах", "кэш раннера" not in sec7.split("в тексте")[0], sec7)
+r = run("--days", "3650")
+check("без --lessons раздела 7 нет", "## 7." not in r.stdout)
+r = run("--days", "365", "--brief")
+check("--brief: короткий, без заголовков", bool(r.stdout.strip()) and "#" not in r.stdout and len(r.stdout.strip().splitlines()) <= 6, r.stdout)
+check("--brief: урок того же класса", "урок снова того же класса" in r.stdout, r.stdout)
+empty = tmp / "empty"
+(empty / "p").mkdir(parents=True)
+r = subprocess.run([sys.executable, str(SCRIPT), "--projects", str(empty), "--brief"], capture_output=True, text=True,
+                   env=dict(os.environ, HOME=str(home), PYTHONDONTWRITEBYTECODE="1"))
+check("--brief без сигнала — пусто, код 0", r.stdout == "" and r.returncode == 0, repr(r.stdout))
+
 # --- 5. Классификатор напрямую ---
 spec = importlib.util.spec_from_file_location("repeat_scan", SCRIPT)
 mod = importlib.util.module_from_spec(spec)
