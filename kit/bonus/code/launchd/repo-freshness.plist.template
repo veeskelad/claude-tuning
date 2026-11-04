@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Шаблон (бонус code): каждые 30 минут обновляет origin/* у клонов репозиториев, чтобы отставание было видно.
+	     Нужен хук repo-freshness.sh из бонуса code в ~/.claude/hooks/. Окно 10:00-18:59 проверяет сам скрипт по ключу
+	     рабочих часов, поэтому расписание живёт в одном месте. Папки с репозиториями задаёт переменная
+	     CLAUDE_WORK_ROOTS (через двоеточие), по умолчанию ~/Work:~/Projects:~/code.
+	     В шаблоне два плейсхолдера: домашняя папка (абсолютный путь) и префикс метки (обратный домен).
+	     install-kit.py подставляет их сам. Вручную: заменить оба через sed, сохранить как
+	     ~/Library/LaunchAgents/<префикс>.repo-freshness.plist и включить командой launchctl load.
+	     Выключить: launchctl unload и удалить файл. -->
+	<key>Label</key>
+	<string>__LABEL_PREFIX__.repo-freshness</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-lc</string>
+		<string>__HOME__/.claude/hooks/repo-freshness.sh --quiet --work-hours</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>1800</integer>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardOutPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.repo-freshness.log</string>
+	<key>StandardErrorPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.repo-freshness.log</string>
+</dict>
+</plist>

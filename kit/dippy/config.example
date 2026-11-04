@@ -1,0 +1,116 @@
+# Заготовка белого списка dippy — авто-одобрение безопасных команд (без вопроса «можно?»).
+#
+# Как пользоваться: скопировать в ~/.dippy/config и поправить под себя.
+#     mkdir -p ~/.dippy && cp config.example ~/.dippy/config
+# Сам dippy — `pipx install dippy`; хук `dippy-script.py` вызывает его и заглядывает внутрь скриптов
+# (`bash x.sh`), поэтому каждая строка скрипта судится по правилам ниже.
+#
+# Принцип: сюда — только то, что не ломает ничего необратимого. Что не названо, dippy оставляет вопросом.
+# Сомневаешься — не добавляй: лишний вопрос дешевле удалённых данных. Список растёт по факту: заметил, что
+# одна и та же безобидная команда спрашивает каждый раз, — добавь её одной строкой.
+# Синтаксис: allow <команда> *   deny <команда> "причина"   allow-redirect <шаблон пути для `>`/`>>`.
+# Деструктивное (rm, mv, chown, git push --force) здесь не разрешается; его ловят стражи набора.
+
+# Git: чтение и обычная работа с репозиторием. Опасные формы (push --force, reset --hard, clean -f,
+# --no-verify) ловят safety-guard и guard-hard-rules.
+allow git *
+
+# Node / JS
+allow npm *
+allow pnpm *
+allow node *
+allow npx *
+allow bun *
+allow yarn *
+
+# Python
+allow python3 *
+allow pip3 *
+allow uv *
+allow uvx *
+
+# Системные мелочи
+allow brew *
+allow curl *
+allow wget *
+allow tree *
+allow unzip *
+allow tar *
+allow mkdir *
+allow chmod *
+allow cp *
+allow ln *
+allow open *
+allow exit *
+allow sed -i *
+allow /usr/bin/grep *
+allow nc -z *
+
+# Что нельзя при любых обстоятельствах
+deny rm -rf / "Нельзя удалять корень"
+deny sudo rm "Удаление с sudo — только руками в терминале"
+deny rm -rf ~ "Нельзя удалять домашнюю директорию"
+
+# Встроенные команды оболочки и переменные окружения: сами ничего не запускают, команды после них
+# dippy судит отдельно. Без этого скрипты с `set -e` и `export` спрашивают на каждой строке.
+allow break
+allow continue
+allow wait
+allow :
+allow set *
+allow umask *
+allow unset *
+allow shift *
+allow local *
+allow return *
+allow declare *
+allow export *LC_ALL=*
+allow export *LANG=*
+allow export *VIRTUAL_ENV=*
+allow export *PYTHONPATH=*
+
+# Сборка и тесты (подставь свой стек; пути с node_modules/.venv — запуск локальных бинарников проекта)
+allow go test *
+allow go vet *
+allow go build *
+allow terraform init *
+allow terraform validate *
+allow terraform fmt *
+allow terraform plan *
+allow /**/node_modules/.bin/vitest *
+allow /**/node_modules/.bin/tsc *
+# dippy сводит симлинк .bin/* к настоящему файлу пакета
+allow /**/node_modules/vitest/vitest.mjs *
+allow /**/node_modules/typescript/bin/tsc *
+allow /**/.venv*/bin/python *
+allow /**/.venv*/bin/pytest *
+
+# Инструменты набора: только чтение или своё состояние
+allow ~/.agents/skills/worktree-cleanup/scripts/worktree-cleanup scan *
+allow ~/.claude/bin/handoff-tier.py *
+allow ~/.claude/bin/related-sessions.py *
+allow ~/.claude/hooks/secret-value.py names *
+allow ~/.claude/hooks/secret-value.py fp *
+allow ~/.claude/hooks/secret-value.py len *
+
+# PR на GitHub: создание и правка своих PR — без вопроса. Мерж не добавлен намеренно: он остаётся за
+# человеком. Если решишь мержить свои PR сам — добавь строки только с явным репозиторием, например:
+#     allow gh pr merge * -R <твой-аккаунт>/*
+#     allow gh pr merge * --repo <твой-аккаунт>/*
+allow gh pr create *
+allow gh pr edit *
+
+# Запись через > и >> без вопроса: логи где угодно, рабочие папки, память и чек-листы Claude, временные
+# каталоги сессий. Остальные пути (~/.bashrc, ~/.ssh, конфиги в ~) по-прежнему спрашивают.
+allow-redirect **/*.log
+allow-redirect ~/projects/**
+allow-redirect ~/.claude/projects/*/memory/**
+allow-redirect ~/.claude/.tasks/**
+allow-redirect /tmp/claude-*/**
+allow-redirect /private/tmp/claude-*/**
+# Если код лежит в одной папке — разреши её целиком (раскомментируй и поправь):
+# allow-redirect ~/Work/**
+
+# Намеренно НЕ разрешено — оставь вопросом, если ходишь на боевые серверы:
+#   ssh *, scp *, rsync *, docker *, kubectl apply|delete|exec *
+# Для личной машины без прода можно разрешить: allow ssh *   allow docker *

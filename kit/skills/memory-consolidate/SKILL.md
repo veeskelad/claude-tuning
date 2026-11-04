@@ -19,7 +19,8 @@ M=~/.claude/projects/$(pwd | sed 's/[^A-Za-z0-9]/-/g')/memory
 cd "$M" || exit 1
 echo "MEMORY.md: $(wc -l < MEMORY.md) строк (потолок 200), $(python3 -I -c 'print(len(open("MEMORY.md",encoding="utf-8").read()))') символов (ориентир < 17 тыс.: 25 КБ кириллицы)"
 skip='MEMORY.md|ARCHIVE.md|handoff.md|lessons-learned.md'   # служебные, проверки к ним не относятся
-refs=$(grep -ohE '\]\([^)]+\.md\)' MEMORY.md ARCHIVE.md 2>/dev/null | sed -E 's/.*\(([^)]+)\)/\1/' | grep -vxE "$skip" | sort -u)
+# INDEX-*.md — дочерние индексы, на них ссылается MEMORY.md; без них их записи выглядят сиротами
+refs=$(grep -ohE '\]\([^)]+\.md\)' MEMORY.md ARCHIVE.md INDEX-*.md 2>/dev/null | sed -E 's/.*\(([^)]+)\)/\1/' | grep -vxE "$skip" | sort -u)
 files=$(for f in *.md; do echo "$f"; done | grep -vxE "$skip" | sort)
 echo "файлов: $(echo "$files" | wc -l)"
 echo "--- битые ссылки индекса";  comm -13 <(echo "$files") <(echo "$refs")

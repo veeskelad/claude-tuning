@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Кто ещё работает или работал над этим: сессии Claude и Codex за последние часы по ключевым словам.
 
-    related-sessions.py DEV-4968 harbor 'layerinfo|size 0'   ключи — подстроки или regex, без учёта регистра
-    related-sessions.py --hours 72 --self <id этой сессии> DEV-4968
+    related-sessions.py TASK-123 harbor 'timeout|size 0'   ключи — подстроки или regex, без учёта регистра
+    related-sessions.py --hours 72 --self <id этой сессии> TASK-123
 
 Смотрит транскрипты ~/.claude/projects/*/*.jsonl (если ~/.claude синхронизируется с другой машиной, её сессии
 тоже здесь) и ~/.codex/sessions. Считает совпадения только в словах человека и в действиях агента: системные вставки

@@ -108,6 +108,8 @@ elif name == "journalctl":
     print(f"sep 28 app[1]: connect redis://:{F['REDIS_PW']}@127.0.0.1\nsep 28 app[1]: auth X-Api-Key: {F['PAY_KEY']}")
 elif name == "claude":
     print(f"search: https://mcp.example.ai/mcp?apiKey={F['MCP_KEY']} (HTTP) - ✓ Connected\nscraper: https://mcp.example.com/?token={F['GH_TOK']}")
+elif name == "kubectl":
+    print(f"apiVersion: v1\nkind: Secret\nmetadata:\n  name: app\ndata:\n  password: {base64.b64encode(F['DB_PASSWORD'].encode()).decode()}")
 elif name == "gh":
     print(F["GH_TOK"])
 elif name == "security":
@@ -122,7 +124,7 @@ elif name == "curl":
 elif name in ("ps", "pgrep"):
     print(f"root 101 python3 warmup.py --api-key {F['PAY_KEY']}\nroot 102 docker exec -e ADMIN_PASSWORD={F['SHORT_PW']} -e CACHE_STATUS={F['CACHE_CH']} app warmup")
 '''
-STUB_NAMES = ["ssh", "docker", "systemctl", "journalctl", "claude", "gh", "security", "curl", "ps", "pgrep"]
+STUB_NAMES = ["ssh", "docker", "systemctl", "journalctl", "claude", "gh", "security", "curl", "ps", "pgrep", "kubectl"]
 
 
 def build_sandbox():
@@ -148,6 +150,7 @@ def build_sandbox():
     W("proj/config.yaml", f"model: x\nmcp_servers:\n  notion:\n    env:\n      NOTION_TOKEN: {F['NOTION_TOKEN']}\n"
                           f"      TELEGRAM_API_HASH: {F['TG_HASH']}\n")
     W("proj/conf/db.xml", f"<db><users><default><password><![CDATA[{F['SHORT_PW']}]]></password></default></users></db>\n")
+    W("proj/conf/prod.tfvars", 'db_host = "db.example.test"\ndb_password = "' + F["DB_PASSWORD"] + '"\n')
     W("proj/conf/server.xml", f"<server><db><password>{F['SHORT_PW']}</password></db></server>\n")
     W("proj/src/app.ts", "export const token = process.env.API_TOKEN;\nconst x = 1;\n")
     W("proj/src/oauth.ts", f"export const clientSecret = '{F['AWS_SECRET']}';\n")
@@ -236,6 +239,9 @@ CASES = [
     ("cfg-python", "дамп конфига", "python3 -c \"import yaml; print(yaml.safe_load(open('config.yaml')))\"", "leak0"),
     ("cfg-xml-users", "XML-пароль", "cat conf/db.xml", "leak0"),
     ("cfg-xml-clean-name", "XML-пароль", "cat conf/server.xml", "leak0"),
+    ("tfvars-cat", "файл с паролем", "cat conf/prod.tfvars", "leak0"),
+    ("tfvars-grep", "файл с паролем", "grep password conf/prod.tfvars", "leak0"),
+    ("kubectl-secret", "секрет Kubernetes", "kubectl get secret app -o yaml", "leak0"),
     ("ssh-env", "ssh-вывод", "ssh app1 'cat /opt/app/.env'", "leak0"),
     ("ssh-grep", "ssh-вывод", "ssh -o BatchMode=yes app1 'grep -h DATABASE_URL /opt/app/.env'", "leak0"),
     ("ssh-config", "ssh-вывод", "ssh app1 'cat ~/.app/config.yaml'", "leak0"),

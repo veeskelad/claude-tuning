@@ -24,6 +24,7 @@ mcp_servers.*.env: фильтр, смотревший только на верх
   * файл на сервере — ssh host 'set -a; . ~/.app/.env; set +a; <команда с "$KEY">';
   * в конфиге приложения — ссылка ${KEY} вместо значения (docker compose, n8n и т.п.).
 """
+import base64
 import hashlib
 import re
 import sys
@@ -128,9 +129,29 @@ DATE = re.compile(r'^\d{4}-\d{2}-\d{2}([T ][\d:.]+Z?([+-]\d{2}:?\d{2})?)?$')
 UUID = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.I)
 
 
+def _b64_of_text(v):
+    """base64 печатного текста: `data:` k8s Secret, Basic-креды. Без цифр такое значение
+    выглядело словом из букв разного регистра и проходило открытым.
+    Идентификаторы в CamelCase почти никогда не раскодируются в печатный ASCII: на тысячах
+    токенов из скиллов, хуков и кода срабатывало только на настоящих секретах."""
+    if len(v) < 12 or len(v) % 4 or not re.fullmatch(r'[A-Za-z0-9+/]+={0,2}', v):
+        return False
+    if not (re.search(r'[a-z]', v) and re.search(r'[A-Z]', v)):
+        return False
+    try:
+        d = base64.b64decode(v, validate=True)
+    except ValueError:
+        return False
+    return len(d) >= 8 and all(32 <= c < 127 for c in d)
+
+
 def looks_secret(v, min_len=12):
     """Значение похоже на секрет по форме (для слабых имён и strict-режима)."""
-    if len(v) < min_len or not_a_value(v) or DATE.match(v):
+    if len(v) < min_len:
+        return False
+    if _b64_of_text(v):
+        return True
+    if not_a_value(v) or DATE.match(v):
         return False
     if re.fullmatch(r'\d+', v) or re.fullmatch(r'v?\d+(\.\d+)+([-+][\w.]+)?', v):
         return False
@@ -338,6 +359,7 @@ def selftest():
         ("  DB_CONN: " + r(24), "strict", False),
         ("PATH=/usr/local/bin:/usr/bin" + "\0" + "HOME_X=" + r(22), "strict", False),
         ("node  1234  /usr/bin/node server.js " + r(40), "strict", False),
+        ("data:\n  basic: YWRtaW46aHVudGVyLWhvcnNl", "strict", False),  # base64 текста без цифр
         # whole: одно значение на строке
         (r(18), "whole", False),
         # не трогать
@@ -371,6 +393,7 @@ def selftest():
         ("IMAGE=ghcr.io/acme/app:1.2.3", "strict", True),
         ("STARTED_AT=2026-09-28T10:00:00Z", "strict", True),
         ("VERSION=0.9.3", "strict", True),
+        ("HANDLER=WebSocketHandler", "strict", True),
         ("HOST=db.internal.example.com", "strict", True),
         ("ok 12 passed in 3.2s", "strict", True),
         ("ssh -i ~/.ssh/key --private-key /etc/ssl/k.pem host", "", True),

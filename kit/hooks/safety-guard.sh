@@ -79,7 +79,7 @@ fi
 SCAN=$(printf '%s' "$SCAN_LINES" | tr '\n' ' ')
 [ -z "${SCAN//[[:space:]]/}" ] && exit 0
 
-# rm с рекурсией по КОРНЮ: / , /* , ~ , $HOME , /etc , /Users/* — путь не глубже одного
+# rm с рекурсией по КОРНЮ: / , /* , ~ , $HOME , /etc , /Users , /home — путь не глубже одного
 # сегмента. Прежний паттерн `rm -rf /[^t]` требовал символ ПОСЛЕ слэша, поэтому `rm -rf /`
 # и `rm -fr /` проходили молча, а исключение «/t» пропускало `rm -rf /tmp/../Users`.
 # Корень может стоять не первым аргументом: `rm -rf tests/ patches/ plan/ ~/` снёс домашнюю папку (Gigazine, 16.12.2025).
@@ -97,6 +97,8 @@ fi
 # сессии>: на готовый контейнер метку не повесить, значит, её поставил агент при создании. Остальные —
 # как раньше: удаление deny, остановка ask. Исключение — только для одной простой команды без кавычек,
 # подстановок, цепочек, sudo и глобальных флагов docker: иначе неясно, какие цели и на каком демоне.
+# Удалённый демон (29.10.2026): `ssh [-o BatchMode|ConnectTimeout|ServerAliveInterval=…] <хост> docker rm -f <имя>`
+# — метку страж сверяет тем же docker inspect через ssh на этот хост.
 # Кавычки и `\` для поиска вырезаем: `docker rm "-f" x` и `"docker" rm -f x` шелл выполнит так же.
 AGENT_LABEL=claude.agent.session
 SID=$(printf '%s' "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)
@@ -117,14 +119,16 @@ with_timeout() {
 
 OWN_WHY=""
 own_containers_only() {
-  local LC_ALL=C re sub tok i n out
+  local LC_ALL=C re sub tok i n out host="" dcmd
   local -a toks targets
   [ -n "$SID" ] || { OWN_WHY="в данных хука нет session_id"; return 1; }
-  re='^ *docker +(container +)?(rm|remove|stop|kill)( +[A-Za-z0-9_.=-]+)+ *$'
-  [[ "$ORIGINAL_CMD" =~ $re ]] || { OWN_WHY="команда не одна простая docker rm/stop/kill с именами без кавычек"; return 1; }
-  sub=${BASH_REMATCH[2]}
+  re='^ *(ssh( +-o +(BatchMode|ConnectTimeout|ServerAliveInterval)=[A-Za-z0-9]+)* +([A-Za-z0-9][A-Za-z0-9._-]*) +)?docker +(container +)?(rm|remove|stop|kill)( +[A-Za-z0-9_.=-]+)+ *$'
+  [[ "$ORIGINAL_CMD" =~ $re ]] || { OWN_WHY="команда не одна простая [ssh <хост>] docker rm/stop/kill с именами без кавычек"; return 1; }
+  host=${BASH_REMATCH[4]}
+  sub=${BASH_REMATCH[6]}
   [ "$sub" = remove ] && sub=rm
-  read -r -a toks <<<"$ORIGINAL_CMD"
+  dcmd=${ORIGINAL_CMD#"${ORIGINAL_CMD%%docker *}"}
+  read -r -a toks <<<"$dcmd"
   i=2
   [ "${toks[1]}" = container ] && i=3
   n=${#toks[@]}
@@ -143,8 +147,14 @@ own_containers_only() {
     i=$((i + 1))
   done
   [ "${#targets[@]}" -gt 0 ] || { OWN_WHY="не названо ни одного контейнера"; return 1; }
-  out=$(with_timeout 5 docker container inspect --format "{{json (index .Config.Labels \"$AGENT_LABEL\")}}" "${targets[@]}" 2>/dev/null) \
-    || { OWN_WHY="docker inspect не ответил или такого контейнера нет"; return 1; }
+  if [ -n "$host" ]; then
+    out=$(with_timeout 15 ssh -o BatchMode=yes -o ConnectTimeout=5 "$host" \
+      "docker container inspect --format '{{json (index .Config.Labels \"$AGENT_LABEL\")}}' ${targets[*]}" 2>/dev/null) \
+      || { OWN_WHY="docker inspect на $host не ответил или такого контейнера нет"; return 1; }
+  else
+    out=$(with_timeout 5 docker container inspect --format "{{json (index .Config.Labels \"$AGENT_LABEL\")}}" "${targets[@]}" 2>/dev/null) \
+      || { OWN_WHY="docker inspect не ответил или такого контейнера нет"; return 1; }
+  fi
   if [ "$(printf '%s\n' "$out" | grep -c .)" -ne "${#targets[@]}" ] \
     || [ -n "$(printf '%s\n' "$out" | grep -vxF "\"$SID\"")" ]; then
     OWN_WHY="у контейнера нет метки этой сессии"
@@ -198,6 +208,52 @@ reviewed() {
   h=$( { sha256sum "$1" 2>/dev/null || shasum -a 256 "$1" 2>/dev/null; } | cut -d' ' -f1)
   [ -n "$h" ] && grep -q "^$h " "$REVIEWED"
 }
+# Тест на своём временном каталоге проходит без вопроса (28.10.2026): в bypass вопрос становился отказом, и агент
+# не мог прогнать тесты, которые за собой убирают. Условия: bash-скрипт в tests/ или с test в имени сам заводит
+# каталог mktemp -d, и каждый rm -r в нём удаляет путь от своей переменной в кавычках ("$d/x", "${T}") без .. и
+# масок. Переменная задана в этом же файле, и каждое её значение — mktemp, путь внутри переменной, заданной только
+# через mktemp, или вызов функции из этого же файла. `d=$HOME`, `d=$(dirname …)`, абсолютный путь, rm без кавычек,
+# rmtree и unlink — по-прежнему вопрос.
+RM_R='(^|[[:space:];&|])rm +-[a-zA-Z]*[rR]'
+assigns() {  # assigns <файл> <переменная>: значения её присваиваний до пробела или ;
+  grep -oE "(^|[^A-Za-z0-9_])$2=[^[:space:];]*" "$1" | sed -E "s/^.*$2=//"
+}
+tmp_var() {  # переменная задана только из mktemp
+  local a
+  a=$(assigns "$1" "$2")
+  [ -n "$a" ] && ! printf '%s\n' "$a" | grep -qvE '^"?\$\(mktemp'
+}
+safe_value() {  # safe_value <файл> <значение присваивания>
+  local x
+  case "$2" in *..*) return 1 ;; esac
+  printf '%s' "$2" | grep -qE '^"?\$\(mktemp' && return 0
+  x=$(printf '%s' "$2" | sed -nE 's/^"?\$\(([A-Za-z_][A-Za-z0-9_]*).*/\1/p')
+  if [ -n "$x" ]; then grep -qE "^[[:space:]]*(function +)?$x *\(\)" "$1"; return; fi
+  x=$(printf '%s' "$2" | sed -nE 's/^"?\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?"?(\/.*)?$/\1/p')
+  [ -n "$x" ] && tmp_var "$1" "$x"
+}
+tmp_test() {  # tmp_test <файл>: тест, который удаляет только внутри своего временного каталога
+  local f=$1 t v a x
+  case "$f" in *.sh | *.bash | *.zsh) ;; *) return 1 ;; esac
+  case "$f" in */tests/* | */test/*) ;; *) case "${f##*/}" in *test*) ;; *) return 1 ;; esac ;; esac
+  grep -qE '(^|[^A-Za-z0-9_])mktemp( +-[a-zA-Z]+)* +-[a-zA-Z]*d' "$f" || return 1
+  grep -E "$DEL_RE" "$f" | grep -qvE "$RM_R" && return 1
+  t=$(grep -oE "$RM_R"'[a-zA-Z]*( +-[a-zA-Z-]+)* +[^;&|)#'"'"']*' "$f" \
+    | sed -E 's/^[[:space:];&|]*rm +(-[a-zA-Z-]+ +)*//' | tr -s ' \t' '\n\n' \
+    | grep -vE '^(--|/dev/null|(&|[0-9]*)>{1,2}(&[0-9]+|/dev/null)?)?$')
+  [ -n "$t" ] || return 1
+  printf '%s\n' "$t" | grep -qvE '^"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?(/[^"*?$`]*)?"$' && return 1
+  printf '%s\n' "$t" | grep -q '\.\.' && return 1
+  for v in $(printf '%s\n' "$t" | sed -E 's/^"\$\{?([A-Za-z_][A-Za-z0-9_]*).*/\1/' | sort -u); do
+    a=$(assigns "$f" "$v")
+    [ -n "$a" ] || return 1
+    while IFS= read -r x; do
+      safe_value "$f" "$x" || return 1
+    done <<EOF
+$a
+EOF
+  done
+}
 if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
   HCWD=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
   for f in $(printf '%s' "$SCAN" | grep -oE '[^[:space:]"'"'"']+\.(py|js|mjs|cjs|ts|sh|bash|zsh|rb|pl|ps1)([[:space:]]|$)'); do
@@ -209,7 +265,7 @@ if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
     esac
     # Сам страж перечисляет шаблоны удаления и иначе ловил бы себя: `… | bash safety-guard.sh` при проверке.
     [ "$p" -ef "${BASH_SOURCE[0]}" ] && continue
-    if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null && ! reviewed "$p"; then
+    if [ -f "$p" ] && grep -qE "$DEL_RE" "$p" 2>/dev/null && ! reviewed "$p" && ! tmp_test "$p"; then
       emit ask "⚠️ Скрипт $f удаляет файлы. Посмотри, какие папки он трогает, прежде чем подтвердить."
     fi
   done

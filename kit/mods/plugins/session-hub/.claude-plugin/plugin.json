@@ -1,0 +1,8 @@
+{
+  "name": "session-hub",
+  "version": "1.0.0",
+  "description": "Диалоги рядом с полем ввода: в работе, ждут ответа, завершены — с числами; открыть в один клик, отметить прочитанным. Приложение Claude и терминал; в VS Code — панель сбоку",
+  "types": "./types/index.d.ts",
+  "license": "MIT",
+  "author": { "name": "veeskelad" }
+}

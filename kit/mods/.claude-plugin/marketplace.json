@@ -1,0 +1,9 @@
+{
+  "name": "claude-tuning-mods",
+  "owner": { "name": "veeskelad" },
+  "metadata": { "description": "Моды claude-tuning: перенос работы в чистый чат на 60% контекста и диалоги рядом с полем ввода" },
+  "plugins": [
+    { "name": "handoff", "source": "./plugins/handoff", "description": "На 60% контекста — перенос в чистый чат по документу передачи" },
+    { "name": "session-hub", "source": "./plugins/session-hub", "description": "Диалоги рядом с полем ввода: в работе, ждут ответа, завершены" }
+  ]
+}

@@ -9,7 +9,8 @@
     python3 install-kit.py --check      # проверить установленное (хуки на месте, синтаксис, страж срабатывает)
     python3 install-kit.py --uninstall [--apply]   # убрать поставленное (только файлы, совпадающие с kit, и хуки kit)
     python3 install-kit.py --home DIR   # другой домашний каталог (проба в чистом окружении)
-    python3 install-kit.py --extra DIR  # плюс свой модуль той же формы (skills/, hooks/, bin/, settings.snippet.json)
+    python3 install-kit.py --extra DIR  # плюс свой модуль той же формы (skills/, hooks/, bin/, rules/, output-styles/, settings.snippet.json)
+    python3 install-kit.py --with code,servers   # плюс бонусы по сферам из kit/bonus/ (code, servers, content)
 
 Свой модуль — место для личного (свои серверы, пути, хуки): публичный kit остаётся общим, личное
 подключается поверх и в kit не попадает. --extra можно повторять.
@@ -28,13 +29,20 @@ p.add_argument("--check", action="store_true")
 p.add_argument("--uninstall", action="store_true")
 p.add_argument("--home", default=os.path.expanduser("~"))
 p.add_argument("--extra", action="append", default=[], metavar="DIR")
+p.add_argument("--with", dest="bonus", default="", metavar="СФЕРЫ", help="бонусы через запятую: " + ", ".join(sorted(os.listdir(os.path.join(KIT, "bonus")))) if os.path.isdir(os.path.join(KIT, "bonus")) else "")
 a = p.parse_args()
 H = os.path.abspath(a.home)
 DRY = not a.apply
-KITS = [KIT] + [os.path.abspath(os.path.expanduser(d)) for d in a.extra]
+BONUS = [b.strip() for b in a.bonus.split(",") if b.strip()]
+for b in BONUS:
+    if not os.path.isdir(f"{KIT}/bonus/{b}"):
+        sys.exit(f"--with {b}: такого бонуса нет (есть: {', '.join(sorted(os.listdir(f'{KIT}/bonus')))})")
+KITS = [KIT] + [f"{KIT}/bonus/{b}" for b in BONUS] + [os.path.abspath(os.path.expanduser(d)) for d in a.extra]
 for d in KITS[1:]:
     if not os.path.isdir(d):
         sys.exit(f"--extra {d}: нет такой папки")
+# Файлы модуля, которые кладутся как есть: подпапка модуля → куда в ~/.claude, исполняемый ли
+FILES = [("hooks", ".claude/hooks", True), ("bin", ".claude/bin", True), ("rules", ".claude/rules", False), ("output-styles", ".claude/output-styles", False)]
 log = []
 
 
@@ -50,7 +58,7 @@ def same_tree(x, y):
     return all(same_tree(os.path.join(x, d), os.path.join(y, d)) for d in c.common_dirs)
 
 
-def place(src, dst, is_dir):
+def place(src, dst, is_dir, is_exec=True):
     rel = dst.replace(H, "~")
     if os.path.lexists(dst):
         real = os.path.realpath(dst)
@@ -65,7 +73,8 @@ def place(src, dst, is_dir):
         shutil.copytree(src, dst, ignore=shutil.ignore_patterns(".DS_Store", "__pycache__"))
     else:
         shutil.copy2(src, dst)
-        os.chmod(dst, 0o755)
+        if is_exec:
+            os.chmod(dst, 0o755)
 
 
 def link(target, path):
@@ -88,7 +97,7 @@ def install():
     cs = f"{H}/.claude/skills"
     for kit in KITS:
         if kit != KIT:
-            print(f"\n— модуль {kit.replace(H, '~')}")
+            print(f"\n— {'бонус ' + os.path.basename(kit) if kit.startswith(KIT + '/bonus/') else 'модуль ' + kit.replace(H, '~')}")
         for name in ls(kit, "skills"):
             place(f"{kit}/skills/{name}", f"{store}/{name}", True)
         # Точки доступа: ~/.claude/skills целиком ссылкой на склад, иначе — по скиллу.
@@ -100,14 +109,27 @@ def install():
         if os.path.isdir(f"{H}/.codex"):
             for name in ls(kit, "skills"):
                 link(f"../../.agents/skills/{name}", f"{H}/.codex/skills/{name}")
-        for name in ls(kit, "hooks"):
-            place(f"{kit}/hooks/{name}", f"{H}/.claude/hooks/{name}", False)
-        for name in ls(kit, "bin"):
-            place(f"{kit}/bin/{name}", f"{H}/.claude/bin/{name}", False)
+        for sub, to, is_exec in FILES:
+            for name in ls(kit, sub):
+                place(f"{kit}/{sub}/{name}", f"{H}/{to}/{name}", False, is_exec)
         if os.path.exists(f"{kit}/settings.snippet.json"):
             merge_settings(kit)
+        for name in ls(kit, "launchd"):
+            install_agent(f"{kit}/launchd/{name}")
+    if os.path.isdir(f"{KIT}/statusline"):
+        install_statusline()
+    # белый список dippy: заготовка, только если своего файла нет
+    if os.path.exists(f"{KIT}/dippy/config.example"):
+        place(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False, False)
+    if os.path.isdir(f"{KIT}/mods"):
+        install_mods()
     print()
-    for name, cmd in VENDOR.items():
+    vendor = dict(VENDOR)
+    # сторонние скиллы модуля и бонуса — vendor.json рядом с его skills/
+    for kit in KITS:
+        if os.path.exists(f"{kit}/vendor.json"):
+            vendor.update({k: v for k, v in json.load(open(f"{kit}/vendor.json")).items() if not k.startswith("_")})
+    for name, cmd in vendor.items():
         if not os.path.exists(f"{store}/{name}") and not os.path.exists(f"{cs}/{name}"):
             say("вручную", f"{name}: {cmd}")
     # Хук dippy в settings.snippet.json без самой программы молча ничего не делает.
@@ -137,6 +159,83 @@ def install():
                 f.write("\n.tasks/\n")
 
 
+MODS_NAME = "claude-tuning-mods"
+LABEL_PREFIX = "claude-tuning"
+AGENTS_DIR = "Library/LaunchAgents"
+STATUS_CMD = 'bash "$HOME/.claude/statusline.sh"'
+
+
+def agent_path(template):
+    name = os.path.basename(template).removesuffix(".plist.template")
+    return f"{H}/{AGENTS_DIR}/{LABEL_PREFIX}.{name}.plist"
+
+
+def install_agent(template):
+    """Задача по расписанию на macOS: шаблон launchd с подставленным домом; на других системах — подсказка."""
+    if not template.endswith(".plist.template"):
+        return
+    dst = agent_path(template)
+    if sys.platform != "darwin":
+        say("вручную", f"{os.path.basename(template)}: на этой системе нет launchd — расписание через cron, команда в шаблоне")
+        return
+    body = open(template).read().replace("__HOME__", H).replace("__LABEL_PREFIX__", LABEL_PREFIX)
+    if os.path.exists(dst):
+        say("есть" if open(dst).read() == body else "своя версия", dst.replace(H, "~"))
+        return
+    say("поставлю" if DRY else "поставлено", dst.replace(H, "~"))
+    if DRY:
+        return
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    open(dst, "w").write(body)
+    # загружать только в настоящем доме: в пробном каталоге задача запустилась бы от имени человека
+    if H == os.path.expanduser("~"):
+        subprocess.run(["launchctl", "load", dst], capture_output=True)
+
+
+def install_statusline():
+    src = f"{KIT}/statusline/statusline.sh"
+    if not os.path.exists(src):
+        return
+    place(src, f"{H}/.claude/statusline.sh", False)
+    path = f"{H}/.claude/settings.json"
+    cur = json.load(open(path)) if os.path.exists(path) else {}
+    if "statusLine" in cur:
+        say("есть", "statusLine в settings.json — своя, не трогаю")
+        return
+    say("поправлю" if DRY else "поправлено", "~/.claude/settings.json: statusLine (контекст и лимиты под полем ввода)")
+    if DRY:
+        return
+    cur["statusLine"] = {"type": "command", "command": STATUS_CMD}
+    json.dump(cur, open(path, "w"), ensure_ascii=False, indent=2)
+
+
+def mod_names():
+    return [x["name"] for x in json.load(open(f"{KIT}/mods/.claude-plugin/marketplace.json"))["plugins"]]
+
+
+def install_mods():
+    """Моды — локальный marketplace в ~/.claude/mods: папка плюс два ключа в settings.json, без вызова claude."""
+    dst = f"{H}/.claude/mods"
+    place(f"{KIT}/mods", dst, True)
+    path = f"{H}/.claude/settings.json"
+    cur = json.load(open(path)) if os.path.exists(path) else {}
+    new = json.loads(json.dumps(cur))
+    # путь абсолютный: так требует источник directory (документация Claude Code, extraKnownMarketplaces)
+    new.setdefault("extraKnownMarketplaces", {}).setdefault(MODS_NAME, {"source": {"source": "directory", "path": dst}})
+    for name in mod_names():
+        new.setdefault("enabledPlugins", {}).setdefault(f"{name}@{MODS_NAME}", True)
+    if new == cur:
+        say("есть", f"моды {', '.join(mod_names())} включены")
+        return
+    say("поправлю" if DRY else "поправлено", f"~/.claude/settings.json: моды {', '.join(mod_names())} (заработают в новом чате)")
+    if DRY:
+        return
+    if os.path.exists(path):
+        backup_settings(path)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(new, open(path, "w"), ensure_ascii=False, indent=2)
+
+
 def hook_key(h):
     """Команда хука; у хуков без команды (prompt, agent) — весь объект."""
     return h.get("command") or json.dumps(h, sort_keys=True, ensure_ascii=False)
@@ -158,7 +257,9 @@ def merge_settings(kit):
         have_files = " ".join(have)
         for e in entries:
             cmd = hook_key(e["hooks"][0])
-            script = cmd.split('"$HOME/')[1].split('"')[0] if '"$HOME/' in cmd else cmd[:60]
+            # обёртка (bypass-ask-to-deny.sh 'bash …/guard.sh') — своя по последнему скрипту, а не по обёртке:
+            # иначе вторая обёрнутая запись считалась бы уже стоящей
+            script = cmd.split('"$HOME/')[-1].split('"')[0] if '"$HOME/' in cmd else cmd[:60]
             if cmd in have or os.path.basename(script) in have_files:
                 continue
             new["hooks"].setdefault(ev, []).append(e)
@@ -241,17 +342,40 @@ def uninstall():
                     say("уберу" if DRY else "убрано", f"{d.replace(H, '~')} (ссылка)")
                     if not DRY:
                         os.remove(d)
-        for name in ls(kit, "hooks"):
-            drop(f"{kit}/hooks/{name}", f"{H}/.claude/hooks/{name}", False)
-        for name in ls(kit, "bin"):
-            drop(f"{kit}/bin/{name}", f"{H}/.claude/bin/{name}", False)
+        for sub, to, _ in FILES:
+            for name in ls(kit, sub):
+                drop(f"{kit}/{sub}/{name}", f"{H}/{to}/{name}", False)
         if os.path.exists(f"{kit}/settings.snippet.json"):
             kit_cmds |= {hook_key(h) for es in json.load(open(f"{kit}/settings.snippet.json")).get("hooks", {}).values() for e in es for h in e["hooks"]}
+    if os.path.isdir(f"{KIT}/mods"):
+        drop(f"{KIT}/mods", f"{H}/.claude/mods", True)
+    if os.path.exists(f"{KIT}/statusline/statusline.sh"):
+        drop(f"{KIT}/statusline/statusline.sh", f"{H}/.claude/statusline.sh", False)
+    if os.path.exists(f"{KIT}/dippy/config.example"):
+        drop(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False)
+    for kit in KITS:
+        for name in ls(kit, "launchd"):
+            dst = agent_path(f"{kit}/launchd/{name}")
+            if not os.path.exists(dst):
+                continue
+            say("уберу" if DRY else "убрано", dst.replace(H, "~"))
+            if not DRY:
+                if H == os.path.expanduser("~"):
+                    subprocess.run(["launchctl", "unload", dst], capture_output=True)
+                os.remove(dst)
     path = f"{H}/.claude/settings.json"
     if not os.path.exists(path):
         return
     cur = json.load(open(path))
     removed = 0
+    # моды: ключи, которые поставил install_mods
+    if cur.get("statusLine", {}).get("command") == STATUS_CMD:
+        del cur["statusLine"]
+        removed += 1
+    if cur.get("extraKnownMarketplaces", {}).pop(MODS_NAME, None) is not None:
+        removed += 1
+        for name in mod_names():
+            cur.get("enabledPlugins", {}).pop(f"{name}@{MODS_NAME}", None)
     for ev, entries in list(cur.get("hooks", {}).items()):
         keep = [e for e in entries if not any(hook_key(h) in kit_cmds for h in e.get("hooks", []))]
         removed += len(entries) - len(keep)
@@ -262,7 +386,7 @@ def uninstall():
     if not removed:
         say("есть", "~/.claude/settings.json — хуков kit нет")
         return
-    say("уберу" if DRY else "убрано", f"~/.claude/settings.json: {removed} хуков kit (env, CLAUDE.md, handoff и чек-листы не трогаются)")
+    say("уберу" if DRY else "убрано", f"~/.claude/settings.json: {removed} хуков и моды kit (env, CLAUDE.md, handoff и чек-листы не трогаются)")
     if not DRY:
         backup_settings(path)
         json.dump(cur, open(path, "w"), ensure_ascii=False, indent=2)

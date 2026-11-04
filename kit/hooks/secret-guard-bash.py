@@ -20,7 +20,8 @@
     secret-guard-bash.py --write-tool    PreToolUse(Write|Edit|MultiEdit|NotebookEdit): ключ в текст файла
     secret-guard-bash.py --plan          отладка: план для команды из JSON на stdin
 
-В режиме bypassPermissions вопрос стража не задаётся: команда сразу идёт в безопасном виде.
+В режимах bypassPermissions и plan вопрос стража не задаётся (в плане окно одобряет plan-auto-allow.sh):
+команда сразу идёт в безопасном виде.
 """
 import json
 import os
@@ -51,8 +52,11 @@ WHOLE = [  # команда печатает одно значение
     r"\bgcloud\s+auth\s+(application-default\s+)?print-(access|identity)-token\b",
     r"\baws\s+configure\s+get\s+\S*(secret|key|token)",
     r"\b(op\s+read|pass\s+show|bw\s+get\s+password|doctl\s+auth\s+token|heroku\s+auth:token|npm\s+token\s+create)\b",
-    r"\baz\s+account\s+get-access-token\b",
-    # файл-значение: ~/.config/app/token, api_key.txt (не .md и не код — у них расширение)
+    r"\bkubectl\b[^|;&]*\bsecrets?\b[^|;&]*jsonpath[^|;&]*\.data\.",
+    r"\bvault\s+(kv\s+get|read)\b[^|;&]*-field[= ]",
+    r"\byc\s+iam\s+create-token\b|\baz\s+account\s+get-access-token\b",
+    r"\bterraform\s+output\s+-raw\b",
+    # файл-значение: ~/.vault-token, ~/.config/app/token, api_key.txt (не .md и не код — у них расширение)
     r"(^|[;&|(]\s*)(cat|head|tail|less|more|bat)\s+(-\S+\s+)*[^\s|;&]*(token|apikey|api[_-]key|secret|passw|credential)[^/\s|;&.]*(\.(txt|token|key|pass|secret|cred|b64))?(\s|$|[|;&)])",
 ]
 STRICT = [  # дамп, где имя ключа ничего не говорит: окружение, процессы, конфиг целиком
@@ -62,20 +66,23 @@ STRICT = [  # дамп, где имя ключа ничего не говори�
     r"/proc/[0-9*$][^/\s]*/(environ|cmdline)",
     r"\bdocker(-compose|\s+compose)?\s+[^|;&]*\b(inspect|config)\b",
     r"\bsystemctl\b[^|;&]*\b(show|cat)\b",
-    r"\b(aws\s+configure\s+(export-credentials|list)|security\s+find-(generic|internet)-password)\b",
+    r"\bkubectl\b[^|;&]*\b(secrets?|configmaps?|cm)\b",
+    r"\bkubectl\b[^|;&]*\bexec\b[^|;&]*\b(env|printenv)\b",
+    r"\b(vault\s+(kv\s+get|read)|terraform\s+output|aws\s+configure\s+(export-credentials|list)|security\s+find-(generic|internet)-password)\b",
     r"(^|[;&|(]\s*)(source|\.)\s+[^\s;&|]*(\.env\b|env\b|\.envrc)",
     r"\bset\s+-a\b|\benv\s+-0\b",
     r"\bbase64\s+(-d|--decode|-D)\b",
-    r"\.env([^A-Za-z0-9]|$)|\.envrc|\.pgpass|\.netrc|credentials|secrets?\.(ya?ml|json|txt)",
+    r"\.env([^A-Za-z0-9]|$)|\.envrc|\.tfvars|\.pgpass|\.netrc|credentials|secrets?\.(ya?ml|json|txt)",
 ]
 NORMAL = [  # может напечатать секрет среди прочего — обычная маска
-    r"config\.(ya?ml|json|toml|ini)|settings(\.local)?\.json|auth\.json|secrets?([^A-Za-z]|$)|\.npmrc|\.pypirc|mcp\.json",
+    r"config\.(ya?ml|json|toml|ini)|settings(\.local)?\.json|auth\.json|secrets?([^A-Za-z]|$)|vault[_-]|\.npmrc|\.pypirc|mcp\.json",
+    r"\bvault\s+(token|login|write)\b|v1/auth/",
     r"\.claude\.json|claude\s+mcp\s+(list|get)|codex\s+mcp\s+(list|get)",
     r"\.service([^A-Za-z]|$)|/etc/systemd|Environment=",
     r"[a-z]+://[^ ]*:[^ ]*@",
     r"(^|[;&|(\s])ssh\s",
-    r"\b(curl|wget|http|xh)\b[^|;&]*(\s-v\b|--verbose|--trace|\s-i\b|--include|-H\s*[\"']?(authorization|x-api-key|api-key|private-token|cookie|x-auth)|--header[= ][\"']?(authorization|x-api-key|cookie)|\s-u\s|--user\s|\$\{?" + SECRET_VAR + r")",
-    r"\bdocker(\s+compose)?\s+logs\b|\bjournalctl\b|\.log\b",
+    r"\b(curl|wget|http|xh)\b[^|;&]*(\s-v\b|--verbose|--trace|\s-i\b|--include|-H\s*[\"']?(authorization|x-api-key|api-key|private-token|x-vault-token|cookie|x-auth)|--header[= ][\"']?(authorization|x-api-key|cookie)|\s-u\s|--user\s|\$\{?" + SECRET_VAR + r")",
+    r"\bdocker(\s+compose)?\s+logs\b|\bjournalctl\b|\bkubectl\s+logs\b|\.log\b",
     r"_history\b|(^|[;&|(]\s*)history\b|\bfc\s+-l",
     r"\bset\s+-x\b|\b(bash|sh|zsh)\s+-x\b",
     r"\bgit\s+(remote\s+-v|config\s+(-l|--list|--get))|\.git-credentials|\.docker/config",
@@ -87,7 +94,7 @@ NORMAL = [  # может напечатать секрет среди проче
 ]
 
 WRITE_OK_TARGET = re.compile(
-    r"^/dev/(null|stdout|stderr|fd/\d)$|(^|/)\.env([.\-][^/]*)?$|\.env$|\.(key|pem|token|secret|pass|cred|age)$"
+    r"^/dev/(null|stdout|stderr|fd/\d)$|(^|/)\.env([.\-][^/]*)?$|\.env$|\.(key|pem|token|secret|pass|cred|kc|kubeconfig|age)$"
     r"|(secret|credential|token|passw|auth)[^/]*$", re.I)
 WRITE_BAD_TARGET = re.compile(r"(_history|\.history|/history)$|\.(md|txt|log|jsonl|csv|html?|rst|org)$", re.I)
 
@@ -171,7 +178,7 @@ def mask_mode(cmd):
         return "whole"
     # base64 -d в «секретном» контексте — одно значение; иначе strict
     if not digest and re.search(r"\bbase64\s+(-d|--decode|-D)\b", body) and re.search(
-            r"secret|token|passw|\$\{?" + SECRET_VAR, body, re.I):
+            r"secret|token|passw|jsonpath|\.data\.|\$\{?" + SECRET_VAR, body, re.I):
         return "whole"
     if matches(STRICT, body):
         return "strict"
@@ -182,16 +189,28 @@ def mask_mode(cmd):
 
 def wrap(cmd, mode):
     flag = {"strict": " --strict", "whole": " --whole"}.get(mode, "")
-    # Подоболочка: exit не трогает оболочку Bash-инструмента; перевод строки перед } —
-    # чтобы heredoc внутри исходной команды закрылся корректно. Код выхода — PIPESTATUS[0].
-    return f'( {{ {cmd}\n}} 2>&1 | python3 "{MASK}"{flag}; exit ${{PIPESTATUS[0]}} )'
+    # Подоболочки: pipefail не трогает оболочку Bash-инструмента; перевод строки перед ) —
+    # чтобы heredoc внутри исходной команды закрылся корректно. Код выхода — команды (pipefail,
+    # маска выходит с 0). Без `{ … }` и `${…}`: группа в фигурных скобках с кавычками внутри
+    # включает в harness проверку «brace with quote character» и окно вне bypass.
+    return f'( set -o pipefail; ( set +o pipefail; {cmd}\n) 2>&1 | python3 "{MASK}"{flag} )'
+
+
+def vault_login_no_print(cmd):
+    """-no-print только в строках-командах: тело heredoc-данных — чужой текст, его не трогаем."""
+    out = []
+    for line, is_data in heredoc_lines(cmd):
+        if not is_data and re.search(r"\bvault\s+login\b", line) and "-no-print" not in line:
+            line = re.sub(r"\bvault\s+login\b", "vault login -no-print", line)
+        out.append(line)
+    return "\n".join(out)
 
 
 def safe_single_read(cmd):
     """`cat .env` одним вызовом → список имён ключей (значения не читаются)."""
     if "\n" in cmd:
         return None
-    m = re.match(r"^\s*(cat|head|tail|less|more|bat)(\s+-[A-Za-z0-9]+)*\s+([A-Za-z0-9_./~+@-]*\.env[A-Za-z0-9._-]*)\s*$", cmd)
+    m = re.match(r"^\s*(cat|head|tail|less|more|bat)(\s+-[A-Za-z0-9]+)*\s+([A-Za-z0-9_./~+@-]*(\.env[A-Za-z0-9._-]*|\.tfvars))\s*$", cmd)
     if m:
         return f"{INVENTORY} {m.group(3)}"
     if re.match(r"^\s*(env|printenv)\s*$", cmd):
@@ -280,11 +299,11 @@ def secret_write(cmd, cwd):
 
 def already_safe(cmd):
     """Уже безопасный путь — не оборачиваем повторно (идемпотентность). Только настоящий пайп
-    в маску или вызов инвентаризации первым словом: упоминание имени в тексте команды не в счёт."""
+    в маску или вызов обработчика первым словом: упоминание имени в тексте команды не в счёт."""
     if re.search(r"\|\s*(python3\s+)?[\"']?[^\s|;&]*secret-mask\.py[\"']?(\s+--(strict|whole))?\s*(;|\)|$)", cmd, re.M):
         return True
     return "\n" not in cmd and bool(re.match(
-        r"^\s*(python3\s+)?[^\s|;&]*config-key-inventory\.py\s+[^|;&`$<>]*$", cmd))
+        r"^\s*(python3\s+)?[^\s|;&]*(secret-value|config-key-inventory)\.py\s+[^|;&`$<>]*$", cmd))
 
 
 # ---------------------------------------------------------------- маршрутизация
@@ -292,7 +311,8 @@ def route(data, guards=None):
     """→ dict(decision=None|'deny'|'ask', command=<новая|None>, reason, context)."""
     ti = data.get("tool_input") or {}
     cmd = ti.get("command") or ""
-    bypass = data.get("permission_mode") == "bypassPermissions"
+    # план — как bypass: окно в плане одобряет plan-auto-allow.sh, поэтому вопрос стража здесь не задать
+    bypass = data.get("permission_mode") in ("bypassPermissions", "plan")
     if not cmd.strip():
         return {}
     if guards is None:
@@ -309,12 +329,16 @@ def route(data, guards=None):
     w = secret_write(cmd, data.get("cwd"))
     if w:
         return deny(f"🔐 Не записываю секрет в {w[1]}: оттуда он попадёт в git или логи. "
-                    "В текст — только имя ключа; значение — в .env, который в .gitignore.")
+                    "Перенести значение — secret-value.py copy; в текст — только имя ключа.")
 
     # 2. Безопасный вид.
-    new = cmd
+    new = vault_login_no_print(cmd)
+    notes = []
+    if new != cmd:
+        notes.append("vault login без печати токена")
     if already_safe(new):
-        return {}
+        # уже безопасный путь; повторно не оборачиваем (идемпотентность)
+        return {"command": new if new != cmd else None, "context": "; ".join(notes)} if notes else {}
     single = safe_single_read(new)
     fired = [n for n, d, _ in guards if d in ("ask", "deny")]
     mode = mask_mode(new)
@@ -328,7 +352,9 @@ def route(data, guards=None):
         how = None
     if new == cmd:
         return {}
-    res = {"command": new, "context": "🔐 " + how.capitalize() + "."}
+    notes.append(how) if how else None
+    ctx = "🔐 " + "; ".join(n for n in notes if n).capitalize() + "."
+    res = {"command": new, "context": ctx}
     if fired and not bypass:
         # вне bypass вопрос стража остаётся вопросом, но человек видит уже безопасную команду
         asks = [dec[n][1] for n in fired if dec[n][0] == "ask"]
