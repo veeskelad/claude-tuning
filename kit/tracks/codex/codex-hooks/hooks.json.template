@@ -1,0 +1,87 @@
+{
+  "description": "claude-tuning, направление codex: Codex исполняет хуки Claude (claude_bridge.py читает ~/.claude/settings*.json и доверенные в Claude проектные .claude/settings*.json)",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/pre_tool_guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Стражи Claude проверяют вызов..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/claude_bridge.py\" PostToolUse",
+            "timeout": 10,
+            "statusMessage": "Хуки Claude после вызова..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/skill_inventory.py\"",
+            "timeout": 5,
+            "statusMessage": "Ищу скиллы Claude..."
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/claude_bridge.py\" SessionStart",
+            "timeout": 30,
+            "statusMessage": "Хуки Claude на старте сессии..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/claude_bridge.py\" UserPromptSubmit",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/claude_bridge.py\" Stop",
+            "timeout": 10,
+            "statusMessage": "Хуки Claude в конце хода..."
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/hooks/claude-parity/claude_bridge.py\" PreCompact",
+            "timeout": 10,
+            "statusMessage": "Хуки Claude перед сжатием..."
+          }
+        ]
+      }
+    ]
+  }
+}

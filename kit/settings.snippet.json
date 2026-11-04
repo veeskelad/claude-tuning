@@ -144,6 +144,26 @@
             "timeout": 20
           }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.agents/skills/claude-session-bridge/scripts/daily_digest.py\"; [ -r \"$f\" ] && exec python3 \"$f\" show; exit 0",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.agents/skills/claude-session-bridge/scripts/handoff.py\"; [ -r \"$f\" ] && exec python3 \"$f\" discover --agent claude; exit 0",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -155,6 +175,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.agents/skills/claude-session-bridge/scripts/auto_summary.py\"; [ -r \"$f\" ] && exec python3 \"$f\" hook --agent claude; exit 0",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -163,6 +192,15 @@
           {
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/session-autosave.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.agents/skills/claude-session-bridge/scripts/auto_summary.py\"; [ -r \"$f\" ] && exec python3 \"$f\" hook --agent claude; exit 0",
             "timeout": 10
           }
         ]
