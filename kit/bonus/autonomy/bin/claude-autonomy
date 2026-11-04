@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""Пульт безголовых запусков (бонус autonomy): пауза, статус, новое задание, расписание.
+
+    claude-autonomy pause [задание]     запретить старты (всех или одного); идущий запуск страж останавливает на
+                                        следующем вызове инструмента
+    claude-autonomy resume [задание]    снять паузу (только человек; изнутри запуска страж это отклоняет)
+    claude-autonomy status              задания, пауза, расписание launchd, последний запуск, блокировки,
+                                        фоновые сессии autonomy-* из `claude agents --json`
+    claude-autonomy new <задание> [--workdir DIR]
+                                        задание из шаблона: только чтение, бюджет $0.20, песочница
+                                        ~/.claude/autonomy/work/<задание>
+    claude-autonomy schedule <задание> <ЧЧ:ММ|30m|2h|900s> [--print]
+                                        macOS: пишет ~/Library/LaunchAgents/claude-tuning.run-<задание>.plist и
+                                        печатает команду включения (сам launchctl load не вызывает);
+                                        Linux: печатает строку cron
+
+Пауза — запрет будущих стартов и остановка идущего; откат уже сделанного она не делает (см. rules/autonomy-runs.md).
+Ничего не включается само: расписание включает человек командой, которую печатает schedule.
+Переменные для проб и тестов: CLAUDE_AUTONOMY_HOME, CLAUDE_BIN, CLAUDE_AUTONOMY_TEMPLATES,
+CLAUDE_AUTONOMY_LAUNCHCTL (вместо launchctl, только для чтения списка), CLAUDE_AUTONOMY_PLATFORM (darwin/linux).
+"""
+import glob, json, os, plistlib, re, shutil, subprocess, sys, time
+
+HOME = os.path.expanduser("~")
+A = os.environ.get("CLAUDE_AUTONOMY_HOME") or f"{HOME}/.claude/autonomy"
+CLAUDE = os.environ.get("CLAUDE_BIN", "claude")
+LAUNCHCTL = os.environ.get("CLAUDE_AUTONOMY_LAUNCHCTL", "launchctl")
+PLATFORM = os.environ.get("CLAUDE_AUTONOMY_PLATFORM", sys.platform)
+LABEL_PREFIX = "claude-tuning"  # как у install-kit.py
+AGENTS = f"{HOME}/Library/LaunchAgents"
+RUNNER = f"{HOME}/.claude/bin/claude-run.sh"
+NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+MIN_INTERVAL = 300  # чаще 5 минут — почти всегда ошибка и лишние расходы
+
+
+def die(msg, code=2):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def job_name(j):
+    if not j or not NAME.match(j):
+        die(f"имя задания: буквы, цифры, . _ - (получено: {j!r})")
+    return j
+
+
+def template(name):
+    """Шаблоны: свой путь из переменной, затем ~/.claude/autonomy/templates, затем рядом с kit (запуск из kit)."""
+    here = os.path.dirname(os.path.realpath(__file__))
+    for d in (os.environ.get("CLAUDE_AUTONOMY_TEMPLATES"), f"{A}/templates", os.path.join(here, "..", "templates")):
+        if d and os.path.isfile(os.path.join(d, name)):
+            return open(os.path.join(d, name)).read()
+    die(f"нет шаблона {name}: положить kit/bonus/autonomy/templates/ в {A}/templates/")
+
+
+def plist_path(job):
+    return f"{AGENTS}/{LABEL_PREFIX}.run-{job}.plist"
+
+
+def pause(job=None):
+    os.makedirs(A, exist_ok=True)
+    flag = f"{A}/PAUSE" + (f"-{job_name(job)}" if job else "")
+    with open(flag, "w") as f:
+        f.write(f"пауза поставлена {time.strftime('%F %T')}\n")
+    print(f"пауза: {flag}")
+    print("  новые запуски " + ("задания " + job if job else "всех заданий") + " не стартуют;")
+    print("  идущий запуск получает отказ на каждом вызове инструмента (страж autonomy-pause-guard.sh);")
+    for lock, pid, alive in locks():
+        if alive and (not job or os.path.basename(lock) == f"{job}.lock"):
+            print(f"  остановить сразу: kill {pid}  ({os.path.basename(lock)[:-5]})")
+    print("  уже сделанное пауза не откатывает. Снять: claude-autonomy resume" + (f" {job}" if job else ""))
+
+
+def resume(job=None):
+    flag = f"{A}/PAUSE" + (f"-{job_name(job)}" if job else "")
+    if os.path.exists(flag):
+        os.remove(flag)
+        print(f"пауза снята: {flag}")
+    else:
+        print(f"паузы не было: {flag}")
+    left = sorted(glob.glob(f"{A}/PAUSE*"))
+    if left:
+        print("ещё стоят: " + ", ".join(os.path.basename(x) for x in left))
+
+
+def locks():
+    out = []
+    for lock in sorted(glob.glob(f"{A}/locks/*.lock")):
+        try:
+            pid = int(open(f"{lock}/pid").read().strip())
+            os.kill(pid, 0)
+            alive = True
+        except (OSError, ValueError):
+            pid, alive = None, False
+        out.append((lock, pid, alive))
+    return out
+
+
+def last_run(job):
+    recs = sorted(glob.glob(f"{A}/runs/{job}/*.json"), key=os.path.getmtime)
+    if not recs:
+        return None
+    try:
+        return json.load(open(recs[-1]))
+    except (OSError, ValueError):
+        return {"status": "битая запись", "end": os.path.basename(recs[-1])}
+
+
+def loaded_labels():
+    """Включённые задачи launchd с префиксом набора; только чтение (launchctl list)."""
+    if PLATFORM != "darwin" or not shutil.which(LAUNCHCTL):
+        return None
+    try:
+        r = subprocess.run([LAUNCHCTL, "list"], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return {l.split("\t")[-1] for l in r.stdout.splitlines() if l.split("\t")[-1].startswith(LABEL_PREFIX + ".")}
+
+
+def agents_sessions():
+    """Сессии autonomy-* из `claude agents --json` (есть в 2.1.317); нет команды — None."""
+    if not shutil.which(CLAUDE):
+        return None
+    try:
+        r = subprocess.run([CLAUDE, "agents", "--json"], capture_output=True, text=True, timeout=15)
+        data = json.loads(r.stdout or "[]") if r.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    if not isinstance(data, list):
+        return None
+    return [s for s in data if isinstance(s, dict) and str(s.get("name", "")).startswith("autonomy-")]
+
+
+def status():
+    jobs = sorted(os.path.basename(f)[:-3] for f in glob.glob(f"{A}/jobs/*.md"))
+    gp = os.path.exists(f"{A}/PAUSE")
+    print(f"Папка: {A}")
+    print("Общая пауза: " + ("СТОИТ — ни одно задание не стартует" if gp else "нет"))
+    loaded = loaded_labels()
+    print("\nЗадания:" if jobs else "\nЗаданий нет (создать: claude-autonomy new <задание>)")
+    for j in jobs:
+        p = "пауза" if gp or os.path.exists(f"{A}/PAUSE-{j}") else "активно"
+        pl = plist_path(j)
+        if os.path.exists(pl):
+            on = "?" if loaded is None else ("включено" if f"{LABEL_PREFIX}.run-{j}" in loaded else "файл есть, не включено")
+            sched = f"launchd: {on}"
+        else:
+            sched = "без расписания"
+        r = last_run(j)
+        lr = "запусков не было" if not r else f"последний: {r.get('status')} {r.get('end', '')}" + (
+            f", ${r['cost_usd']}" if r.get("cost_usd") is not None else "")
+        print(f"  {j}: {p}; {sched}; {lr}")
+    other = sorted(glob.glob(f"{AGENTS}/{LABEL_PREFIX}.*.plist")) if PLATFORM == "darwin" else []
+    if other:
+        print("\nЗадачи launchd набора:")
+        for f in other:
+            lab = os.path.basename(f)[:-6]
+            on = "?" if loaded is None else ("включена" if lab in loaded else "не включена")
+            print(f"  {lab}: {on}")
+    ls = locks()
+    print("\nИдёт сейчас:" if ls else "\nСейчас ничего не идёт (блокировок нет)")
+    for lock, pid, alive in ls:
+        print(f"  {os.path.basename(lock)[:-5]}: " + (f"pid {pid}" if alive else "брошенная блокировка, снимется при следующем запуске"))
+    s = agents_sessions()
+    if s is None:
+        print("\nclaude agents --json: недоступно, фоновые сессии не показаны")
+    else:
+        print(f"\nФоновые сессии autonomy-*: {len(s)}" + ("" if not s else " — остановить: claude stop <id>"))
+        for x in s:
+            print(f"  {x.get('id', '?')} {x.get('name')} {x.get('status', '')}")
+
+
+def new(job, workdir=None):
+    job = job_name(job)
+    jf = f"{A}/jobs/{job}.md"
+    if os.path.exists(jf):
+        die(f"задание уже есть: {jf}")
+    wd = os.path.abspath(os.path.expanduser(workdir)) if workdir else f"{A}/work/{job}"
+    os.makedirs(wd, exist_ok=True)
+    os.makedirs(os.path.dirname(jf), exist_ok=True)
+    body = template("job.md.template").replace("__JOB__", job).replace("__WORKDIR__", wd)
+    open(jf, "w").write(body)
+    print(f"создано: {jf}\n  рабочая папка: {wd}\n  только чтение, бюджет $0.20 на запуск, без расписания.")
+    print(f"  проба вручную: {RUNNER} {job}   расписание: claude-autonomy schedule {job} 07:30")
+
+
+def parse_when(when):
+    m = re.fullmatch(r"(\d{1,2}):(\d{2})", when)
+    if m:
+        h, mi = int(m[1]), int(m[2])
+        if h > 23 or mi > 59:
+            die(f"время {when}: ЧЧ от 00 до 23, ММ от 00 до 59")
+        return ("at", h, mi)
+    m = re.fullmatch(r"(\d+)([smh]?)", when)
+    if not m:
+        die(f"расписание {when!r}: ЧЧ:ММ (раз в день) или интервал 900s / 30m / 2h")
+    sec = int(m[1]) * {"": 1, "s": 1, "m": 60, "h": 3600}[m[2]]
+    if sec < MIN_INTERVAL:
+        die(f"интервал {sec} с — меньше {MIN_INTERVAL} с; каждый запуск может стоить денег")
+    return ("every", sec)
+
+
+def cron_line(job, w):
+    cmd = f"bash -lc '$HOME/.claude/bin/claude-run.sh {job}' >> $HOME/.claude/autonomy/runs/{job}/cron.log 2>&1"
+    if w[0] == "at":
+        return f"{w[2]} {w[1]} * * * {cmd}"
+    sec = w[1]
+    if sec % 3600 == 0 and 24 % (sec // 3600) == 0:
+        return f"0 */{sec // 3600} * * * {cmd}"
+    mins = max(5, round(sec / 60))
+    if 60 % mins:
+        print(f"# cron не умеет ровно каждые {mins} мин: ближе всего */{mins} в пределах часа", file=sys.stderr)
+    return f"*/{mins} * * * * {cmd}"
+
+
+def schedule(job, when, only_print=False):
+    job = job_name(job)
+    if not os.path.exists(f"{A}/jobs/{job}.md"):
+        die(f"нет задания {A}/jobs/{job}.md (создать: claude-autonomy new {job})")
+    w = parse_when(when)
+    if PLATFORM != "darwin":
+        print("# launchd здесь нет. Строка для crontab -e (включает человек):")
+        print(cron_line(job, w))
+        return
+    if w[0] == "at":
+        block = ("\t<key>StartCalendarInterval</key>\n\t<dict>\n\t\t<key>Hour</key>\n"
+                 f"\t\t<integer>{w[1]}</integer>\n\t\t<key>Minute</key>\n\t\t<integer>{w[2]}</integer>\n\t</dict>")
+    else:
+        block = f"\t<key>StartInterval</key>\n\t<integer>{w[1]}</integer>"
+    body = (template("claude-run.plist.template").replace("__SCHEDULE__", block).replace("__JOB__", job)
+            .replace("__HOME__", HOME).replace("__LABEL_PREFIX__", LABEL_PREFIX))
+    plistlib.loads(body.encode())  # битый шаблон — падение здесь, а не в launchd
+    dst = plist_path(job)
+    if only_print:
+        print(body)
+        return
+    existed = os.path.exists(dst)
+    os.makedirs(AGENTS, exist_ok=True)
+    open(dst, "w").write(body)
+    print(f"{'обновлено' if existed else 'записано'}: {dst}")
+    print("Само расписание НЕ включено. Включить (делает человек):")
+    if existed:
+        print(f"  launchctl unload {dst}")
+    print(f"  launchctl load {dst}")
+    print(f"Выключить: launchctl unload {dst} && rm {dst}. Остановить всё сразу: claude-autonomy pause")
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        return
+    cmd, rest = argv[0], argv[1:]
+    if cmd == "pause" and len(rest) <= 1:
+        pause(*rest)
+    elif cmd == "resume" and len(rest) <= 1:
+        resume(*rest)
+    elif cmd == "status" and not rest:
+        status()
+    elif cmd == "new" and rest:
+        wd = None
+        if "--workdir" in rest:
+            i = rest.index("--workdir")
+            if i + 1 >= len(rest):
+                die("--workdir: нужна папка")
+            wd = rest[i + 1]
+            rest = rest[:i] + rest[i + 2:]
+        if len(rest) != 1:
+            die("usage: claude-autonomy new <задание> [--workdir DIR]")
+        new(rest[0], wd)
+    elif cmd == "schedule" and len(rest) in (2, 3) and rest[2:] in ([], ["--print"]):
+        schedule(rest[0], rest[1], only_print=bool(rest[2:]))
+    else:
+        die(__doc__.strip())
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

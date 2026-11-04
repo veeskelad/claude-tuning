@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Шаблон (бонус autonomy): запуск одного задания claude-run.sh по расписанию.
+	     Установщик этот шаблон НЕ ставит: файл пишет только команда человека
+	     claude-autonomy schedule <задание> <ЧЧ:ММ|интервал>, она же печатает команду включения.
+	     Плейсхолдеры: домашняя папка, префикс метки, имя задания и блок расписания
+	     (StartCalendarInterval или StartInterval). Выключить: launchctl unload и удалить файл;
+	     остановить все задания сразу, не трогая расписание: claude-autonomy pause. -->
+	<key>Label</key>
+	<string>__LABEL_PREFIX__.run-__JOB__</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-lc</string>
+		<string>__HOME__/.claude/bin/claude-run.sh __JOB__</string>
+	</array>
+__SCHEDULE__
+	<key>RunAtLoad</key>
+	<false/>
+	<key>Nice</key>
+	<integer>10</integer>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.run-__JOB__.log</string>
+	<key>StandardErrorPath</key>
+	<string>__HOME__/Library/Logs/__LABEL_PREFIX__.run-__JOB__.log</string>
+</dict>
+</plist>

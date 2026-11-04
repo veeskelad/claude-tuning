@@ -116,6 +116,10 @@ def install():
             merge_settings(kit)
         for name in ls(kit, "launchd"):
             install_agent(f"{kit}/launchd/{name}")
+        # шаблоны бонуса autonomy: задание и расписание берёт из них claude-autonomy new / schedule
+        if kit == f"{KIT}/bonus/autonomy":
+            for name in ls(kit, "templates"):
+                place(f"{kit}/templates/{name}", f"{H}/.claude/autonomy/templates/{name}", False, False)
     if os.path.isdir(f"{KIT}/statusline"):
         install_statusline()
     # белый список dippy: заготовка, только если своего файла нет
@@ -134,7 +138,7 @@ def install():
             say("вручную", f"{name}: {cmd}")
     # Хук dippy в settings.snippet.json без самой программы молча ничего не делает.
     if not shutil.which("dippy"):
-        say("вручную", "dippy (по желанию): pipx install dippy — сам одобряет команды только на чтение, подтверждений меньше")
+        say("вручную", "dippy (по желанию): brew tap ldayton/dippy && brew install dippy — сам разрешает команды, которые только читают, и Claude реже спрашивает «можно?». Под именем dippy в pip лежит другой, чужой пакет: через pip/pipx не ставить")
     if os.path.exists(f"{H}/.claude/CLAUDE.md"):
         say("есть", "~/.claude/CLAUDE.md — переписать в карту по kit/claude-md.md (шаг 2 скилла), не копией")
     else:
@@ -354,6 +358,9 @@ def uninstall():
     if os.path.exists(f"{KIT}/dippy/config.example"):
         drop(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False)
     for kit in KITS:
+        if kit == f"{KIT}/bonus/autonomy":
+            for name in ls(kit, "templates"):
+                drop(f"{kit}/templates/{name}", f"{H}/.claude/autonomy/templates/{name}", False)
         for name in ls(kit, "launchd"):
             dst = agent_path(f"{kit}/launchd/{name}")
             if not os.path.exists(dst):

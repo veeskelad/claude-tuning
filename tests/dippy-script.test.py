@@ -3,7 +3,7 @@
 
     python3 tests/dippy-script.test.py
 
-Нужен установленный dippy (`pipx install dippy`); без него тест пропускается. Белый список — заготовка
+Нужен установленный dippy (`brew tap ldayton/dippy && brew install dippy`); без него тест пропускается. Белый список — заготовка
 kit/dippy/config.example, положенная во временный HOME: ваш ~/.dippy/config не читается.
 """
 import json
@@ -18,7 +18,7 @@ HOOK = os.path.join(ROOT, "kit", "hooks", "dippy-script.py")
 CONFIG = os.path.join(ROOT, "kit", "dippy", "config.example")
 
 if not shutil.which("dippy"):
-    print("dippy не установлен (pipx install dippy): тест пропущен")
+    print("dippy не установлен (brew tap ldayton/dippy && brew install dippy): тест пропущен")
     sys.exit(0)
 
 HOME = os.path.realpath(tempfile.mkdtemp(prefix="dippy-home-"))
