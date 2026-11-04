@@ -134,6 +134,16 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/tuning-update-check.sh\"",
+            "timeout": 20
+          }
+        ]
       }
     ],
     "SessionEnd": [

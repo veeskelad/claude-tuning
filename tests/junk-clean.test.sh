@@ -42,8 +42,8 @@ check "нет папки — не ошибка" 0 "$(CLAUDE_HOME="$T/none" bash 
 
 # шаблоны launchd: подстановка и корректность plist
 if command -v plutil >/dev/null 2>&1; then
-  # repo-freshness — бонус «code»: шаблон лежит рядом с его хуком
-  for t in launchd/claude-junk-clean bonus/code/launchd/repo-freshness; do
+  # repo-freshness — направление «code»: шаблон лежит рядом с его хуком
+  for t in launchd/claude-junk-clean tracks/code/launchd/repo-freshness; do
     sed -e "s#__HOME__#/home/example#g" -e "s#__LABEL_PREFIX__#com.example#g" "$R/$t.plist.template" > "$T/${t##*/}.plist"
     t=${t##*/}
     check "$t.plist: plutil" OK "$(plutil -lint "$T/$t.plist" | sed 's/.*: //')"
