@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { HubRow, HubSelf, HubState } from '../types'
+import { loadTune, pressTune, readTune, tuneSection } from './tuning'
 
 const PANE = 'session-hub'
 const SERVER = 'ccd_session_mgmt'
@@ -227,13 +228,17 @@ function sorted(list: HubRow[], state: HubState) {
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'sessions', description: 'Боковая панель диалогов: открыть или закрыть' })
-    if (e.isInteractive) void activate($)
+    if (e.isInteractive) {
+      void activate($)
+      void $.clock.after(5_000, () => void loadTune($))
+    }
     return next(e)
   })
 
   // приложение показало диалог (в том числе давно запущенный): подтянуть выбор панели и свежий список
   on('session.attach', async ($, e, next) => {
     void activate($)
+    void loadTune($)
     return next(e)
   })
 
@@ -276,7 +281,7 @@ export const register: Register = on => {
       if (show && k === 'band-done') await update($, isListOpen, () => true)
     } else if (k === 'band-pane' || k === 'band-more') await setPane($, !(await read($, isPaneOpen)))
     else if (k === 'self') return { element: k }
-    else return next(e)
+    else if (!(await pressTune($, k))) return next(e)
     return { element: k }
   })
 
@@ -421,6 +426,7 @@ export const register: Register = on => {
     const err = await read($, error)
     const now = await $.clock.now()
     const showDone = await read($, isDoneShown)
+    const tuneView = await readTune($)
     const noop = () => undefined
     const width = Math.max(20, (e.props.bodyColumns ?? 40) - 8)
     const frame = (bg: string, hover?: string) =>
@@ -484,6 +490,7 @@ export const register: Register = on => {
         {section('waiting', waiting, waiting.length, waiting.length > 1 ? { key: 'seen-all', label: 'прочитать все' } : undefined)}
         {section('running', running, running.length)}
         {section('done', showDone ? done.slice(0, 30) : [], done.length, { key: 'pane-done', label: showDone ? 'скрыть' : 'показать' })}
+        {tuneSection(tuneView, { Box, Text, Button }, { isDesktop, width })}
       </Box>
     )
   })
