@@ -15,6 +15,9 @@ deny	psql -c "drop table users"
 deny	kubectl delete namespace prod
 deny	docker system prune -a -f
 deny	npm publish
+deny	docker rm -f test-box
+deny	ssh my-server docker rm -f test-box
+deny	ssh -o BatchMode=yes my-server docker kill test-box
 deny	chmod -R 777 .
 deny	cat .env
 deny	cat ~/.config/app/.env.production
@@ -34,6 +37,7 @@ allow	python3 make_reel.py Отпуск
 allow	git commit -m "fix"
 allow	git push origin feature
 allow	docker ps
+allow	ssh my-server docker ps
 allow	terraform plan
 allow	grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env
 allow	cat README.md

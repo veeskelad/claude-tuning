@@ -4,51 +4,68 @@ set -uo pipefail
 
 usage() {
   cat <<'EOF'
-worktree-cleanup [scan|clean] [--pushed] [--no-fetch] [--ready-only] [REPO ...]
+worktree-cleanup [scan|clean] [--pushed] [--no-fetch] [--ready-only] [--peer HOST] [REPO ...]
 
   scan          сухой прогон (по умолчанию)
-  clean         удалить READY; с --pushed ещё и PUSHED
+  clean         удалить READY и LEFTOVER; с --pushed ещё и PUSHED; пустой *worktrees/ — rmdir
   --pushed      удалять и незамерженные, чей HEAD лежит на origin.
                 Только после проверки, что MR смержен или закрыт
   --no-fetch    без fetch и без сетевых проверок (хук SessionStart)
-  --ready-only  печатать только READY
+  --ready-only  печатать только READY, LEFTOVER и одну строку о старых PUSHED
+  --peer HOST   машина, куда mutagen возит те же папки: сирота с тем же путём,
+                живая там, получает MIRROR, а не ORPHAN (один ssh на прогон)
 
-  REPO — основные чекауты. Без них: репо в $PWD, иначе репо на глубину 1.
+  REPO — основные чекауты. Без них: репо в $PWD, иначе репо на глубину 3.
 
   READY    чистый (и без игнорируемых файлов, кроме кэшей сборки), смержен в
-           origin/main|master (предок или patch-эквивалент), без активных процессов.
+           origin/main|master (предок, patch-эквивалент или squash: каждый файл
+           ветки уже такой же в main), без активных процессов.
            Удаляется вместе с локальной веткой
   PUSHED   чистый, не смержен, HEAD есть на origin — удаление ничего не теряет.
            Локальная ветка остаётся
   REFUSE   всё остальное, не удаляется никогда
+  Папки в *worktrees/, которых git не знает (их привозит mutagen без .git/):
+  LEFTOVER нет .git, внутри только кэш (хвост удаления на другой машине) — clean уносит в Корзину
+  MIRROR   живой worktree на --peer, здесь его копия — не трогать
+  ORPHAN   остальное — только отчёт
 EOF
 }
 
-mode=scan pushed=0 fetch=1 ready_only=0
+mode=scan pushed=0 fetch=1 ready_only=0 peer=""
 repos=()
-for a in "$@"; do
-  case "$a" in
-    scan|clean) mode=$a ;;
+while [ $# -gt 0 ]; do
+  case "$1" in
+    scan|clean) mode=$1 ;;
     --pushed) pushed=1 ;;
     --no-fetch) fetch=0 ;;
     --ready-only) ready_only=1 ;;
+    --peer) peer=${2:-}; [ -n "$peer" ] || { usage >&2; exit 2; }; shift ;;
     -h|--help|help) usage; exit 0 ;;
     -*) usage >&2; exit 2 ;;
-    *) repos+=("$a") ;;
+    *) repos+=("$1") ;;
   esac
+  shift
 done
 
 if [ ${#repos[@]} -eq 0 ]; then
   if git rev-parse --git-dir >/dev/null 2>&1; then
-    repos=("$PWD")
+    repos=("$(git rev-parse --show-toplevel)")
   else
-    for d in "$PWD"/*/; do [ -e "$d.git" ] && repos+=("${d%/}"); done
+    # глубина 3: репо лежат и как <группа>/<репо>, и как <группа>/<подгруппа>/<репо>
+    while IFS= read -r g; do repos+=("${g%/.git}"); done < <(find "$PWD" -mindepth 2 -maxdepth 4 \
+      \( -name node_modules -o -name '*worktrees' -o -name '.*' ! -name .git \) -prune -o -name .git -type d -print 2>/dev/null | sort)
   fi
 fi
 
+# Каталоги, которые пересобираются сами: в ignored-проверке и в LEFTOVER
+cache_re='(^|/)(node_modules|\.terraform|\.venv|__pycache__|dist|dist-web|build|out|\.next|\.expo|\.turbo|\.mypy_cache|\.pytest_cache|\.ruff_cache|coverage|\.DS_Store|\.tasks)(/|$)|(^|/)\.husky/_/|\.tsbuildinfo$|(^|/)\.coverage$'
+
 hsize() { awk -v kb="$1" 'BEGIN { if (kb >= 1048576) printf "%.1f ГиБ", kb/1048576; else printf "%d МиБ", kb/1024 }'; }
 
-say() { [ "$ready_only" = 1 ] && [ "$1" != READY ] && return; printf '%-8s %s  %s\n' "$1" "$2" "$3"; }
+say() {
+  if [ "$ready_only" = 1 ]; then case "$1" in READY|LEFTOVER) ;; *) return ;; esac; fi
+  printf '%-8s %s  %s\n' "$1" "$2" "$3"
+}
 
 busy() {
   # ponytail: cwd всех процессов один раз на прогон; lsof по каталогу видит только корень, не подкаталоги
@@ -59,11 +76,32 @@ busy() {
 
 on_origin() { # repo branch sha
   local r
-  r=$(timeout 15 git -C "$1" ls-remote origin "refs/heads/$2" 2>/dev/null | cut -f1)
+  if [ "$fetch" = 1 ]; then
+    r=$(timeout 15 git -C "$1" ls-remote origin "refs/heads/$2" 2>/dev/null | cut -f1)
+  else
+    r=$(git -C "$1" rev-parse -q --verify "refs/remotes/origin/$2" 2>/dev/null)
+  fi
   [ -n "$r" ] && { [ "$r" = "$3" ] || git -C "$1" merge-base --is-ancestor "$3" "$r" 2>/dev/null; }
 }
 
-ready=0 pushed_n=0 removed=0 total_kb=0
+squashed() { # repo ref head — каждый файл, тронутый веткой, в ref уже такой же
+  local mb
+  mb=$(git -C "$1" merge-base "$2" "$3" 2>/dev/null) || return 1
+  git -C "$1" diff --quiet "$mb" "$3" 2>/dev/null && return 1  # ветка ничего не меняла
+  # одним проходом, а не git на каждый файл: в ветках бывают сотни файлов
+  git -C "$1" diff -z --name-only "$mb" "$3" 2>/dev/null |
+    xargs -0 git -C "$1" diff --quiet "$2" "$3" -- >/dev/null 2>&1
+}
+
+trash() { # уносим в Корзину, а не rm: сироту никто не проверял git-ом
+  local dir
+  if [ -n "${WORKTREE_CLEANUP_TRASH:-}" ]; then dir=$WORKTREE_CLEANUP_TRASH
+  elif [ "$(uname)" = Darwin ]; then dir="$HOME/.Trash"; else dir="$HOME/.local/share/Trash/files"; fi
+  mkdir -p "$dir" && mv "$1" "$dir/$(basename "$1")-wt-$(date +%Y%m%d%H%M%S)"
+}
+
+ready=0 pushed_n=0 old_pushed=0 removed=0 total_kb=0 left_n=0
+orphans=() containers=()
 for repo in "${repos[@]}"; do
   main_wt=$(git -C "$repo" worktree list --porcelain 2>/dev/null | awk '/^worktree /{ print substr($0, 10); exit }')
   [ -z "$main_wt" ] && continue
@@ -74,21 +112,48 @@ for repo in "${repos[@]}"; do
     git -C "$main_wt" show-ref --verify --quiet "refs/remotes/origin/$c" && { ref="origin/$c"; break; }
   done
 
+  known=$(git -C "$main_wt" worktree list --porcelain | sed -n 's/^worktree //p')
+  # контейнеры этого репо: принятые места + родители известных worktree
+  mine=$( { for c in "$main_wt-worktrees" "$main_wt/.worktrees" "$main_wt/.claude/worktrees" "$main_wt/worktrees"; do
+      [ -d "$c" ] && echo "$c"; done
+    sed -n 's|^\(.*worktrees\)/[^/]*$|\1|p' <<<"$known"; } | sort -u)
+  while IFS= read -r c; do
+    [ -n "$c" ] || continue
+    containers+=("$c")
+    for d in "$c"/*/; do
+      [ -d "$d" ] || continue; d=${d%/}
+      grep -qxF "$d" <<<"$known" || orphans+=("$d")
+    done
+  done <<<"$mine"
+
   while IFS=$'\t' read -r wt br; do
     [ "$wt" = "$main_wt" ] && continue
     [ -z "$ref" ] && { say REFUSE "$wt" "в $main_wt нет origin/main и origin/master"; continue; }
     name=${br#refs/heads/}
     [ -d "$wt" ] || { say STALE "$wt" "каталога нет, метаданные уберёт clean"; continue; }
     case "$wt" in *worktrees/*) ;; *) say REFUSE "$wt" "вне каталога *worktrees/ — возможно, worktree пользователя"; continue ;; esac
+    # хук печатает только READY и старые PUSHED: несмерженные и незапушенные отсеять до git status —
+    # он по дереву в 2 ГиБ занимает секунды (на старте сессии это заметно)
+    if [ "$ready_only" = 1 ]; then
+      h=$(git -C "$wt" rev-parse HEAD)
+      git -C "$main_wt" merge-base --is-ancestor "$h" "$ref" ||
+        { ch=$(git -C "$main_wt" cherry "$ref" "$h" 2>/dev/null) && [ -n "$ch" ] && ! grep -q '^+' <<<"$ch"; } ||
+        squashed "$main_wt" "$ref" "$h" || {
+          # для строки о старых PUSHED статус не нужен — только возраст
+          [ "$name" != "-" ] && on_origin "$main_wt" "$name" "$h" &&
+            [ $(( $(date +%s) - $(git -C "$wt" log -1 --format=%ct) )) -gt 259200 ] && old_pushed=$((old_pushed + 1))
+          continue
+        }
+    fi
     [ -z "$(git -C "$wt" status --porcelain --untracked-files=all 2>/dev/null)" ] ||
       { say REFUSE "$wt" "есть незакоммиченное или неотслеживаемое"; continue; }
     # .tasks/ обычно в .gitignore: status его не видит, а remove унёс бы чек-лист с открытыми пунктами
     grep -qs '^[[:space:]]*- \[ \]' "$wt"/.tasks/*.md &&
       { say REFUSE "$wt" "в .tasks/ открытые пункты чек-листа — перенести или закрыть"; continue; }
-    # remove уносит и игнорируемое: tfplan, *.tfvars, локальный state (12.10.2026 так пропали чужие tfplan и tfvars).
+    # remove уносит и игнорируемое: tfplan, *.tfvars, локальный state (так пропадают чужие tfplan и tfvars).
     # Пропускаем только то, что пересобирается само; .tasks проверен выше
     ign=$(git -C "$wt" status --porcelain --ignored=matching --untracked-files=all 2>/dev/null | sed -n 's/^!! //p' |
-      grep -vE '(^|/)(node_modules|\.terraform|\.venv|__pycache__|dist|build|\.DS_Store|\.tasks)(/|$)|(^|/)\.husky/_/')
+      grep -vE "$cache_re")
     # Копия .claude/settings.local.json из основного чекаута (её кладут в каждый worktree) при удалении ничего не теряет
     cmp -s "$wt/.claude/settings.local.json" "$main_wt/.claude/settings.local.json" &&
       ign=$(grep -vxF '.claude/settings.local.json' <<<"$ign" || true)
@@ -108,8 +173,12 @@ for repo in "${repos[@]}"; do
     elif ch=$(git -C "$main_wt" cherry "$ref" "$head" 2>/dev/null) && [ -n "$ch" ] && ! grep -q '^+' <<<"$ch"; then
       # rebase при мерже: коммиты другие, патчи те же
       state=READY why="patch-эквивалентен $ref"
-    elif [ "$fetch" = 1 ] && [ "$name" != "-" ] && on_origin "$main_wt" "$name" "$head"; then
+    elif squashed "$main_wt" "$ref" "$head"; then
+      # squash-мерж GitLab: один новый коммит, но каждый файл ветки в main уже такой же
+      state=READY why="содержимое уже в $ref (squash)"
+    elif [ "$name" != "-" ] && on_origin "$main_wt" "$name" "$head"; then
       state=PUSHED why="не в $ref, HEAD есть на origin/$name"
+      [ $(( $(date +%s) - $(git -C "$wt" log -1 --format=%ct) )) -gt 259200 ] && old_pushed=$((old_pushed + 1))
     else
       say REFUSE "$wt" "не смержен в $ref$([ "$fetch" = 1 ] && echo ' и нет на origin')"; continue
     fi
@@ -127,7 +196,7 @@ for repo in "${repos[@]}"; do
       say REMOVED "$wt" "$(hsize "$kb"), $why"
     else
       [ "$state" = READY ] && ready=$((ready + 1)) || pushed_n=$((pushed_n + 1))
-      # в clean оставленные PUSHED не входят в «освобождено» (27.10.2026: «Удалено: 0, освобождено 365 МиБ»)
+      # в clean оставленные PUSHED не входят в «освобождено» (иначе итог «Удалено: 0, освобождено N МиБ»)
       [ "$mode" = clean ] || total_kb=$((total_kb + kb))
       say "$state" "$wt" "$(hsize "$kb"), $why"
     fi
@@ -140,12 +209,54 @@ for repo in "${repos[@]}"; do
   [ "$mode" = clean ] && git -C "$main_wt" worktree prune
 done
 
+# Сироты: папка в *worktrees/, которой git не знает. mutagen возит папки worktree, но не .git/
+if [ ${#orphans[@]} -gt 0 ]; then
+  live=""
+  if [ -n "$peer" ] && [ "$fetch" = 1 ]; then
+    # пути относительно $HOME: на другой машине домашний каталог свой. Живой — сам себе корень worktree,
+    # а не папка внутри родительского репо
+    live=$(printf '%s\n' "${orphans[@]}" | sed "s|^$HOME/||" | timeout 30 ssh -o BatchMode=yes -o ConnectTimeout=8 "$peer" \
+      'while IFS= read -r r; do t=$(git -C "$HOME/$r" rev-parse --show-toplevel 2>/dev/null) && [ "$t" = "$(cd "$HOME/$r" && pwd -P)" ] && echo "$r"; done' 2>/dev/null)
+  fi
+  while IFS= read -r d; do
+    [ "$ready_only" = 1 ] && [ -e "$d/.git" ] && continue
+    kb=$(du -sk "$d" 2>/dev/null | cut -f1)
+    if [ -e "$d/.git" ]; then
+      if grep -qxF "${d#$HOME/}" <<<"$live"; then
+        say MIRROR "$d" "$(hsize "$kb"), живой worktree на $peer, здесь копия mutagen"
+      elif [ -d "$d/.git" ]; then
+        say ORPHAN "$d" "$(hsize "$kb"), отдельный клон внутри *worktrees/"
+      else
+        say ORPHAN "$d" "$(hsize "$kb"), git его не знает, .git → $(sed -n 's/^gitdir: //p' "$d/.git")"
+      fi
+    elif [ -z "$(cd "$d" && find . -type f 2>/dev/null | sed 's|^\./||' | grep -vE "$cache_re" | head -1)" ]; then
+      if [ "$mode" = clean ]; then
+        trash "$d" && { removed=$((removed + 1)) total_kb=$((total_kb + kb)); say REMOVED "$d" "$(hsize "$kb"), хвост кэша → Корзина"; }
+      else
+        left_n=$((left_n + 1)) total_kb=$((total_kb + kb))
+        say LEFTOVER "$d" "$(hsize "$kb"), нет .git, внутри только кэш"
+      fi
+    else
+      say ORPHAN "$d" "$(hsize "$kb"), нет .git, есть файлы не из кэша — смотреть руками"
+    fi
+  done < <(printf '%s\n' "${orphans[@]}" | sort -u)
+fi
+
+if [ "$mode" = clean ] && [ ${#containers[@]} -gt 0 ]; then
+  while IFS= read -r c; do
+    rmdir "$c" 2>/dev/null && say REMOVED "$c" "пустой контейнер"
+  done < <(printf '%s\n' "${containers[@]}" | sort -u)
+fi
+
 cmd='~/.agents/skills/worktree-cleanup/scripts/worktree-cleanup'
 if [ "$mode" = clean ]; then
   echo "Удалено: $removed, освобождено $(hsize "$total_kb")"
+  [ "$removed" -gt 0 ] && command -v mutagen >/dev/null 2>&1 &&
+    echo "mutagen донесёт удаление до второй машины; хвосты кэша там покажет: $cmd scan (LEFTOVER)"
 elif [ "$ready_only" = 1 ]; then
-  [ "$ready" -gt 0 ] && echo "↑ смерженные worktree, убрать: $cmd clean"
+  [ $((ready + left_n)) -gt 0 ] && echo "↑ смерженные worktree и хвосты, убрать: $cmd clean"
+  [ "$old_pushed" -gt 0 ] && echo "PUSHED старше 3 дней: $old_pushed — проверь MR и $cmd clean --pushed (список: $cmd scan)"
 else
-  echo "Сухой прогон: READY $ready, PUSHED $pushed_n, $(hsize "$total_kb"). Удалить: $cmd clean$([ "$pushed_n" -gt 0 ] && echo ' [--pushed]')"
+  echo "Сухой прогон: READY $ready, PUSHED $pushed_n, LEFTOVER $left_n, $(hsize "$total_kb"). Удалить: $cmd clean$([ "$pushed_n" -gt 0 ] && echo ' [--pushed]')"
 fi
 exit 0

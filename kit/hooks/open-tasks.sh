@@ -33,8 +33,11 @@ for root in "${ROOTS[@]}"; do
   # ~ в настройке: значения env в settings.json не раскрываются шеллом, а файл бывает общим для машин с разным $HOME.
   root=${root/#\~/$HOME}
   [ -d "$root" ] || continue
+  # Скрытые каталоги, кроме .tasks, и тяжёлые деревья (media, venv, target) не обходим: на старте сессии
+  # обход большого корня упирался в таймаут хука.
   files+=$(find "$root" -maxdepth 4 \
-    \( -name node_modules -o -name .git -o -name dist -o -name build -o -name done \) -prune -o \
+    \( \( -name '.*' ! -name .tasks ! -path "$root" \) -o -name node_modules -o -name dist -o -name build \
+       -o -name done -o -name media -o -name venv -o -name __pycache__ -o -name target \) -prune -o \
     -type f \( -name 'TASKS*.md' -o -path '*/.tasks/*.md' \) -print 2>/dev/null)
   files+=$'\n'
 done
@@ -43,12 +46,21 @@ files=$(printf '%s' "$files" | grep -v '^$' | sort -u)
 
 OPEN_RE='^[[:space:]]*[-*] \[ \]'
 now=$(date +%s)
+# Показываем MAX_FILES самых свежих: сотня открытых чек-листов давала десятки килобайт на каждом старте.
+MAX_FILES=${OPEN_TASKS_MAX:-10}
+ranked=""
+while IFS= read -r f; do
+  grep -qE "$OPEN_RE" "$f" 2>/dev/null || continue
+  # Сначала GNU (-c): на Linux `stat -f` — это статус ФС, он печатает текст и ломает арифметику.
+  ranked+="$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f")"$'\t'"$f"$'\n'
+done <<< "$files"
+total=$(printf '%s' "$ranked" | grep -c .)
+files=$(printf '%s' "$ranked" | sort -rn | head -n "$MAX_FILES" | cut -f2-)
 out=()
 while IFS= read -r f; do
+  [ -n "$f" ] || continue
   open=$(grep -cE "$OPEN_RE" "$f" 2>/dev/null) || open=0
-  [ "$open" -eq 0 ] && continue
   done_n=$(grep -cE '^[[:space:]]*[-*] \[[xX]\]' "$f" 2>/dev/null) || done_n=0
-  # Сначала GNU (-c): на Linux `stat -f` — это статус ФС, он печатает текст и ломает арифметику.
   age=$(( ( now - $(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f") ) / 86400 ))
   stale=""; [ "$age" -ge "$STALE_DAYS" ] && stale=" ⚠️ залежался: доделать или закрыть с причиной"
   goal=$(grep -m1 -E '^# ' "$f" | sed -E 's/^# +//'); goal=${goal:0:120}  # cut -c на macOS режет байты и рвёт кириллицу
@@ -63,3 +75,5 @@ done <<< "$files"
 [ ${#out[@]} -eq 0 ] && exit 0
 echo "📋 Незакрытые задачи (.tasks/ и TASKS.md). Задача по теме из списка начинается с чтения её файла:"
 printf '%s\n' "${out[@]}"
+[ "$total" -gt "$MAX_FILES" ] && echo "… ещё $((total - MAX_FILES)) чек-листов старее; все — open-tasks.sh с OPEN_TASKS_MAX=999"
+exit 0

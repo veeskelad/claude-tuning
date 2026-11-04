@@ -1,6 +1,6 @@
 ---
 name: worktree-cleanup
-description: Безопасная уборка git worktree после мержа — общий скилл Claude и Codex. Вызывай, когда MR/PR смержен или закрыт, на «почисти worktree», «убери смерженные копии», «место на диске тает», при напоминании хука SessionStart о смерженных worktree и в конце изолированной задачи в worktree. Удаляет только чистые и смерженные (в том числе rebase-мерж), незамерженные с HEAD на origin — только после проверки MR; грязные, неотправленные, занятые процессом, свежие без своих коммитов, с игнорируемыми файлами не из кэша сборки (tfplan, *.tfvars, локальный state) и worktree вне каталога *worktrees/ не трогает никогда.
+description: Безопасная уборка git worktree после мержа — общий скилл Claude и Codex. Вызывай, когда MR/PR смержен или закрыт, на «почисти worktree», «убери смерженные копии», «место на диске тает», при напоминании хука SessionStart о смерженных worktree и в конце изолированной задачи в worktree. Удаляет только чистые и смерженные (в том числе rebase- и squash-мерж), хвосты кэша от mutagen и пустые контейнеры, незамерженные с HEAD на origin — только после проверки MR; грязные, неотправленные, занятые процессом, свежие без своих коммитов, с игнорируемыми файлами не из кэша сборки (tfplan, *.tfvars, локальный state) и worktree вне каталога *worktrees/ не трогает никогда.
 ---
 
 # Уборка worktree
@@ -21,16 +21,20 @@ description: Безопасная уборка git worktree после мерж�
    worktree: процесс с cwd внутри кандидата блокирует удаление.
 2. Сухой прогон — `scripts/worktree-cleanup scan`. Сам делает `fetch` `origin/main`
    (или `master`); репо можно передать аргументами.
-3. `READY` (смержен предком или patch-эквивалентом) — удалить:
+3. `READY` (смержен предком, patch-эквивалентом или squash: каждый файл ветки в main уже такой же) — удалить:
    `scripts/worktree-cleanup clean`. Локальная ветка удаляется вместе с ним.
 4. `PUSHED` (не в main, но HEAD на origin) — проверить MR по source branch
    (`gh pr view`, `glab mr list`, GitLab MCP `search` по `merge_requests`). Смержен или
    закрыт — `clean --pushed`: worktree уходит, локальная и удалённая ветки остаются.
    MR открыт — не трогать.
-5. `REFUSE` — не обходить. Грязный worktree: посмотреть `git status`, убрать только то,
+5. Папки в `*worktrees/`, которых git не знает: их привозит mutagen (синк между двумя машинами
+   возит папки worktree, но не `.git/`). `LEFTOVER` — нет `.git`, внутри только кэш: хвост удаления
+   на другой машине, `clean` уносит его в Корзину. `MIRROR` — с `--peer my-server` тот же путь там живой
+   worktree: копия, не трогать, чистится на своей машине. `ORPHAN` — остальное, только отчёт пользователю.
+6. `REFUSE` — не обходить. Грязный worktree: посмотреть `git status`, убрать только то,
    что точно создал агент (кэш сборки, артефакт деплоя), и повторить `scan`.
    Игнорируемые файлы не из кэша (`tfplan`, `*.tfvars`, локальный state): `git worktree remove` унёс бы их молча,
-   `git status` их не показывает. Кэши `node_modules`, `.terraform`, `.venv`, `__pycache__`, `dist`, `build` не мешают,
+   `git status` их не показывает. Кэши `node_modules`, `.terraform`, `.venv`, `__pycache__`, `dist`, `build`, `.next`, `out`, `.expo`, `.turbo`, `*.tsbuildinfo`, `.mypy_cache`, `.pytest_cache`, `coverage` не мешают,
    как и копия `.claude/settings.local.json`, совпадающая с основным чекаутом.
    Владелец worktree забирает или удаляет файлы сам, потом `scan`. Чужой worktree не чистить.
    Открытые пункты в `.tasks/` (каталог в `.gitignore`, `git status` его не видит): закрыть
@@ -41,8 +45,9 @@ description: Безопасная уборка git worktree после мерж�
 
 ## Автоматика
 
-Хук Claude на SessionStart запускает `scan --no-fetch --ready-only` и печатает смерженные
-хвосты. У Codex хука нет, скилл вызывается в конце задачи.
+Хук Claude на SessionStart запускает `scan --no-fetch --ready-only`: репо в корне проекта или до глубины 3,
+печатает READY, LEFTOVER и одну строку «PUSHED старше 3 дней: N». Несмерженное отсеивается до
+`git status`, поэтому хук укладывается в 4–5 с. У Codex хука нет, скилл вызывается в конце задачи.
 
 ## Отчёт
 
