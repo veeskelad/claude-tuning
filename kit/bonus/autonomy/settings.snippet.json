@@ -1,0 +1,17 @@
+{
+  "_comment": "Бонус «autonomy»: вливается поверх базы при --with autonomy. Страж молчит вне безголовых запусков (нет CLAUDE_AUTONOMY_JOB).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/autonomy-pause-guard.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
