@@ -177,6 +177,23 @@ check "morning: задачи по проектам" 2 "$(grep -cE '^### (app|oth
 check "morning: следующий шаг" да "$(has "$D" '→ Запустить тесты')"
 check "morning: чек-листы" да "$(has "$D" 'следующий пункт')"
 
+# --- 6б. утро: раздел «Подстройка» (self-tune) ---------------------------------------------
+printf '#!/usr/bin/env python3\nprint("- просьба ×3 в 3 разговорах: «сделай отчёт»")\n' > "$HOME/.claude/bin/repeat-scan.py"
+python3 "$B/daily_digest.py" morning >/dev/null
+check "morning: ревизии не было — раздел «Подстройка»" да "$(has "$D" '## Подстройка (ревизия self-tune: ни разу)')"
+check "morning: сигнал repeat-scan в сводке" да "$(has "$D" 'просьба ×3 в 3 разговорах')"
+check "morning: зовёт /self-tune" да "$(has "$D" 'Скажи /self-tune')"
+touch "$HOME/.claude/tuning-log.md"
+python3 "$B/daily_digest.py" morning >/dev/null
+check "morning: свежая ревизия — раздела нет" нет "$(has "$D" '## Подстройка')"
+touch -t 202601010000 "$HOME/.claude/tuning-log.md"
+printf '#!/usr/bin/env python3\n' > "$HOME/.claude/bin/repeat-scan.py"
+python3 "$B/daily_digest.py" morning >/dev/null
+check "morning: старая ревизия, но повторов нет — раздела нет" нет "$(has "$D" '## Подстройка')"
+mv "$HOME/.claude/bin/repeat-scan.py" "$T/repeat-scan.stub"
+mv "$HOME/.claude/tuning-log.md" "$T/tuning-log.stub"
+python3 "$B/daily_digest.py" morning >/dev/null
+
 # --- 7. show: раз в день, молчит в claude -p ------------------------------------------------
 SHOWN="$HOME/.local/state/claude-tuning/digest-shown"
 o1=$(CLAUDE_CODE_ENTRYPOINT=sdk-cli python3 "$B/daily_digest.py" show; echo "rc=$?")

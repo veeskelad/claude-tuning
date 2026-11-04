@@ -34,6 +34,9 @@ GLOBAL = HOME / '.claude/global-handoff.md'
 DIGEST = HOME / '.claude/morning-digest.md'
 TIER = HOME / '.claude/bin/handoff-tier.py'
 OPEN_TASKS = HOME / '.claude/hooks/open-tasks.sh'
+REPEAT_SCAN = HOME / '.claude/bin/repeat-scan.py'
+TUNING_LOG = HOME / '.claude/tuning-log.md'
+REVIEW_EVERY_DAYS = 7
 SHOWN = HOME / '.local/state/claude-tuning/digest-shown'
 SKELETON = '# Handoff\n\n## По проектам\n\n## Человеческий контекст\n'
 STATUS = {'blocked': '⛔', 'in_progress': '▶', 'complete': '✓'}
@@ -167,6 +170,7 @@ def morning(quiet=False, tasks_timeout=60):
             c = r['content']
             tail = f" → {one(c['next_steps'][0], 140)}" if c['status'] != 'complete' and c['next_steps'] else ''
             out.append(f"- {STATUS.get(c['status'], '')} {one(c['title'], 110)} ({r['source_agent']}){tail}")
+    out += tuning_nudge()
     if OPEN_TASKS.is_file():
         try:
             tasks = subprocess.run(['bash', str(OPEN_TASKS), '--all'], cwd=str(HOME), capture_output=True,
@@ -181,6 +185,25 @@ def morning(quiet=False, tasks_timeout=60):
         print(f'morning-digest: {len(recs)} задач, {len(blocked)} блокеров → {DIGEST}')
 
 
+def tuning_nudge(timeout=90):
+    """Раздел «Подстройка»: ревизии self-tune не было неделю и повторы есть — показать их и позвать /self-tune."""
+    if not REPEAT_SCAN.is_file():
+        return []
+    age = (datetime.now().timestamp() - TUNING_LOG.stat().st_mtime) / 86400 if TUNING_LOG.exists() else None
+    if age is not None and age < REVIEW_EVERY_DAYS:
+        return []
+    try:
+        sig = subprocess.run([sys.executable, str(REPEAT_SCAN), '--days', str(REVIEW_EVERY_DAYS), '--brief'],
+                             capture_output=True, text=True, timeout=timeout).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    if not sig:
+        return []
+    when = 'ни разу' if age is None else f'{int(age)} дн. назад'
+    return ['', f'## Подстройка (ревизия self-tune: {when})', sig,
+            'Скажи /self-tune — повторы станут правилами, каждая правка с копией и журналом.']
+
+
 def show():
     if os.environ.get('CLAUDE_CODE_ENTRYPOINT', '').startswith('sdk'):
         return  # claude -p: сводка в автоматическом прогоне не нужна
@@ -193,7 +216,7 @@ def show():
     text = DIGEST.read_text()
     SHOWN.parent.mkdir(parents=True, exist_ok=True)
     SHOWN.write_text(today)
-    if EMPTY.search(text) and '## Чек-листы' not in text:
+    if EMPTY.search(text) and '## Чек-листы' not in text and '## Подстройка' not in text:
         return  # пустая сводка — не шуметь
     lines = text.rstrip('\n').split('\n')
     tail = f'\n… ещё {len(lines) - SHOW_LINES} строк: {DIGEST}' if len(lines) > SHOW_LINES else ''

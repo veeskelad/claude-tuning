@@ -293,14 +293,105 @@ def print_interventions(ivs, secret_skipped, n):
         print()
 
 
+# --- Уроки, которые повторяются (раздел 7) ---
+# Урок, записанный снова по тому же классу ошибки, не сработал как запись: ему место в правиле, скилле или страже.
+LESSON_HEAD = re.compile(r"^#{2,3}\s+(.+)$")
+LESSON_DATE = re.compile(r"(\d{4})-(\d\d)-(\d\d)|(\d\d)\.(\d\d)\.(\d{4})")
+LESSON_AGAIN = re.compile(r"\b(снова|опять|повтор\w*|второй раз|ещё раз|еще раз|again)\b", re.I)
+LESSON_STOP = {"чтобы", "через", "после", "перед", "когда", "который", "которые", "claude", "codex", "проверк", "правк"}
+
+
+def lesson_date(t):
+    m = LESSON_DATE.search(t)
+    if not m:
+        return None
+    y, mo, d = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(6), m.group(5), m.group(4))
+    try:
+        return time.mktime(time.strptime(f"{y}-{mo}-{d}", "%Y-%m-%d"))
+    except ValueError:
+        return None
+
+
+def lessons(projects, days):
+    """Свежие уроки (за days) и прежние уроки того же класса — по общим основам слов заголовка."""
+    since = time.time() - days * 86400
+    heads, seen = [], set()
+    for f in sorted(glob.glob(f"{projects}/*/memory/lessons-learned.md")):
+        proj = os.path.basename(os.path.dirname(os.path.dirname(f)))
+        try:
+            lines = open(f, encoding="utf-8", errors="ignore").read().split("\n")
+        except OSError:
+            continue
+        for n, line in enumerate(lines, 1):
+            m = LESSON_HEAD.match(line)
+            if not m:
+                continue
+            title = m.group(1).strip()
+            # одна и та же память лежит под двумя slug (копия проекта): заголовок считается один раз
+            if title in seen:
+                continue
+            seen.add(title)
+            body = " ".join(lines[n:n + 2])
+            heads.append({"t": title, "f": f, "n": n, "p": proj, "d": lesson_date(title),
+                          "k": stems(LESSON_DATE.sub(" ", title)) - LESSON_STOP, "again": bool(LESSON_AGAIN.search(title + " " + body))})
+    fresh = [h for h in heads if h["d"] and h["d"] >= since]
+    older = [h for h in heads if not h["d"] or h["d"] < since]
+    pairs = []
+    for h in fresh:
+        if len(h["k"]) < 3:
+            continue
+        like = [o for o in older if len(h["k"] & o["k"]) >= 3 and len(h["k"] & o["k"]) / len(h["k"] | o["k"]) >= .25]
+        if like:
+            pairs.append((h, like))
+    return fresh, pairs, [h for h in fresh if h["again"]]
+
+
+def print_lessons(fresh, pairs, again, days):
+    print(f"\n## 7. Уроки, которые повторяются (за {days} дн. записано {len(fresh)})\n")
+    print("Урок того же класса записан снова — запись не сработала: правило в скилл задачи, в CLAUDE.md или страж.\n")
+    if not pairs and not again:
+        print("Нет.")
+    for h, like in pairs[:8]:
+        print(f"- «{clean(h['t'], 110)}» ({short_path(h['f'])}:{h['n']})")
+        for o in like[:2]:
+            print(f"  - раньше: «{clean(o['t'], 110)}» ({short_path(o['f'])}:{o['n']})")
+    for h in [x for x in again if not any(x is p[0] for p in pairs)][:5]:
+        print(f"- в тексте «снова/опять»: «{clean(h['t'], 110)}» ({short_path(h['f'])}:{h['n']})")
+
+
+def brief(asks, fixes, ivs, pairs, again, days):
+    """До шести строк для утренней сводки; пусто — сигнала нет."""
+    out = []
+    for g in clusters(asks)[:2]:
+        its = g["items"]
+        out.append(f"- просьба ×{len(its)} в {len({i['s'] for i in its})} разговорах: «{clean(its[0]['t'], 90)}»")
+    fc = clusters(fixes, min_size=2, min_sessions=1, jac=.35)
+    if fc:
+        out.append(f"- поправки одного вида: {len(fc)} (пример: «{clean(fc[0]['items'][0]['t'], 80)}»)")
+    rem = [i for i in ivs if i["c"] == "reminder"]
+    if len({i["s"] for i in rem}) >= 3:
+        out.append(f"- напоминаний «продолжай/дальше»: {len(rem)} в {len({i['s'] for i in rem})} разговорах")
+    for h, like in pairs[:2]:
+        out.append(f"- урок снова того же класса: «{clean(h['t'], 90)}» (раньше: «{clean(like[0]['t'], 60)}»)")
+    if again and not pairs:
+        out.append(f"- уроков с «снова/опять» за {days} дн.: {len(again)}")
+    if out:
+        print("\n".join(out[:6]))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=14)
     ap.add_argument("--projects", default=f"{H}/.claude/projects")
     ap.add_argument("--interventions", action="store_true", help="добавить раздел 6: вмешательства человека по классам")
     ap.add_argument("--examples", type=int, default=3, help="примеров на класс в разделе 6 (по умолчанию 3)")
+    ap.add_argument("--lessons", action="store_true", help="добавить раздел 7: уроки lessons-learned, которые повторяются")
+    ap.add_argument("--brief", action="store_true", help="до шести строк сигнала (для утренней сводки); нет сигнала — пусто")
     a = ap.parse_args()
-    files, asks, fixes, shapes, used, ivs, secret_skipped = scan(a.projects, a.days, a.interventions)
+    files, asks, fixes, shapes, used, ivs, secret_skipped = scan(a.projects, a.days, a.interventions or a.brief)
+    if a.brief:
+        _, pairs, again = lessons(a.projects, a.days)
+        return brief(asks, fixes, ivs, pairs, again, a.days)
     print(f"# Ревизия: что повторяется за {a.days} дн.\n\nРазговоров: {len(files)}, сообщений человека: {len(asks)}.\n")
 
     print("## 1. Повторённые просьбы (кандидаты в правила)\n")
@@ -347,6 +438,8 @@ def main():
         print(f"\n## 5. ~/.claude/CLAUDE.md: {n} строк{note}")
     if a.interventions:
         print_interventions(ivs, secret_skipped, max(a.examples, 0))
+    if a.lessons:
+        print_lessons(*lessons(a.projects, a.days), a.days)
 
 
 if __name__ == "__main__":
