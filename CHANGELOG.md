@@ -2,6 +2,10 @@
 
 ## Не выпущено
 
+## 3.0.0 — 04.11.2026
+
+Несовместимо с 2.x: разработческие скиллы и хуки (worktree-cleanup, systematic-debugging, review-triage, repo-freshness, agents-md-drift, `worktree.baseRef`) ставятся только с `--with code`. Уже поставленные не удаляются. Подпись ИИ в коммитах и PR больше не убирается по умолчанию.
+
 - Знакомство (шаг 0 в SKILL.md, одна фраза в `INSTALL-VIA-AGENT.txt`): 4–5 вопросов — чем занимаешься, подписывать ли тексты как ИИ, как отвечать, настройки приложения Claude; по аудиту — путь «с нуля», «добавить» или «сравнить и выбрать»; отчёт «было → стало» и откат.
 - База и бонусы: `install-kit.py --with code,servers,content`. В `code` переехали worktree-cleanup, systematic-debugging, review-triage, repo-freshness.sh, agents-md-drift.sh и `worktree.baseRef`; новое там — adr, review-domain-checks, страж `guard-hard-rules.py` (без `--no-verify`, ветки и worktree от свежего `origin`, без правок основной копии на main), запуск repo-freshness каждые 30 минут. `servers` — правило `ops-safety.md`. `content` — правило `vertical-video.md` (безопасные зоны 9:16) и сторонние скиллы в `vendor.json`.
 - Подпись ИИ в коммитах и PR больше не убирается по умолчанию: пустая `attribution` ставится только по ответу «нет» в знакомстве; правило `ai-signature` стража включается `CLAUDE_GUARD_NO_AI_SIGNATURE=1`.
