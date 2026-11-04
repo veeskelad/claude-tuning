@@ -1,0 +1,46 @@
+{
+  "_comment": "Бонус «код»: вливается поверх базы при --with code.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/repo-freshness.sh\" \"$CLAUDE_PROJECT_DIR\"",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.agents/skills/worktree-cleanup/scripts/worktree-cleanup\" scan --no-fetch --ready-only",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/agents-md-drift.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "baseRef": "fresh"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "handoff",
+  "version": "1.0.0",
+  "description": "На 60% контекста предлагает перенести работу в чистый чат: Claude пишет документ передачи, мод очищает контекст и продолжает с раздела «Сейчас»",
+  "types": "./types/index.d.ts",
+  "license": "MIT",
+  "author": { "name": "veeskelad" }
+}
