@@ -42,7 +42,7 @@ async function readData($: EngineInterface): Promise<TuneView> {
   const raw: any = JSON.parse(String(await $.fs.read(`${await homeDir($)}/${DATA}`)))
   const items: TuneItem[] = (Array.isArray(raw?.items) ? raw.items : [])
     .filter((i: any) => typeof i?.id === 'string' && typeof i?.title === 'string')
-    .map((i: any) => ({ id: i.id, title: i.title, why: String(i.why ?? ''), prompt: String(i.prompt ?? '') }))
+    .map((i: any) => ({ id: i.id, title: i.title, what: String(i.what ?? ''), why: String(i.why ?? ''), prompt: String(i.prompt ?? '') }))
   return { items, at: Number(raw?.at) || 0 }
 }
 
@@ -89,33 +89,36 @@ export async function pressTune($: EngineInterface, key: string): Promise<boolea
 
 type Els = { Box: any; Text: any; Button: any }
 
-/** Раздел панели; советов нет — ничего */
+/** Раздел панели; советов нет — ничего. Текст переносится, а не обрезается: совет читают целиком */
 export function tuneSection(view: TuneView, els: Els, opts: { isDesktop: boolean; width: number; inset?: number }) {
   const { Box, Text, Button } = els
   if (view.items.length === 0) return null
   const pad = opts.inset ?? 0
   const bg = '#6366f114'
   const frame = opts.isDesktop ? { backgroundColor: bg, borderStyle: 'round' as const, borderColor: bg } : {}
-  const cut = (t: string, n: number) => (t.length > n ? `${t.slice(0, Math.max(1, n - 1))}…` : t)
   const noop = () => undefined
   const act = (id: string, a: string, label: string) => <Button key={`tune.${a}.${id}`} plain label={label} dimColor={a !== 'do'} onPress={noop} />
   return (
     <Box key="sec-tune" flexDirection="column" marginBottom={1}>
-      <Box flexDirection="row" paddingX={pad * 2} marginBottom={1}>
+      <Box flexDirection="column" paddingX={pad * 2} marginBottom={1}>
         <Text>
           <Text bold>Подстройка </Text>
           {opts.isDesktop ? <Text backgroundColor="#6366f133" color="#4338ca" bold>{` ${view.items.length} `}</Text> : <Text dimColor>{String(view.items.length)}</Text>}
         </Text>
+        <Text dimColor wrap="wrap">
+          Что можно улучшить под тебя. «Сделать» — Claude начнёт сейчас, «обсудить» — спросит, что поменять, «позже» — напомню через неделю, «скрыть» — больше не покажу.
+        </Text>
       </Box>
       {view.items.map(i => (
         <Box key={`tune-card-${i.id}`} flexDirection="column" paddingX={1} marginX={pad} marginBottom={1} {...frame}>
-          <Text bold wrap="truncate-end">{cut(i.title, opts.width)}</Text>
+          <Text bold wrap="wrap">{i.title}</Text>
+          {i.what !== '' && <Text wrap="wrap">{i.what}</Text>}
           {i.why !== '' && <Text dimColor wrap="wrap">{i.why}</Text>}
-          <Box flexDirection="row" gap={2}>
+          <Box flexDirection="row" flexWrap="wrap" columnGap={2} marginTop={1}>
             {act(i.id, 'do', 'сделать')}
             {act(i.id, 'talk', 'обсудить')}
             {act(i.id, 'later', 'позже')}
-            {act(i.id, 'never', 'не предлагать')}
+            {act(i.id, 'never', 'скрыть')}
           </Box>
         </Box>
       ))}

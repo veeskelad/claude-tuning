@@ -48,14 +48,15 @@ check("ревизии не было — совет self-tune", "self-tune" in go
 check("MEMORY.md у потолка — совет memory", "memory" in got, got)
 check("урок записан снова — совет lesson:*", any(i.startswith("lesson:") for i in got), got)
 items = json.loads(OUT.read_text())["items"]
-check("у каждого совета заголовок и что отправить", all(i["title"] and i["prompt"] for i in items), items)
+check("у каждого совета заголовок, что сделает Claude и что отправить", all(i["title"] and i["what"] and i["prompt"] for i in items), items)
+check("в текстах нет обрывков ссылок и ‹скрыто›", not any("‹скрыто›" in i["why"] or "http" in i["why"] for i in items), items)
 check("self-tune отправляется фразой, не командой", not next(i for i in items if i["id"] == "self-tune")["prompt"].startswith("/"))
 check("не больше четырёх", len(items) <= 4, items)
 
 r = run("--answer", "memory", "never")
 check("ответ: код 0", r.returncode == 0, r.stderr)
 line = json.loads(FB.read_text().splitlines()[-1])
-check("ответ в журнале", line["id"] == "memory" and line["answer"] == "never" and line["title"] == "Почистить память", line)
+check("ответ в журнале", line["id"] == "memory" and line["answer"] == "never" and line["title"] == "Навести порядок в памяти", line)
 check("ответ убрал совет из панели сразу", "memory" not in ids(), ids())
 run()
 check("«не предлагать» — не возвращается", "memory" not in ids(), ids())
