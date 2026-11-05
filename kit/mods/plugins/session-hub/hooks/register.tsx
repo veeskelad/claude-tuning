@@ -399,7 +399,7 @@ export const register: Register = on => {
           </Box>
         )}
         {isOpen && (
-          <Box flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={isDesktop ? 1 : 0} paddingX={1}>
+          <Box flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={isDesktop ? 1 : 0} paddingX={1} marginTop={isDesktop ? 1 : 0}>
             {by.waiting.map(pill)}
             {me.isRunning && pill(null)}
             {by.running.map(pill)}

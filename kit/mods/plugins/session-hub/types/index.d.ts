@@ -16,7 +16,7 @@ export type HubRow = {
 export type HubSelf = { title: string; isRunning: boolean; since: number | null }
 
 /** Совет раздела «Подстройка» (tuning-suggest.py) */
-export type TuneItem = { id: string; title: string; why: string; prompt: string }
+export type TuneItem = { id: string; title: string; what: string; why: string; prompt: string }
 /** Советы панели и когда собраны (мс) */
 export type TuneView = { items: TuneItem[]; at: number }
 

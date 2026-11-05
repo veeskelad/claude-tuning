@@ -14,8 +14,8 @@ test('подстройка: советы в панели, «сделать» о�
   const clock = mock.clock(on)
   mock.env(on, { HOME: '/home/t' })
   const items = [
-    { id: 'self-tune', title: 'Ревизия под тебя: не было ни разу', why: 'просьба ×4: «смержил, закрывай»', prompt: 'Проведи ревизию по скиллу self-tune' },
-    { id: 'memory', title: 'Почистить память', why: '', prompt: '/memory-consolidate' },
+    { id: 'self-tune', title: 'Запомнить, о чём ты просишь снова и снова', what: 'Claude найдёт повторяющиеся просьбы', why: 'просьба «смержил, закрывай» — 4 раза', prompt: 'Проведи ревизию по скиллу self-tune' },
+    { id: 'memory', title: 'Навести порядок в памяти', what: '', why: '', prompt: '/memory-consolidate' },
   ]
   const files = new Map<string, string>([[DATA, JSON.stringify({ at: 5, items })], [SCRIPT, '#']])
   const runs: string[][] = []
@@ -45,8 +45,10 @@ test('подстройка: советы в панели, «сделать» о�
     const ui = await $.ui.mount({ ...PANE, surface })
     const texts = async () => (await ui.findAll({ type: 'Text' })).map(t => t.text).join('|')
     expect(await texts()).toMatch(/Подстройка/)
-    expect(await texts()).toMatch(/Ревизия под тебя/)
+    expect(await texts()).toMatch(/Запомнить, о чём ты просишь снова и снова/)
+    expect(await texts()).toMatch(/Claude найдёт повторяющиеся просьбы/)
     expect(await texts()).toMatch(/смержил, закрывай/)
+    expect(await texts()).toMatch(/«скрыть» — больше не покажу/)
     await ui.unmount()
   }
 
@@ -56,7 +58,7 @@ test('подстройка: советы в панели, «сделать» о�
   await clock.advance(10)
   expect(sent).toContain('Проведи ревизию по скиллу self-tune')
   expect(runs).toContainEqual(['python3', SCRIPT, '--answer', 'self-tune', 'done'])
-  expect(await texts()).not.toMatch(/Ревизия под тебя/)
+  expect(await texts()).not.toMatch(/Запомнить, о чём/)
 
   await ui.press({ key: 'tune.never.memory' })
   await clock.advance(10)
@@ -71,7 +73,7 @@ test('подстройка: «обсудить» отправляет вопро
   mock.store(on)
   const clock = mock.clock(on)
   mock.env(on, { HOME: '/home/t' })
-  const files = new Map<string, string>([[DATA, JSON.stringify({ at: 7, items: [{ id: 'skills-idle', title: '48 скиллов не вызывались месяц', why: 'adr, …', prompt: 'x' }] })], [SCRIPT, '#']])
+  const files = new Map<string, string>([[DATA, JSON.stringify({ at: 7, items: [{ id: 'skills-idle', title: 'Выключить навыки, которыми ты не пользуешься', what: '', why: '48 навыков', prompt: 'x' }] })], [SCRIPT, '#']])
   const sent: string[] = []
   on('command.register', () => ({ value: { command: 'sessions' } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
@@ -92,7 +94,7 @@ test('подстройка: «обсудить» отправляет вопро
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   await ui.press({ key: 'tune.talk.skills-idle' })
   await clock.advance(10)
-  expect(sent[0]).toMatch(/Обсудим совет подстройки «48 скиллов/)
+  expect(sent[0]).toMatch(/Обсудим совет подстройки «Выключить навыки/)
   expect(sent[0]).toMatch(/--answer skills-idle never/)
   await ui.unmount()
 })

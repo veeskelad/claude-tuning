@@ -9,7 +9,7 @@
     tuning-suggest.py            # собрать и записать
     tuning-suggest.py --print    # только напечатать, ничего не писать
 """
-import argparse, hashlib, importlib.util, json, os, sys, time
+import argparse, hashlib, importlib.util, json, os, re, sys, time
 
 H = os.path.expanduser("~")
 OUT = f"{H}/.local/state/claude-tuning/suggestions.json"
@@ -59,6 +59,21 @@ def hidden(fb, sid, period_days, now):
     return False
 
 
+def plain(t):
+    """Цитата для человека: ссылки и скрытые ключи — одним словом, а не обрывком адреса."""
+    t = re.sub(r"https?://\S+|\S*‹скрыто›\S*", "(ссылка)", t)
+    return re.sub(r"(\(ссылка\)\s*)+", "(ссылка) ", t).strip(" »«")
+
+
+def times(n):
+    return f"{n} раза" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else f"{n} раз"
+
+
+def project_label(slug):
+    """-Users-name-Work-app → app: последняя часть пути проекта."""
+    return slug.strip("-").split("-")[-1] or slug
+
+
 def mtime(path):
     try:
         return os.path.getmtime(path)
@@ -79,19 +94,20 @@ def suggest(now):
     last = max(mtime(TUNING_LOG), fb.get("self-tune", (None, 0))[1] if fb.get("self-tune", ("",))[0] == "done" else 0)
     age = now - last if last else None
     if not hidden(fb, "self-tune", 7, now) and (age is None or age >= 7 * DAY):
-        why = []
+        seen = []
         if rs:
             files, asks, fixes, _, _, ivs, _ = rs.scan(f"{H}/.claude/projects", 7, True)
             for g in rs.clusters(asks)[:2]:
                 its = g["items"]
-                why.append(f"просьба ×{len(its)}: «{rs.clean(its[0]['t'], 70)}»")
+                seen.append(f"просьба «{plain(rs.clean(its[0]['t'], 60))}» — {times(len(its))}")
             rem = [i for i in ivs if i["c"] == "reminder"]
             if len({i["s"] for i in rem}) >= 3:
-                why.append(f"напоминаний «продолжай» — {len(rem)}")
-        if why or age is None or age >= 14 * DAY:
-            when = "не было ни разу" if age is None else f"последняя {days(age)} дн. назад"
-            items.append({"id": "self-tune", "title": f"Ревизия под тебя: {when}",
-                          "why": "; ".join(why) or "давно не смотрел, что ты повторяешь",
+                seen.append(f"«продолжай» — {times(len(rem))}")
+        if seen or age is None or age >= 14 * DAY:
+            when = "Ревизии ещё не было." if age is None else f"Последняя ревизия — {days(age)} дн. назад."
+            items.append({"id": "self-tune", "title": "Запомнить, о чём ты просишь снова и снова",
+                          "what": "Claude найдёт повторяющиеся просьбы и поправки и запишет их в правила — в следующий раз просить не придётся.",
+                          "why": (f"За неделю: {'; '.join(seen)}. " if seen else "") + when,
                           "prompt": "Проведи ревизию по скиллу self-tune: что я повторяю и что стоит записать в правила."})
 
     # 2. уроки, записанные снова: запись не сработала
@@ -101,8 +117,9 @@ def suggest(now):
             sid = "lesson:" + hashlib.sha1(h["t"].encode()).hexdigest()[:10]
             if hidden(fb, sid, None, now):
                 continue
-            items.append({"id": sid, "title": "Урок записан второй раз",
-                          "why": f"«{rs.clean(h['t'], 80)}», раньше: «{rs.clean(like[0]['t'], 60)}»",
+            items.append({"id": sid, "title": "Одна и та же ошибка повторилась",
+                          "what": "Урок о ней уже записан, но не помог. Claude превратит его в правило или в проверку, которая не даст ошибиться снова.",
+                          "why": f"Сейчас: «{plain(rs.clean(h['t'], 90))}». Раньше: «{plain(rs.clean(like[0]['t'], 70))}».",
                           "prompt": f"Урок «{h['t']}» ({rs.short_path(h['f'])}:{h['n']}) записан снова, раньше был «{like[0]['t']}». "
                                     "По скиллу self-tune преврати его в правило там, где ошибка случилась, или предложи стража."})
 
@@ -119,10 +136,13 @@ def suggest(now):
         if n >= MEMORY_LINES * 0.9:
             big.append((n, d))
     # аудит памяти отмечается кнопкой «сделать»: до первого ответа — предложить, если память вообще есть
-    never = "memory" not in fb
-    if not hidden(fb, "memory", 30, now) and (big or (never and has_memory) or fb.get("memory", ("",))[0] == "done"):
-        why = "; ".join(f"MEMORY.md {p}: {n} строк из {MEMORY_LINES}" for n, p in sorted(big, reverse=True)[:2])
-        items.append({"id": "memory", "title": "Почистить память", "why": why or "аудита памяти не было месяц",
+    done_at = fb.get("memory", ("", 0))
+    if not hidden(fb, "memory", 30, now) and (big or ("memory" not in fb and has_memory) or done_at[0] == "done"):
+        full = "; ".join(f"память проекта {project_label(p)} почти полна — {n} строк из {MEMORY_LINES}" for n, p in sorted(big, reverse=True)[:2])
+        when = f"Последняя проверка — {days(now - done_at[1])} дн. назад." if done_at[0] == "done" else "Проверки ещё не было."
+        items.append({"id": "memory", "title": "Навести порядок в памяти",
+                      "what": "Claude проверит, что он помнит о твоих проектах: сожмёт длинное, уберёт устаревшее и повторы. Удалит только после твоего «да».",
+                      "why": (full[0].upper() + full[1:] + ". " if full else "") + when,
                       "prompt": "Проведи аудит памяти по скиллу memory-consolidate и покажи, что предлагаешь сжать или убрать."})
 
     # 4. скиллы, которые месяц не вызывались: лишние загружают описание в каждый разговор
@@ -130,8 +150,9 @@ def suggest(now):
         files, _, _, _, used, _, _ = rs.scan(f"{H}/.claude/projects", 30, False)
         idle = [r[0] for r in rs.skill_table(used) if r[2] == 0]
         if len(idle) >= 10:
-            items.append({"id": "skills-idle", "title": f"{len(idle)} скиллов не вызывались месяц",
-                          "why": ", ".join(idle[:5]) + ("…" if len(idle) > 5 else ""),
+            items.append({"id": "skills-idle", "title": "Выключить навыки, которыми ты не пользуешься",
+                          "what": "Описание каждого навыка Claude читает в каждом разговоре, и это тратит лимит. Он покажет, что можно выключить, и ничего не тронет без твоего «да».",
+                          "why": f"{len(idle)} навыков не вызывались месяц, например: {', '.join(idle[:4])}.",
                           "prompt": "Посмотри, какие скиллы я не вызывал месяц (repeat-scan.py --days 30, раздел 4), "
                                     "и предложи, какие отключить или объединить. Ничего не удаляй без моего «да»."})
     return items[:MAX_ITEMS]
