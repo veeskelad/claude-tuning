@@ -57,78 +57,41 @@ test('полоса: числа в кнопке, раскрытие, подпис
   await ui.unmount()
 })
 
-test('терминал: список из ~/.claude/sessions, свой диалог и умершие процессы не показываются', async ($, on) => {
-  mock.store(on)
-  const clock = mock.clock(on, { now: Date.parse('2026-11-04T09:00:00Z') })
-  mock.env(on, { HOME: '/home/t' })
-  const dir = '/home/t/.claude/sessions'
-  const files: Record<string, unknown> = {
-    'a.json': { pid: 11, sessionId: 'me', name: 'Я сам', cwd: '/w/a', kind: 'interactive', status: 'busy', pidDomain: 'darwin', statusUpdatedAt: clock.now() },
-    'b.json': { pid: 22, sessionId: 'b', hostSessionId: 'local_b', name: 'Работает', cwd: '/w/proj', kind: 'interactive', status: 'busy', pidDomain: 'darwin', statusUpdatedAt: clock.now() },
-    'c.json': { pid: 33, sessionId: 'c', name: 'Умерла', cwd: '/w/x', kind: 'interactive', status: 'busy', pidDomain: 'darwin', statusUpdatedAt: clock.now() },
-    'd.json': { pid: 44, sessionId: 'd', name: 'Сервер', cwd: '/w/y', kind: 'interactive', status: 'busy', pidDomain: 'linux', statusUpdatedAt: clock.now() },
-  }
-  on('command.register', () => ({ value: { command: 'sessions' } }))
-  on('session.start', (_, e) => ({ cwd: e.cwd }))
-  on('session.id', () => ({ value: 'me' }))
-  on('session.surfaces', () => ({ value: ['terminal'] }))
-  on('ui.status', () => ({ value: undefined }))
-  on('ui.log', () => ({ value: undefined }))
-  on('ui.panes', () => ({ value: [] }))
-  on('fs.list', () => ({ value: Object.keys(files).map(name => ({ name, kind: 'file', size: 1, mtimeMs: 1, isLink: false })) }) as any)
-  on('fs.read', (_, e: any) => {
-    const name = String(e.path).replace(`${dir}/`, '')
-    return (name in files ? { value: JSON.stringify(files[name]) } : { deny: 'ENOENT' }) as any
+// Терминал и VS Code (и терминал IDE): мод молчит — ни полосы, ни панели, ни строки статуса, ни опроса
+for (const surface of ['terminal', 'vscode'] as const) {
+  test(`${surface}: мода нет`, async ($, on) => {
+    mock.store(on)
+    const clock = mock.clock(on, { now: Date.parse('2026-11-04T09:00:00Z') })
+    const commands: string[] = []
+    const opened: string[] = []
+    let status: string | undefined
+    let calls = 0
+    on('command.register', (_, e: any) => (commands.push(e.name), { value: { command: e.name } }))
+    on('session.start', (_, e) => ({ cwd: e.cwd }))
+    on('session.id', () => ({ value: 'me' }))
+    on('session.surfaces', () => ({ value: [surface] }))
+    on('ui.status', (_, e: any) => ((status = e.text), { value: undefined }))
+    on('ui.log', () => ({ value: undefined }))
+    on('ui.panes', () => ({ value: [] }))
+    on('ui.open', (_, e: any) => (opened.push(e.id), { value: { isPlaced: true } }))
+    on('fs.list', () => ((calls++), { value: [] }) as any)
+    on('mcp.call', () => ((calls++), { deny: 'мод не должен звать приложение' }) as any)
+    on('ui.render', ($, e) => {
+      const { Text } = $.ui.resolve(e)
+      return <Text>engine</Text>
+    })
+
+    await $.session.start({ cwd: '/', surface, isInteractive: true })
+    await $.session.attach({ surface } as any).catch(() => undefined)
+    await clock.advance(10_000)
+    expect(commands).not.toContain('sessions')
+    expect(opened).not.toContain('session-hub')
+    expect(status ?? '').not.toMatch(/в работе/)
+    expect(calls).toBe(0)
+    if (surface === 'terminal') {
+      const ui = await $.ui.mount({ ...BAND, surface })
+      expect((await ui.findAll({ type: 'Text' })).map(t => t.text).join('|')).toBe('engine')
+      await ui.unmount()
+    }
   })
-  on('fs.write', () => ({ value: undefined }) as any)
-  on('fs.stat', () => ({ deny: 'ENOENT' }) as any)
-  on('process.run', (_, e: any) => ({
-    value: { exitCode: 0, stdout: e.argv[0] === 'uname' ? 'Darwin\n' : '   11\n   22\n   44\n', stderr: '' },
-  }) as any)
-  on('ui.render', ($, e) => {
-    const { Text } = $.ui.resolve(e)
-    return <Text>engine</Text>
-  })
-
-  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
-  await clock.advance(2000)
-  const ui = await $.ui.mount({ ...BAND, surface: 'terminal' })
-  const texts = async () =>
-    [...(await ui.findAll({ type: 'Text' })).map(t => t.text), ...(await ui.findAll({ type: 'Button' })).map((b: any) => b.label ?? b.text)].join('|')
-  // свой диалог — не из файла, а из своих ходов (turn.start): здесь хода нет
-  expect(await texts()).toMatch(/В работе 1/)
-  await ui.press({ key: 'band-list' })
-  const t = await texts()
-  expect(t).toMatch(/Работает/)
-  expect(t).not.toMatch(/Я сам/)
-  expect(t).not.toMatch(/Умерла/)
-  expect(t).not.toMatch(/Сервер/)
-  await ui.unmount()
-})
-
-test('VS Code: панель открывается сама, числа в строке статуса', async ($, on) => {
-  mock.store(on)
-  const clock = mock.clock(on, { now: Date.parse('2026-11-04T09:00:00Z') })
-  mock.env(on, { HOME: '/home/t' })
-  const opened: string[] = []
-  let status: string | undefined
-  const file = { pid: 22, sessionId: 'b', name: 'Работает', cwd: '/w/proj', kind: 'interactive', status: 'busy', pidDomain: 'darwin', statusUpdatedAt: clock.now() }
-  on('command.register', () => ({ value: { command: 'sessions' } }))
-  on('session.start', (_, e) => ({ cwd: e.cwd }))
-  on('session.id', () => ({ value: 'me' }))
-  on('session.surfaces', () => ({ value: ['vscode'] }))
-  on('ui.status', (_, e: any) => ((status = e.text), { value: undefined }))
-  on('ui.log', () => ({ value: undefined }))
-  on('ui.panes', () => ({ value: [] }))
-  on('ui.open', (_, e: any) => (opened.push(e.id), { value: { isPlaced: true } }))
-  on('fs.list', () => ({ value: [{ name: 'b.json', kind: 'file', size: 1, mtimeMs: 1, isLink: false }] }) as any)
-  on('fs.read', (_, e: any) => (String(e.path).endsWith('b.json') ? { value: JSON.stringify(file) } : { deny: 'ENOENT' }) as any)
-  on('fs.write', () => ({ value: undefined }) as any)
-  on('fs.stat', () => ({ deny: 'ENOENT' }) as any)
-  on('process.run', (_, e: any) => ({ value: { exitCode: 0, stdout: e.argv[0] === 'uname' ? 'Darwin\n' : '22\n', stderr: '' } }) as any)
-
-  await $.session.start({ cwd: '/', surface: 'vscode', isInteractive: true })
-  await clock.advance(2000)
-  expect(opened).toContain('session-hub')
-  expect(status).toMatch(/в работе 1 · ждут ответа 0/)
-})
+}

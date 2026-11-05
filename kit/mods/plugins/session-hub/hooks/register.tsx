@@ -37,13 +37,6 @@ const isPaneOpen = atom({ plugin: 'session-hub', key: 'isPaneOpen' } as const, f
 let timer: { cancel: () => void } | null = null
 let raw: Record<string, unknown>[] = []
 const runningSince: Record<string, number> = {}
-// 'app' — инструменты сессий приложения Claude; 'local' — файлы ~/.claude/sessions/<pid>.json, которые пишет
-// каждая живая сессия Claude Code на машине: так список есть и в терминале, и в VS Code
-let source: 'app' | 'local' = 'app'
-// VS Code не рисует полосу над полем ввода: там панель сбоку открывается сама, числа — в строке статуса
-let isVsCode = false
-let isVsPaneShown = false
-let osName = ''
 let selfKey = ''
 
 const cut = (t: string, n: number) => (t.length > n ? t.slice(0, Math.max(1, n - 1)) + '…' : t)
@@ -94,11 +87,6 @@ async function classify($: EngineInterface) {
   // перерисовка только при настоящем изменении: каждая перерисовка может съесть нажатие
   const before = await read($, rows)
   if (JSON.stringify(before) !== JSON.stringify(next)) await update($, rows, () => next)
-  if (isVsCode) {
-    const me = await read($, self)
-    const run = next.filter(r => r.state === 'running').length + (me.isRunning ? 1 : 0)
-    $.ui.status(`Диалоги: в работе ${run} · ждут ответа ${next.filter(r => r.state === 'waiting').length}`)
-  }
 }
 
 async function listApp($: EngineInterface): Promise<Record<string, unknown>[]> {
@@ -109,44 +97,9 @@ async function listApp($: EngineInterface): Promise<Record<string, unknown>[]> {
   return list.filter(s => s.isArchived !== true)
 }
 
-async function listLocal($: EngineInterface): Promise<Record<string, unknown>[]> {
-  const home = ((await $.env.get('HOME')) ?? (await $.env.get('USERPROFILE')) ?? '.').replace(/\\/g, '/')
-  const dir = `${home}/.claude/sessions`
-  if (!osName) osName = ((await $.process.run(['uname', '-s']).catch(() => null))?.stdout ?? '').trim().toLowerCase()
-  type Entry = { pid?: number; sessionId?: string; hostSessionId?: string; name?: string; cwd?: string; kind?: string; status?: string; pidDomain?: string; statusUpdatedAt?: number; updatedAt?: number }
-  const entries: Entry[] = []
-  for (const f of await $.fs.list(dir).catch(() => [])) {
-    if (!f.name.endsWith('.json')) continue
-    try {
-      const d = JSON.parse(String(await $.fs.read(`${dir}/${f.name}`))) as Entry
-      // каталог может синкаться между машинами: процессы другой ОС отсекает pidDomain
-      if (d.kind === 'interactive' && d.sessionId && d.pid && (!d.pidDomain || !osName || d.pidDomain === osName)) entries.push(d)
-    } catch {
-      // файл пишется прямо сейчас — прочтём на следующем опросе
-    }
-  }
-  // файл умершего процесса может остаться: живые сверяем с ps одним вызовом
-  const alive = new Set<number>()
-  if (entries.length) {
-    const ps = await $.process.run(['ps', '-o', 'pid=', '-p', entries.map(d => d.pid).join(',')]).catch(() => null)
-    for (const line of (ps?.stdout ?? '').split('\n')) if (line.trim()) alive.add(Number(line.trim()))
-  }
-  const me = entries.find(d => d.sessionId === selfKey)
-  if (me?.name && (await read($, self)).title !== me.name) await update($, self, s => ({ ...s, title: String(me.name) }))
-  return entries
-    .filter(d => alive.has(d.pid!) && d.sessionId !== selfKey)
-    .map(d => ({
-      sessionId: d.hostSessionId ?? d.sessionId,
-      title: d.name,
-      cwd: d.cwd,
-      isRunning: d.status === 'busy',
-      lastActivityAt: new Date(d.statusUpdatedAt ?? d.updatedAt ?? 0).toISOString(),
-    }))
-}
-
 async function refresh($: EngineInterface) {
   try {
-    raw = source === 'local' ? await listLocal($) : await listApp($)
+    raw = await listApp($)
     await classify($)
     if ((await read($, error)) !== '') await update($, error, () => '')
   } catch (err) {
@@ -200,22 +153,19 @@ async function setPane($: EngineInterface, open: boolean) {
   if (open) await $.ui.open({ id: PANE, title: 'Диалоги' })
   else await $.ui.close({ id: PANE })
   await update($, isPaneOpen, () => open)
-  // выбор VS Code свой у диалога: общий флаг (на десктопе панель обычно закрыта) закрыл бы её
-  if (!isVsCode) await $.store.set(K_PANE, open)
+  await $.store.set(K_PANE, open)
+}
+
+// Мод работает только в приложении Claude: список диалогов дают его инструменты сессий. В терминале
+// и в VS Code (и в терминале любой IDE) мод ничего не показывает
+async function isInApp($: EngineInterface) {
+  return (await $.session.surfaces()).includes('desktop')
 }
 
 async function activate($: EngineInterface) {
   selfKey = await $.session.id()
-  const surfaces = await $.session.surfaces()
-  if (surfaces.length > 0 && surfaces.every(s => s === 'terminal' || s === 'vscode')) source = 'local'
-  isVsCode = surfaces.length > 0 && surfaces.every(s => s === 'vscode')
-  if (source === 'app') void loadSelf($)
-  if (isVsCode) {
-    if (!isVsPaneShown) {
-      isVsPaneShown = true
-      await setPane($, true)
-    }
-  } else if ((await $.store.get(K_PANE)) === true) await setPane($, true)
+  void loadSelf($)
+  if ((await $.store.get(K_PANE)) === true) await setPane($, true)
   void poll($)
 }
 
@@ -227,6 +177,7 @@ function sorted(list: HubRow[], state: HubState) {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
+    if (e.surface !== 'desktop' && !(await isInApp($))) return next(e)
     await $.command.register({ name: 'sessions', description: 'Боковая панель диалогов: открыть или закрыть' })
     if (e.isInteractive) {
       void activate($)
@@ -237,6 +188,7 @@ export const register: Register = on => {
 
   // приложение показало диалог (в том числе давно запущенный): подтянуть выбор панели и свежий список
   on('session.attach', async ($, e, next) => {
+    if (e.surface !== 'desktop') return next(e)
     void activate($)
     void loadTune($)
     return next(e)
@@ -252,7 +204,7 @@ export const register: Register = on => {
     // крестик панели — то же, что выключить её в полосе
     if (e.id === PANE && e.origin.kind !== 'unload') {
       await update($, isPaneOpen, () => false)
-      if (!isVsCode) await $.store.set(K_PANE, false)
+      await $.store.set(K_PANE, false)
     }
     return next(e)
   })
@@ -285,7 +237,7 @@ export const register: Register = on => {
     return { element: k }
   })
 
-  // Полоса над полем ввода (приложение и терминал). Свёрнута — одна строка с числами; раскрыта — плашки.
+  // Полоса над полем ввода (только приложение). Свёрнута — одна строка с числами; раскрыта — плашки.
   // Десктоп рисует у кнопки только подпись (label), детей-Text отбрасывает: числа, точки и проект стоят
   // рядом с кнопкой отдельным текстом.
   //  ▸ Диалоги  В работе 2  Ждут ответа 1  Завершены 7                                   панель
@@ -293,7 +245,7 @@ export const register: Register = on => {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     // полоса общая с другими модами: своё сверху, их часть под ним
     const below = await next(e)
-    if (e.props.hasSurvey || (e.surface !== 'desktop' && e.surface !== 'terminal')) return below
+    if (e.props.hasSurvey || e.surface !== 'desktop') return below
     const list = await read($, rows)
     const err = await read($, error)
     const me = await read($, self)
