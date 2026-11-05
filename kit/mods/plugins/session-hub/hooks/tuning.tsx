@@ -98,6 +98,24 @@ export function tuneSection(view: TuneView, els: Els, opts: { isDesktop: boolean
   const frame = opts.isDesktop ? { backgroundColor: bg, borderStyle: 'round' as const, borderColor: bg } : {}
   const noop = () => undefined
   const act = (id: string, a: string, label: string) => <Button key={`tune.${a}.${id}`} plain label={label} dimColor={a !== 'do'} onPress={noop} />
+  // Кнопки — сеткой равных колонок: в одну строку, если влезают, иначе две строки по две, одна под другой
+  const ACTS = [['do', 'сделать'], ['talk', 'обсудить'], ['later', 'позже'], ['never', 'скрыть']] as const
+  const room = Math.max(16, opts.width - 2)
+  const perRow = room >= 40 ? 4 : 2
+  const cell = Math.floor(room / perRow)
+  const buttons = (id: string) => (
+    <Box flexDirection="column" marginTop={1}>
+      {[0, perRow].filter(n => n < ACTS.length).map(start => (
+        <Box key={`tune-row-${id}-${start}`} flexDirection="row">
+          {ACTS.slice(start, start + perRow).map(([a, label]) => (
+            <Box key={`tune-cell-${id}-${a}`} width={cell} flexShrink={0}>
+              {act(id, a, label)}
+            </Box>
+          ))}
+        </Box>
+      ))}
+    </Box>
+  )
   return (
     <Box key="sec-tune" flexDirection="column" marginBottom={1}>
       <Box flexDirection="column" paddingX={pad * 2} marginBottom={1}>
@@ -114,12 +132,7 @@ export function tuneSection(view: TuneView, els: Els, opts: { isDesktop: boolean
           <Text bold wrap="wrap">{i.title}</Text>
           {i.what !== '' && <Text wrap="wrap">{i.what}</Text>}
           {i.why !== '' && <Text dimColor wrap="wrap">{i.why}</Text>}
-          <Box flexDirection="row" flexWrap="wrap" columnGap={2} marginTop={1}>
-            {act(i.id, 'do', 'сделать')}
-            {act(i.id, 'talk', 'обсудить')}
-            {act(i.id, 'later', 'позже')}
-            {act(i.id, 'never', 'скрыть')}
-          </Box>
+          {buttons(i.id)}
         </Box>
       ))}
     </Box>
