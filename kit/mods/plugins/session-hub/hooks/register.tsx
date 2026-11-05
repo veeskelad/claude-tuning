@@ -487,10 +487,11 @@ export const register: Register = on => {
           <Text wrap="truncate-end">{me.title || 'Этот диалог'}</Text>
           <Text dimColor>этот диалог · {me.isRunning ? `работает ${ago(now, me.since ?? now)}` : 'ждёт тебя'}</Text>
         </Box>
+        {/* советы раз в неделю — сверху: под длинным списком их не видно */}
+        {tuneSection(tuneView, { Box, Text, Button }, { isDesktop, width })}
         {section('waiting', waiting, waiting.length, waiting.length > 1 ? { key: 'seen-all', label: 'прочитать все' } : undefined)}
         {section('running', running, running.length)}
         {section('done', showDone ? done.slice(0, 30) : [], done.length, { key: 'pane-done', label: showDone ? 'скрыть' : 'показать' })}
-        {tuneSection(tuneView, { Box, Text, Button }, { isDesktop, width })}
       </Box>
     )
   })
