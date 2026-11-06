@@ -1,5 +1,9 @@
 # Сторонний код
 
+## kit/mods/plugins/session-hub
+
+Основано на моде `session-hub` 1.19.2 из `nickvels-mods` Никиты Велса (https://t.me/+7CvS3mKSyFBlNmUx). Изменения: нажатия только кнопками, числа в кнопке полосы, плашки под ширину, панель по умолчанию закрыта, список диалогов из `~/.claude/sessions` без вызовов приложения и без запросов разрешений.
+
 ## kit/skills/systematic-debugging
 
 Форк скилла `systematic-debugging` из [obra/superpowers](https://github.com/obra/superpowers) версии 6.4.1 (сентябрь 2026). Изменения: тон смягчён под Claude 5, ссылки на другие скиллы superpowers убраны.
