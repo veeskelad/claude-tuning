@@ -15,7 +15,7 @@
 Свой модуль — место для личного (свои серверы, пути, хуки): публичный kit остаётся общим, личное
 подключается поверх и в kit не попадает. --extra можно повторять.
 """
-import argparse, filecmp, json, os, shutil, subprocess, sys, time
+import argparse, filecmp, hashlib, json, os, shutil, subprocess, sys, time
 
 KIT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "kit")
 VENDOR = {  # скиллы из чужих репозиториев: ставятся их установщиком, не копией
@@ -27,12 +27,22 @@ p = argparse.ArgumentParser()
 p.add_argument("--apply", action="store_true")
 p.add_argument("--check", action="store_true")
 p.add_argument("--uninstall", action="store_true")
+p.add_argument("--auto", action="store_true", help="тихое автообновление: только то, что уже стоит и не правилось человеком; новое и настройки ждут «да»")
+p.add_argument("--auto-update", choices=["on", "off"], help="включить или выключить автообновление набора (проверяет и обновляет хук tuning-update-check.sh)")
 p.add_argument("--home", default=os.path.expanduser("~"))
 p.add_argument("--extra", action="append", default=[], metavar="DIR")
 p.add_argument("--with", dest="bonus", default="", metavar="СФЕРЫ", help="направления через запятую: " + ", ".join(sorted(os.listdir(os.path.join(KIT, "tracks")))) if os.path.isdir(os.path.join(KIT, "tracks")) else "")
 a = p.parse_args()
 H = os.path.abspath(a.home)
 DRY = not a.apply
+STATE = f"{H}/.claude/claude-tuning.json"
+PREV = json.load(open(STATE)) if os.path.exists(STATE) else {}   # пусто — первая установка
+FIRST = not PREV
+PREV_FILES = PREV.get("files", {})   # что и с какой суммой поставил набор в прошлый раз: по ней видно, правил ли файл человек
+NEW_FILES = {}
+AUTO = a.auto
+if AUTO:
+    DRY = False
 BONUS = [b.strip() for b in a.bonus.split(",") if b.strip()]
 for b in BONUS:
     if not os.path.isdir(f"{KIT}/tracks/{b}"):
@@ -58,23 +68,92 @@ def same_tree(x, y):
     return all(same_tree(os.path.join(x, d), os.path.join(y, d)) for d in c.common_dirs)
 
 
-def place(src, dst, is_dir, is_exec=True):
-    rel = dst.replace(H, "~")
-    if os.path.lexists(dst):
-        real = os.path.realpath(dst)
-        same = same_tree(src, real) if is_dir and os.path.isdir(real) else (not is_dir and os.path.isfile(real) and filecmp.cmp(src, real, shallow=False))
-        say("есть" if same else "своя версия", rel + ("" if same else f"  (сравнить: diff -r {src} {rel})"))
-        return
-    say("поставлю" if DRY else "поставлено", rel)
-    if DRY:
-        return
+def digest(path):
+    """Сумма файла или папки: по ней сравнивают «что стоит» с «что ставил набор»."""
+    h = hashlib.sha256()
+    if os.path.isdir(path):
+        for root, dirs, files in os.walk(path):
+            dirs[:] = sorted(d for d in dirs if d != "__pycache__")
+            for f in sorted(files):
+                if f in (".DS_Store",) or f.endswith(".pyc"):
+                    continue
+                fp = os.path.join(root, f)
+                h.update(os.path.relpath(fp, path).encode() + b"\0" + open(fp, "rb").read() + b"\0")
+    else:
+        h.update(open(path, "rb").read())
+    return h.hexdigest()
+
+
+def kit_repo():
+    r = subprocess.run(["git", "-C", os.path.dirname(KIT), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def was_kit_version(src, real):
+    """Файл, поставленный старым набором (до записи сумм), — не правка человека: его содержимое есть в истории git набора.
+    Для папки: те же файлы, и каждый совпадает с какой-то прошлой версией. Без истории (архив, поверхностный клон) — нет."""
+    repo = kit_repo()
+    if not repo:
+        return False
+    def old_blobs(f):
+        rel = os.path.relpath(f, repo)
+        revs = subprocess.run(["git", "-C", repo, "log", "--format=%H", "--", rel], capture_output=True, text=True).stdout.split()
+        out = set()
+        for rev in revs:
+            b = subprocess.run(["git", "-C", repo, "show", f"{rev}:{rel}"], capture_output=True).stdout
+            out.add(hashlib.sha256(b).hexdigest())
+        return out
+    def one(f_src, f_real):
+        return hashlib.sha256(open(f_real, "rb").read()).hexdigest() in old_blobs(f_src)
+    if not os.path.isdir(src):
+        return os.path.isfile(real) and one(src, real)
+    def rels(d):
+        return {os.path.relpath(os.path.join(r, f), d) for r, _, fs in os.walk(d) for f in fs if f != ".DS_Store" and not f.endswith(".pyc") and "__pycache__" not in r}
+    ra, rb = rels(src), rels(real)
+    # у старой версии файлов могло быть меньше (новые добавлены позже), лишних своих быть не должно
+    return rb <= ra and all(one(os.path.join(src, f), os.path.join(real, f)) for f in rb)
+
+
+def put(src, dst, is_dir, is_exec):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     if is_dir:
+        if os.path.lexists(dst):
+            shutil.rmtree(dst)
         shutil.copytree(src, dst, ignore=shutil.ignore_patterns(".DS_Store", "__pycache__"))
     else:
         shutil.copy2(src, dst)
         if is_exec:
             os.chmod(dst, 0o755)
+
+
+def place(src, dst, is_dir, is_exec=True):
+    rel = dst.replace(H, "~")
+    if os.path.lexists(dst):
+        real = os.path.realpath(dst)
+        same = same_tree(src, real) if is_dir and os.path.isdir(real) else (not is_dir and os.path.isfile(real) and filecmp.cmp(src, real, shallow=False))
+        if same:
+            NEW_FILES[rel] = digest(src)
+            say("есть", rel)
+            return
+        # Отличается. Если это ровно то, что набор ставил раньше (сумма совпала или файл есть в истории набора), человек его не правил:
+        # файл просто устарел, обновляем. Иначе это его правка — остаётся и попадает в отчёт «своя версия».
+        untouched = os.path.exists(real) and (PREV_FILES.get(rel) == digest(real) if rel in PREV_FILES else was_kit_version(src, real))
+        if untouched:
+            say("обновлю" if DRY else "обновлено", rel)
+            if not DRY:
+                put(src, dst, is_dir, is_exec)
+            NEW_FILES[rel] = digest(src)
+            return
+        say("своя версия", rel + f"  (сравнить: diff -r {src} {rel})")
+        return
+    if AUTO:
+        say("ждёт «да»", f"{rel} — новое в наборе, поставлю по «обнови набор»")
+        return
+    say("поставлю" if DRY else "поставлено", rel)
+    if DRY:
+        return
+    put(src, dst, is_dir, is_exec)
+    NEW_FILES[rel] = digest(src)
 
 
 def link(target, path):
@@ -112,7 +191,7 @@ def install():
         for sub, to, is_exec in FILES:
             for name in ls(kit, sub):
                 place(f"{kit}/{sub}/{name}", f"{H}/{to}/{name}", False, is_exec)
-        if os.path.exists(f"{kit}/settings.snippet.json"):
+        if os.path.exists(f"{kit}/settings.snippet.json") and not AUTO:
             merge_settings(kit)
         for name in ls(kit, "launchd"):
             install_agent(f"{kit}/launchd/{name}")
@@ -120,14 +199,14 @@ def install():
         if kit == f"{KIT}/tracks/autonomy":
             for name in ls(kit, "templates"):
                 place(f"{kit}/templates/{name}", f"{H}/.claude/autonomy/templates/{name}", False, False)
-    if os.path.isdir(f"{KIT}/statusline"):
+    if os.path.isdir(f"{KIT}/statusline") and not AUTO:
         install_statusline()
     # белый список dippy: заготовка, только если своего файла нет
     if os.path.exists(f"{KIT}/dippy/config.example"):
         place(f"{KIT}/dippy/config.example", f"{H}/.dippy/config", False, False)
     if os.path.isdir(f"{KIT}/mods"):
         install_mods()
-    if "codex" in BONUS:
+    if "codex" in BONUS and not AUTO:
         install_codex()
     print()
     vendor = dict(VENDOR)
@@ -188,6 +267,9 @@ def install_agent(template):
     if os.path.exists(dst):
         say("есть" if open(dst).read() == body else "своя версия", dst.replace(H, "~"))
         return
+    if AUTO:
+        say("ждёт «да»", f"{dst.replace(H, '~')} — новая задача по расписанию, включает только человек")
+        return
     say("поставлю" if DRY else "поставлено", dst.replace(H, "~"))
     if DRY:
         return
@@ -234,7 +316,13 @@ def install_mods():
     cur = json.load(open(path)) if os.path.exists(path) else {}
     new = json.loads(json.dumps(cur))
     # путь абсолютный: так требует источник directory (документация Claude Code, extraKnownMarketplaces)
-    new.setdefault("extraKnownMarketplaces", {}).setdefault(MODS_NAME, {"source": {"source": "directory", "path": dst}})
+    mk = new.setdefault("extraKnownMarketplaces", {})
+    old_path = mk.get(MODS_NAME, {}).get("source", {}).get("path")
+    if old_path and old_path != dst:
+        # старая установка смотрит в другую папку (копия в ~/.claude/mods или прежний клон): переводим на нынешнюю
+        say("перенесу" if DRY else "перенесено", f"моды: {old_path.replace(H, '~')} → {dst.replace(H, '~')}")
+    if old_path != dst:
+        mk[MODS_NAME] = {"source": {"source": "directory", "path": dst}}
     for name in mod_names():
         new.setdefault("enabledPlugins", {}).setdefault(f"{name}@{MODS_NAME}", True)
     if new == cur:
@@ -526,14 +614,33 @@ if a.uninstall:
     if DRY:
         print("\nНичего не изменено. Убрать: --uninstall --apply")
     sys.exit(0)
-print(f"{'Сухой прогон' if DRY else 'Установка'} kit → {H}\n")
+_ver_file = os.path.join(os.path.dirname(KIT), "VERSION")
+_new_ver = open(_ver_file).read().strip() if os.path.exists(_ver_file) else ""
+if a.auto_update:
+    if FIRST:
+        sys.exit("набор ещё не установлен: сначала --apply")
+    PREV["auto_update"] = a.auto_update == "on"
+    json.dump(PREV, open(STATE, "w"), ensure_ascii=False, indent=2)
+    print(f"автообновление: {'включено' if PREV['auto_update'] else 'выключено'}")
+    sys.exit(0)
+_mode = "Первая установка" if FIRST else (f"Обновление {PREV.get('version') or '?'} → {_new_ver or '?'}" if PREV.get("version") != _new_ver else f"Повторный запуск ({_new_ver or '?'})")
+print(f"{_mode}: {'сухой прогон' if DRY else ('автообновление' if AUTO else 'установка')} kit → {H}\n")
 install()
 # что и какой версии стоит: по этому файлу «обнови набор» ставит те же направления, а проверка обновлений сравнивает версию
 if not DRY:
     ver = open(os.path.join(os.path.dirname(KIT), "VERSION")).read().strip() if os.path.exists(os.path.join(os.path.dirname(KIT), "VERSION")) else ""
     os.makedirs(f"{H}/.claude", exist_ok=True)
-    json.dump({"version": ver, "tracks": BONUS, "kit": os.path.dirname(KIT), "installed_at": time.strftime("%Y-%m-%d %H:%M")},
-              open(f"{H}/.claude/claude-tuning.json", "w"), ensure_ascii=False, indent=2)
+    now = time.strftime("%Y-%m-%d %H:%M")
+    # в автообновлении направления берём из прошлой установки: --with там передаёт хук, но на всякий случай не теряем
+    tracks = BONUS or PREV.get("tracks", [])
+    # файлы, которых набор больше не касается (свои версии, снятые), в карте сумм не нужны; новые и обновлённые — записаны
+    files = {k: v for k, v in {**PREV_FILES, **NEW_FILES}.items() if k in NEW_FILES or k in PREV_FILES}
+    state = {**PREV, "version": ver, "tracks": tracks, "kit": os.path.dirname(KIT),
+             "first_installed_at": PREV.get("first_installed_at") or PREV.get("installed_at") or now,
+             "installed_at": now, "files": files}
+    if PREV.get("version") and PREV.get("version") != ver:
+        state["previous_version"] = PREV["version"]
+    json.dump(state, open(STATE, "w"), ensure_ascii=False, indent=2)
     say("записано", f"~/.claude/claude-tuning.json: версия {ver or '?'}, направления: {', '.join(BONUS) or 'только основа'}")
 if DRY:
     print("\nНичего не изменено. Поставить: --apply")
