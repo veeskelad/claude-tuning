@@ -4,7 +4,6 @@ import type { Hook, Register, RenderChildren } from 'claude-code'
 import type { HubSelf, HubSession, HubState, HubView } from '../types'
 import { loadTune, pressTune, readTune, tuneSection } from './tuning'
 
-// Основано на session-hub 1.19.2 из nickvels-mods (Никита Велс, https://t.me/+7CvS3mKSyFBlNmUx)
 // Список диалогов — из ~/.claude/sessions: инструменты сессий приложения спрашивают разрешение на каждый вызов
 
 const PANE = 'session-hub'
