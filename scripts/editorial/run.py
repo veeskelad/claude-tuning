@@ -140,8 +140,10 @@ def run_model(wt: Path, payload: Path, mode: str, budget: float, model: str) -> 
 def render(check: dict, report: dict | None) -> str:
     """Список «что устарело» для человека: сначала посчитанное кодом, потом найденное моделью."""
     rows = []
+    # то, что агент разобрал сам (то же file:line), второй строкой от проверки без модели не повторяем
+    seen = {(f.get("file"), f.get("line")) for f in (report or {}).get("findings", []) if f.get("action") not in (None, "none")}
     for f in check.get("findings", []):
-        if f["kind"] != "unverifiable":
+        if f["kind"] != "unverifiable" and (f["file"], f["line"]) not in seen:
             rows.append(f"- `{f['file']}:{f['line']}` {f['claim']} → {f['actual']} (источник: {f['source']}; проверка без модели)")
     for f in (report or {}).get("findings", []):
         if f.get("action") in (None, "none"):
