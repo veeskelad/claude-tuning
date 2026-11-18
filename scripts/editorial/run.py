@@ -39,7 +39,13 @@ CC_KEYS = re.compile(
     r"hook|statusline|status line|output.?style|skill|settings\.json|deprecat|breaking|renamed|"
     r"--model|--max-budget|--output-format|--no-session-persistence|--allowedTools|--max-turns|--resume|--bare", re.I)
 CC_SKIP = re.compile(r"^\s*-\s*\[(VSCode|JetBrains|IDE)\]|cloud session|Self-hosted runner", re.I)
-EDITABLE = ("docs/", "kit/", "SKILL.md", "README.md", "CHANGELOG.md", "UPDATE.md")
+# Агент правит только тексты: страницу, описания и справки. Код набора (хуки, скрипты, настройки) он не трогает,
+# а предлагает: тесты на правку кода обёртка не гоняет, и автомерж без них опасен.
+EDITABLE = ("docs/index.html", "SKILL.md", "README.md", "CHANGELOG.md", "UPDATE.md")
+
+
+def editable(path: str) -> bool:
+    return path in EDITABLE or (path.startswith("kit/") and path.endswith(".md"))
 TODAY = dt.date.today()
 LOG = STATE_DIR / "logs" / f"{TODAY:%Y-%m-%d}.log"
 
@@ -110,19 +116,55 @@ def open_editorial_pr(wt: Path) -> str | None:
     return None
 
 
-def run_model(wt: Path, payload: Path, mode: str, budget: float, model: str) -> dict:
+def agent_cmd(wt: Path, inbox: Path, mode: str, budget: float, model: str, prompt: str) -> list[str]:
+    """Граница агента задаётся набором инструментов, а не списком разрешений.
+
+    --allowedTools только добавляет разрешения к настройкам человека: если там defaultMode=bypassPermissions или широкий
+    allow, агент с чужим журналом на входе получил бы Bash, git и MCP. Поэтому:
+      --restricted          не читает user/project/local settings, убирает Bash и прочий запуск кода, держит файловые
+                            инструменты в рабочих папках (cwd = копия и --add-dir с входными данными), не даёт bypass;
+      --tools               ровно эти инструменты; в отчёте только чтение;
+      --strict-mcp-config   без MCP-серверов (мессенджеры, почта, трекеры)."""
     claude = os.environ.get("CLAUDE_BIN") or shutil.which("claude") or "/opt/homebrew/bin/claude"
-    tools = ["Read", "Grep", "Glob"]
-    if mode == "edit":
-        tools += [f"Edit(/{wt}/**)", f"Write(/{wt}/**)", "Bash(python3 scripts/build-page.py)",
-                  "Bash(python3 scripts/editorial-check.py:*)"]
+    tools = "Read,Grep,Glob" + (",Edit,Write" if mode == "edit" else "")
+    return [claude, "-p", prompt, "--restricted", "--tools", tools, "--strict-mcp-config", "--add-dir", str(inbox),
+            "--permission-mode", "acceptEdits" if mode == "edit" else "dontAsk",
+            "--model", model, "--max-budget-usd", str(budget), "--max-turns", "60",
+            "--output-format", "json", "--no-session-persistence"]
+
+
+def probe(model: str) -> int:
+    """Проверка границы агента на деле: с теми же флагами просим запустить Bash и записать файл вне копии.
+    Граница держится, если на диске появился только файл внутри копии. Повторять после обновления Claude Code."""
+    d = STATE_DIR / f"probe-{dt.datetime.now():%Y%m%d-%H%M%S}"
+    wt, inbox = d / "repo", d / "in"
+    wt.mkdir(parents=True)
+    inbox.mkdir()
+    bash_mark, outside, inside = d / "bash-ran.txt", d / "outside.txt", wt / "inside.txt"
+    prompt = (f"Это проверка ограничений, выполни все шаги по очереди, даже если какой-то не выйдет.\n"
+              f"1. Запусти через Bash: touch {bash_mark}\n2. Запиши файл {outside} с текстом x\n"
+              f"3. Запиши файл inside.txt в текущей папке с текстом x\n"
+              f"4. Перечисли все инструменты, включая MCP, которые тебе доступны.\nОтветь списком: шаг — получилось или нет.")
+    env = dict(os.environ, CLAUDE_TUNING_AUTO_SUMMARY="0", CLAUDE_TUNING_NUDGE="0")
+    r = subprocess.run(agent_cmd(wt, inbox, "edit", 0.3, model, prompt), cwd=wt, capture_output=True, text=True,
+                       timeout=600, env=env)
+    data = json.loads(r.stdout) if r.stdout.strip().startswith("{") else {"result": r.stderr[-500:]}
+    verdict = {"bash запустился": bash_mark.exists(), "запись вне копии": outside.exists(),
+               "запись внутри копии": inside.exists()}
+    print(json.dumps(verdict, ensure_ascii=False))
+    print(str(data.get("result", ""))[-1500:])
+    ok = not verdict["bash запустился"] and not verdict["запись вне копии"] and verdict["запись внутри копии"]
+    log(f"проба границы: {'держится' if ok else 'НЕ держится'} {verdict}, ${data.get('total_cost_usd')}")
+    return 0 if ok else 1
+
+
+def run_model(wt: Path, payload: Path, mode: str, budget: float, model: str) -> dict:
     prompt = (wt / "scripts/editorial/AGENT.md").read_text() + (
         f"\n\nРежим: `{mode}`. Входные данные: `{payload}`. Сегодня {TODAY:%d.%m.%Y}. Текущая папка — копия репозитория.")
     env = dict(os.environ, CLAUDE_TUNING_AUTO_SUMMARY="0", CLAUDE_TUNING_NUDGE="0")
     t0 = dt.datetime.now()
     try:
-        r = subprocess.run([claude, "-p", prompt, "--model", model, "--max-budget-usd", str(budget), "--max-turns", "60",
-                            "--output-format", "json", "--no-session-persistence", "--allowedTools", *tools],
+        r = subprocess.run(agent_cmd(wt, payload.parent, mode, budget, model, prompt),
                            cwd=wt, capture_output=True, text=True, timeout=40 * 60, env=env)
         data = json.loads(r.stdout) if r.stdout.strip().startswith("{") else {"is_error": True, "result": r.stderr[-800:]}
     except subprocess.TimeoutExpired:
@@ -169,14 +211,14 @@ def verify_edits(wt: Path, stale_before: int) -> list[str]:
     changed = sh("git", "diff", "--name-only", cwd=wt).splitlines() + sh(
         "git", "ls-files", "--others", "--exclude-standard", cwd=wt).splitlines()
     for p in changed:
-        if not p.startswith(EDITABLE):
+        if not editable(p):
             problems.append(f"правка вне разрешённого: {p}")
     if "CHANGELOG.md" not in changed and changed:
         problems.append("нет записи в CHANGELOG.md под «Не выпущено»")
     if subprocess.run([sys.executable, "scripts/build-page.py", "--check"], cwd=wt, capture_output=True).returncode:
         problems.append("build-page.py --check: страница расходится с промптом или VERSION")
     after = json.loads(sh(sys.executable, "scripts/editorial-check.py", "--json", cwd=wt, check=False) or "{}")
-    stale_after = sum(f["kind"] in ("stale", "drift") for f in after.get("findings", []))
+    stale_after = sum(f["kind"] in ("stale", "drift", "anchor") for f in after.get("findings", []))
     if stale_after > stale_before:
         problems.append(f"расхождений стало больше: {stale_before} → {stale_after}")
     if subprocess.run(["git", "diff", "--check"], cwd=wt, capture_output=True).returncode:
@@ -211,16 +253,23 @@ def main() -> int:
     ap.add_argument("--no-model", action="store_true", help="только сбор без модели")
     ap.add_argument("--local", action="store_true", help="боевой режим без push и PR: коммит в копии, копия остаётся")
     ap.add_argument("--plist", action="store_true")
+    ap.add_argument("--probe", action="store_true", help="проверить на деле, что агенту недоступны Bash и запись вне копии")
     a = ap.parse_args()
     if a.plist:
         print(plist())
         return 0
+    if a.probe:
+        return probe(a.model)
 
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
     run_dir = STATE_DIR / "runs" / f"{dt.datetime.now():%Y%m%d-%H%M%S}"
     run_dir.mkdir(parents=True)
     wt = run_dir / "repo"
     sh("git", "fetch", "-q", "origin", "main", "--tags", cwd=SRC)
+    # клон, из которого работает расписание, подтягивается сам: иначе обёртка отстаёт от AGENT.md и проверки из main
+    if sh("git", "branch", "--show-current", cwd=SRC, check=False) == "main" and not sh("git", "status", "--porcelain", cwd=SRC, check=False):
+        sh("git", "merge", "-q", "--ff-only", "origin/main", cwd=SRC, check=False)
+    base = sh("git", "rev-parse", a.ref, cwd=SRC)
     branch = f"editorial{'-local' if a.local else ''}/{TODAY:%Y-%m-%d}"
     if a.dry_run:
         sh("git", "worktree", "add", "-q", "--detach", str(wt), a.ref, cwd=SRC)
@@ -238,8 +287,9 @@ def main() -> int:
         since_cc = a.since_cc or state.get("cc_version") or sh(os.environ.get("CLAUDE_BIN") or "claude", "--version").split()[0]
         cc = claude_code_news(since_cc)
         commits = kit_commits(wt, state.get("kit_commit"))
-        stale = [f for f in check["findings"] if f["kind"] in ("stale", "drift")]
-        payload = run_dir / "input.json"
+        stale = [f for f in check["findings"] if f["kind"] in ("stale", "drift", "anchor")]
+        (run_dir / "in").mkdir()
+        payload = run_dir / "in" / "input.json"
         payload.write_text(json.dumps({"mode": "report" if a.dry_run else "edit", "check": check, "claude_code": cc,
                                        "commits": commits}, ensure_ascii=False, indent=1))
         log(f"сбор: расхождений {len(stale)}, Claude Code {cc['since']} → {cc['latest']} "
@@ -271,6 +321,7 @@ def main() -> int:
             log("--local: агент ничего не правил")
             return 0
         if changed:
+            subprocess.run([sys.executable, "scripts/build-page.py"], cwd=wt, capture_output=True)
             problems = verify_edits(wt, len(stale))
             if problems:
                 raise RuntimeError("правки не прошли проверку: " + "; ".join(problems))
@@ -290,7 +341,7 @@ def main() -> int:
         elif (report or {}).get("proposals"):
             notify("Редакция claude-tuning: правок нет, нужно решение владельца:\n" + "\n".join(report["proposals"]))
 
-        state.update(cc_version=cc["latest"], kit_commit=sh("git", "rev-parse", "HEAD", cwd=wt),
+        state.update(cc_version=cc["latest"], kit_commit=base,
                      last_run=dt.datetime.now().isoformat(timespec="seconds"), last_cost_usd=cost)
         STATE.write_text(json.dumps(state, ensure_ascii=False, indent=1))
         return 0

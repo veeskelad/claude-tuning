@@ -6,11 +6,12 @@
     python3 scripts/editorial-check.py            # список для человека
     python3 scripts/editorial-check.py --json     # то же для run.py и агента редакции
     python3 scripts/editorial-check.py --root DIR # проверить другую копию (старый коммит, worktree)
-Код выхода: 0 — расхождений нет, 1 — есть устаревшее (kind=stale), 2 — сбой самой проверки.
+Код выхода: 0 — расхождений нет, 1 — есть устаревшее (stale, drift, anchor), 2 — сбой самой проверки.
 
 Виды находок:
     stale         на странице или в описании не то, что в наборе; правка нужна
     drift         набор разошёлся сам с собой (справка, CHANGELOG, VERSION); правка нужна
+    anchor        проверка не нашла на странице место, которое должна сверять (фразу переписали); правка в проверке
     info          не ошибка, но редакции стоит знать (невыпущенные правки)
     unverifiable  утверждение из замера автора, из репозитория его не проверить; не трогать
 """
@@ -28,7 +29,7 @@ PAGE = "docs/index.html"
 
 # Числа словами, как они стоят в тексте сайта («вместо четырёх»).
 WORDS = {
-    "одн": 1, "один": 1, "два": 2, "двух": 2, "две": 2, "три": 3, "трёх": 3, "трех": 3, "четыре": 4, "четырёх": 4,
+    "один": 1, "два": 2, "двух": 2, "две": 2, "три": 3, "трёх": 3, "трех": 3, "четыре": 4, "четырёх": 4,
     "четырех": 4, "пять": 5, "пяти": 5, "шесть": 6, "шести": 6, "семь": 7, "семи": 7, "восемь": 8, "восьми": 8,
     "девять": 9, "девяти": 9, "десять": 10, "десяти": 10,
 }
@@ -161,13 +162,22 @@ def check_version_and_prompt(page):
             "промпт на странице вставляет build-page.py; руками не править")
 
 
+def anchor_missing(what, where, source):
+    """Проверка не нашла на странице места, которое должна сверять. Молчать нельзя: фразу переписали, а число
+    на сайте осталось без присмотра. Правка — в регулярном выражении проверки или в тексте сайта."""
+    add("anchor", PAGE, where, f"не найдено: {what}", "проверку нужно перенастроить на новый текст", source)
+
+
 def check_guard_numbers(page, g):
     # «25/25 … опасных команд», «22/22 опасных»
+    blocks = 0
     for m in re.finditer(r'data-count="(\d+)"\s+data-suffix="/(\d+)"[^>]*>.*?</div>\s*<p>(.*?)</p>', page, re.S):
         text = plain(m.group(3))
         if "опасн" not in text:
             continue
+        blocks += 1
         ln = line_of(page, m.start())
+        verified = []
         got, total = int(m.group(1)), int(m.group(2))
         if total != g["dangerous"] or got != g["dangerous"]:
             add("stale", PAGE, ln, f"{got}/{total} опасных", f"{g['stopped'] + g['masked']}/{g['dangerous']}",
@@ -181,11 +191,18 @@ def check_guard_numbers(page, g):
         ]
         for rx, want, what, src in checks:
             mm = re.search(rx, text, re.I)
-            if mm and num(mm.group(1)) != want:
-                add("stale", PAGE, ln, f"{mm.group(1)} ({what})", str(want), src)
-        if "обычн" not in text:
-            # число обычных может стоять в соседнем предложении блока
-            pass
+            if mm:
+                verified.append(mm.span(1))
+                if num(mm.group(1)) != want:
+                    add("stale", PAGE, ln, f"{mm.group(1)} ({what})", str(want), src)
+            elif what == "обычных":
+                anchor_missing("число обычных команд в блоке «опасных»", ln, src)
+        # любое другое число в этом блоке осталось бы без проверки: фразу переписали, а правило о ней не знает
+        for t in re.finditer(r"\b" + NUM + r"\b", text, re.I):
+            if not any(a <= t.start(1) < b for a, b in verified):
+                anchor_missing(f"проверка для числа «{t.group(1)}» в блоке «опасных»", ln, "scripts/editorial-check.py")
+    if not blocks:
+        anchor_missing("блок «N/N опасных команд» (data-count, data-suffix)", 1, "tests/safety-guard.cases.tsv")
     # старая форма «N/N опасных» текстом
     for m in re.finditer(r"(\d+)/(\d+)\s+опасн", plain(page)):
         if int(m.group(2)) != g["dangerous"]:
@@ -195,15 +212,24 @@ def check_guard_numbers(page, g):
 
 
 def check_hook_count(page, handlers):
+    found = 0
     for m in re.finditer(r'data-count="(\d+)"[^>]*>[^<]*</div>\s*<p>(.*?)</p>', page, re.S):
-        if re.search(r"хук\w*\s+срабатыва", plain(m.group(2))) and int(m.group(1)) != len(handlers):
+        if not re.match(r"\s*хук", plain(m.group(2)), re.I):  # «16 хуков срабатывают…»: слово сразу после числа
+            continue
+        found += 1
+        if int(m.group(1)) != len(handlers):
             add("stale", PAGE, line_of(page, m.start()), f"{m.group(1)} хуков", str(len(handlers)),
                 "kit/settings.snippet.json (уникальные обработчики без dippy)", ", ".join(handlers))
+    if not found:
+        anchor_missing("блок «N хуков» (data-count, текст начинается со слова «хук»)", 1, "kit/settings.snippet.json")
 
 
 def check_cheatsheet(page):
     lines = [l for l in rd("kit/claude-md.md").splitlines() if l.strip()]
-    for m in re.finditer(r"(\d+)[–-](\d+)\s+строк", page):
+    ranges = list(re.finditer(r"(\d+)[–-](\d+)\s+строк", page))
+    if not ranges:
+        anchor_missing("длина шпаргалки «N–M строк»", 1, "kit/claude-md.md")
+    for m in ranges:
         lo, hi = int(m.group(1)), int(m.group(2))
         if not lo <= len(lines) <= hi:
             add("stale", PAGE, line_of(page, m.start()), m.group(0), f"{len(lines)} непустых строк",
@@ -286,7 +312,7 @@ def main():
         return 2
     facts = {"version": rd("VERSION").strip(), "guard": g, "hooks": len(handlers), "handlers": handlers,
              "skills": kit_skills(), "head": git("rev-parse", "--short", "HEAD")}
-    stale = [f for f in findings if f["kind"] in ("stale", "drift")]
+    stale = [f for f in findings if f["kind"] in ("stale", "drift", "anchor")]
     if "--json" in sys.argv:
         print(json.dumps({"facts": facts, "findings": findings}, ensure_ascii=False, indent=1))
     else:
