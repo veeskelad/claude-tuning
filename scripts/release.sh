@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Выпуск версии набора: scripts/release.sh 3.8.0
-# Переносит «Не выпущено» из CHANGELOG.md под номер и дату, пишет VERSION, коммитит и ставит тег vX.Y.Z.
+# Переносит «Не выпущено» из CHANGELOG.md под номер и дату, пишет VERSION, обновляет страницу (build-page.py), коммитит и ставит тег vX.Y.Z.
 # Тег нужен: по нему у людей tuning-update-check.sh узнаёт, что вышла новая версия. Не пушит — push отдельной командой (подсказка в конце).
 set -eu
 v="${1:-}"
@@ -20,8 +20,9 @@ s = s.replace("## Не выпущено\n", f"## Не выпущено\n\n## {v}
 open("CHANGELOG.md", "w").write(s)
 PY
 echo "$v" > VERSION
-bash tests/update-flow.test.sh >/dev/null || { git checkout -- CHANGELOG.md VERSION; echo "тест обновления не прошёл: выпуск отменён"; exit 1; }
-git add CHANGELOG.md VERSION
+python3 scripts/build-page.py >/dev/null   # номер версии и промпт на сайте (docs/index.html) — из VERSION и INSTALL-VIA-AGENT.txt
+bash tests/update-flow.test.sh >/dev/null || { git checkout -- CHANGELOG.md VERSION docs/index.html; echo "тест обновления не прошёл: выпуск отменён"; exit 1; }
+git add CHANGELOG.md VERSION docs/index.html
 git commit -q -m "release $v"
 git tag "v$v"
 echo "готово: версия $v, тег v$v. Отправить: git push origin HEAD v$v"
