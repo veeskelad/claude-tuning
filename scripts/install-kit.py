@@ -15,7 +15,7 @@
 Свой модуль — место для личного (свои серверы, пути, хуки): публичный kit остаётся общим, личное
 подключается поверх и в kit не попадает. --extra можно повторять.
 """
-import argparse, filecmp, hashlib, json, os, shutil, subprocess, sys, time
+import argparse, filecmp, hashlib, json, os, pwd, shutil, subprocess, sys, time
 
 KIT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "kit")
 VENDOR = {  # скиллы из чужих репозиториев: ставятся их установщиком, не копией
@@ -34,6 +34,8 @@ p.add_argument("--extra", action="append", default=[], metavar="DIR")
 p.add_argument("--with", dest="bonus", default="", metavar="СФЕРЫ", help="направления через запятую: " + ", ".join(sorted(os.listdir(os.path.join(KIT, "tracks")))) if os.path.isdir(os.path.join(KIT, "tracks")) else "")
 a = p.parse_args()
 H = os.path.abspath(a.home)
+# Настоящий дом пользователя, а не $HOME: в пробном каталоге с HOME=<папка> задача launchd иначе загрузилась бы от имени человека.
+REAL_HOME = os.path.realpath(H) == os.path.realpath(pwd.getpwuid(os.getuid()).pw_dir)
 DRY = not a.apply
 STATE = f"{H}/.claude/claude-tuning.json"
 PREV = json.load(open(STATE)) if os.path.exists(STATE) else {}   # пусто — первая установка
@@ -96,7 +98,9 @@ def was_kit_version(src, real):
     if not repo:
         return False
     def old_blobs(f):
-        rel = os.path.relpath(f, repo)
+        # git отдаёт путь без симлинков (на macOS /var → /private/var, ~/.claude/skills → ~/.agents/skills):
+        # без realpath путь выходит за репозиторий, история пустая, и устаревший файл считается правкой человека
+        rel = os.path.relpath(os.path.realpath(f), os.path.realpath(repo))
         revs = subprocess.run(["git", "-C", repo, "log", "--format=%H", "--", rel], capture_output=True, text=True).stdout.split()
         out = set()
         for rev in revs:
@@ -276,7 +280,7 @@ def install_agent(template):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     open(dst, "w").write(body)
     # загружать только в настоящем доме: в пробном каталоге задача запустилась бы от имени человека
-    if H == os.path.expanduser("~"):
+    if REAL_HOME:
         subprocess.run(["launchctl", "load", dst], capture_output=True)
 
 
@@ -571,7 +575,7 @@ def uninstall():
                 continue
             say("уберу" if DRY else "убрано", dst.replace(H, "~"))
             if not DRY:
-                if H == os.path.expanduser("~"):
+                if REAL_HOME:
                     subprocess.run(["launchctl", "unload", dst], capture_output=True)
                 os.remove(dst)
     if "codex" in BONUS:

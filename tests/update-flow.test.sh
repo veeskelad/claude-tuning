@@ -5,6 +5,8 @@
 set -u
 R="$(cd "$(dirname "$0")/.." && pwd)"
 T=$(mktemp -d)
+# набор за симлинком, как ~/.claude/skills → ~/.agents/skills или /var → /private/var на macOS
+ln -s "$T" "$T.link" && T="$T.link"
 ok=0; bad=0
 check() { if [ "$2" = "$3" ]; then ok=$((ok+1)); else bad=$((bad+1)); echo "ПРОМАХ $1: ждали [$2], получили [$3]"; fi; }
 G="git -c user.name=t -c user.email=t@t"
@@ -13,7 +15,7 @@ G="git -c user.name=t -c user.email=t@t"
 mkdir "$T/src" && (cd "$R" && tar --exclude=.git -cf - .) | (cd "$T/src" && tar xf -)
 echo 1.0.0 > "$T/src/VERSION"
 (cd "$T/src" && git init -q -b main && $G add -A && $G commit -q -m v1 && git tag v1.0.0)
-git clone -q "$T/src" "$T/home/.claude/skills/claude-tuning"
+git clone -q --no-hardlinks "$T/src" "$T/home/.claude/skills/claude-tuning"
 KIT="$T/home/.claude/skills/claude-tuning"
 HOME_="$T/home"
 inst() { python3 "$KIT/scripts/install-kit.py" --home "$HOME_" "$@"; }
