@@ -36,10 +36,8 @@ STATE = STATE_DIR / "state.json"
 CC_CHANGELOG = "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"
 # Строки журнала Claude Code, которые могут касаться набора: хуки и их события, настройки, флаги запуска, скиллы.
 CC_KEYS = re.compile(
-    r"hook|PreToolUse|PostToolUse|SessionStart|SessionEnd|PreCompact|UserPromptSubmit|PermissionRequest|Stop\b|"
-    r"SubagentStop|settings\.json|statusline|status line|output.?style|skill|CLAUDE\.md|memory|compact|worktree|"
-    r"permission|allowedTools|disallowedTools|bypass|`claude -p`|--print|headless|plugin|marketplace|deprecat|"
-    r"breaking|renamed|removed|no longer", re.I)
+    r"hook|statusline|status line|output.?style|skill|settings\.json|deprecat|breaking|renamed|"
+    r"--model|--max-budget|--output-format|--no-session-persistence|--allowedTools|--max-turns|--resume|--bare", re.I)
 CC_SKIP = re.compile(r"^\s*-\s*\[(VSCode|JetBrains|IDE)\]|cloud session|Self-hosted runner", re.I)
 EDITABLE = ("docs/", "kit/", "SKILL.md", "README.md", "CHANGELOG.md", "UPDATE.md")
 TODAY = dt.date.today()
