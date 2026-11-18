@@ -276,6 +276,12 @@ def main() -> int:
     else:
         sh("git", "worktree", "add", "-q", "-B", branch, str(wt), a.ref, cwd=SRC)
     try:
+        if not a.dry_run:
+            # до модели: без имени для коммитов и входа в gh прогон дошёл бы до коммита и упал, потратив вызов модели
+            if not sh("git", "config", "user.email", cwd=wt, check=False):
+                raise RuntimeError(f"в клоне {SRC} не задано git user.email: git -C {SRC} config user.email <почта>")
+            if not a.local and subprocess.run(["gh", "auth", "status"], capture_output=True).returncode:
+                raise RuntimeError("gh не вошёл в GitHub: gh auth login")
         if not a.dry_run and not a.local and (url := open_editorial_pr(wt)):
             log(f"открыт PR редакции {url}: новый не открываю, пока владелец его не разберёт")
             return 0
