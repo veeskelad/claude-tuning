@@ -144,11 +144,15 @@ def render(check: dict, report: dict | None) -> str:
         if f["kind"] != "unverifiable":
             rows.append(f"- `{f['file']}:{f['line']}` {f['claim']} → {f['actual']} (источник: {f['source']}; проверка без модели)")
     for f in (report or {}).get("findings", []):
+        if f.get("action") in (None, "none"):
+            continue
         rows.append(f"- `{f.get('file')}:{f.get('line')}` {f.get('was', '')} → {f.get('now', '')} "
                     f"(источник: {f.get('source')}; {f.get('action')}) {f.get('why', '')}".rstrip())
     out = "\n".join(rows) or "- расхождений нет"
     if (report or {}).get("proposals"):
         out += "\n\nНужно решение владельца:\n" + "\n".join(f"- {p}" for p in report["proposals"])
+    if (report or {}).get("checked"):
+        out += "\n\nПроверено, набор не затронут:\n" + "\n".join(f"- {p}" for p in report["checked"])
     if (report or {}).get("ideas"):
         out += "\n\nИдеи из журнала Claude Code:\n" + "\n".join(f"- {p}" for p in report["ideas"])
     unv = [f for f in check.get("findings", []) if f["kind"] == "unverifiable"]
