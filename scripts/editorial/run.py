@@ -207,6 +207,7 @@ def main() -> int:
     ap.add_argument("--budget", type=float, default=float(os.environ.get("EDITORIAL_BUDGET_USD", "1.5")))
     ap.add_argument("--model", default=os.environ.get("EDITORIAL_MODEL", "sonnet"))
     ap.add_argument("--no-model", action="store_true", help="только сбор без модели")
+    ap.add_argument("--local", action="store_true", help="боевой режим без push и PR: коммит в копии, копия остаётся")
     ap.add_argument("--plist", action="store_true")
     a = ap.parse_args()
     if a.plist:
@@ -218,13 +219,13 @@ def main() -> int:
     run_dir.mkdir(parents=True)
     wt = run_dir / "repo"
     sh("git", "fetch", "-q", "origin", "main", "--tags", cwd=SRC)
-    branch = f"editorial/{TODAY:%Y-%m-%d}"
+    branch = f"editorial{'-local' if a.local else ''}/{TODAY:%Y-%m-%d}"
     if a.dry_run:
         sh("git", "worktree", "add", "-q", "--detach", str(wt), a.ref, cwd=SRC)
     else:
         sh("git", "worktree", "add", "-q", "-B", branch, str(wt), a.ref, cwd=SRC)
     try:
-        if not a.dry_run and (url := open_editorial_pr(wt)):
+        if not a.dry_run and not a.local and (url := open_editorial_pr(wt)):
             log(f"открыт PR редакции {url}: новый не открываю, пока владелец его не разберёт")
             return 0
         check_out = subprocess.run([sys.executable, "scripts/editorial-check.py", "--json"], cwd=wt,
@@ -264,12 +265,18 @@ def main() -> int:
             return 0
 
         changed = sh("git", "status", "--porcelain", cwd=wt)
+        if a.local and not changed:
+            log("--local: агент ничего не правил")
+            return 0
         if changed:
             problems = verify_edits(wt, len(stale))
             if problems:
                 raise RuntimeError("правки не прошли проверку: " + "; ".join(problems))
             sh("git", "add", "-A", cwd=wt)
             sh("git", "commit", "-q", "-m", f"Редакция {TODAY:%d.%m.%Y}: сайт и набор сверены с тестами и Claude Code", cwd=wt)
+            if a.local:
+                log(f"--local: коммит {sh('git', 'rev-parse', '--short', 'HEAD', cwd=wt)} в {wt}; без push и PR, состояние не сдвинуто")
+                return 0
             sh("git", "push", "-q", "-u", "origin", f"HEAD:refs/heads/{branch}", cwd=wt)
             body = ((report or {}).get("summary", "") + "\n\n## Что устарело\n\n" + text +
                     f"\n\nЖурнал Claude Code прочитан с {cc['since']} по {cc['latest']}. Мерж и выпуск версии решает владелец.")
@@ -290,8 +297,11 @@ def main() -> int:
         notify(f"Редакция claude-tuning не завершилась: {e}")
         return 1
     finally:
-        sh("git", "worktree", "remove", "--force", str(wt), cwd=SRC, check=False)
-        if not a.dry_run:
+        if a.local:
+            log(f"--local: копия оставлена для осмотра: {wt} (ветка {branch}); убирает человек после осмотра")
+        else:
+            sh("git", "worktree", "remove", "--force", str(wt), cwd=SRC, check=False)
+        if not a.dry_run and not a.local:
             sh("git", "branch", "-D", branch, cwd=SRC, check=False)
 
 
