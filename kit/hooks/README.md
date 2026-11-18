@@ -20,6 +20,9 @@
 | PostToolUse `*` | `loop-detector.sh` | пять одинаковых шагов подряд или круг из 2–4 шагов три раза — подсказка сменить подход |
 | SessionStart | `open-tasks.sh`, `compact-context.py`, `tuning-update-check.sh` | открытые чек-листы; после сжатия — задача этой сессии и правленые файлы; раз в сутки — нет ли новой версии набора |
 | SessionEnd, PreCompact | `session-autosave.sh` | машинная запись о сессии в `~/.claude/handoff.md` |
+| SessionEnd, PreCompact | `auto_summary.py hook` (из `claude-session-bridge`) | сводка сессии моделью в `~/.agents/handoffs`; не запускается в `claude -p` и внутри собственного запуска |
+| SessionStart `startup` | `daily_digest.py show` | показывает сводку за сутки, если она собрана |
+| SessionStart `startup\|resume\|clear\|compact` | `handoff.py discover` | находит сводки прошлых сессий проекта и сообщает о них |
 | направление «программирование» | `guard-hard-rules.py`, `repo-freshness.sh`, `agents-md-drift.sh` | без `--no-verify`, ветки и worktree от свежего `origin`, без правок основной копии на main; предупреждение об отставших клонах; напоминание, что CLAUDE.md и AGENTS.md разошлись |
 | направление «задачи по расписанию» | `autonomy-pause-guard.sh` | в автономном запуске: пауза останавливает всё, push, мерж, отправка и удаление вне папки задания — отказ |
 
