@@ -43,3 +43,21 @@ allow	grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' .env
 allow	cat README.md
 allow	echo "$PATH"
 allow	mkdir -p build
+allow	rm -f ~/.claude.json.bak-2026-11-19
+allow	rm -f /home/me/.claude/claude.json.bak-20261113-mcp /home/me/.claude/claude.json.bak-20261113-resolve
+allow	rm -f ~/app/config.yaml.bak
+allow	ssh my-server rm -f ~/.claude.json.bak-2026-11-19
+allow	ssh -o BatchMode=yes my-server 'rm -f ~/app/env.bak-2026-11-19 ~/app/config.bak'
+allow	ssh my-server rm -f /tmp/probe-state.json
+deny	rm -f ~/.claude.json
+deny	rm -f ~/a.bak-1 ~/.ssh/id_ed25519
+deny	rm -rf ~/old.bak-1
+deny	rm -f ~/*.bak*
+deny	rm -f ~/x.bak-1; rm -f ~/y
+deny	rm -f ~/x.bak-1 && rm -f ~/y
+deny	rm -f ~/../x.bak-1
+deny	rm -f ~/x.bak-$(date +%F)
+deny	rm -f ~/x.bakery
+deny	rm -f ~/backup.bak/important
+deny	ssh my-server rm -f ~/.claude.json
+deny	ssh my-server 'rm -f ~/a.bak-1; rm -f ~/b'
