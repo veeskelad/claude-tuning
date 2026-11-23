@@ -294,7 +294,66 @@ if printf '%s' "$SCAN" | grep -qE "$INTERP"; then
   fi
 fi
 
-if printf '%s' "$SCAN" | grep -qiE '(systemctl restart|systemctl stop|systemctl disable|reboot|shutdown|git push +([^|;]* )?(--force|-f)( |$)|git reset +--hard|git clean +-[a-z]*f|git checkout +-- +\.|git branch +-D)'; then
+# Удаление ветки с силой (23.11.2026). GitLab мержит squash-ом, и git сам такую ветку смерженной не считает:
+# `-d` отказывает, `-D` страж спрашивал, а в bypass вопрос становится отказом, и ветки копились. Проходит одна
+# простая команда `git [-C <папка>] branch -D|-d|--delete [-f|--force] <ветка>...` без кавычек, `$`, цепочек и
+# `..`, если каждая ветка уже в origin/main (или origin/master): предок, patch-эквивалент по git cherry или
+# squash, когда каждый файл, тронутый веткой, в origin/main уже такой же. Та же проверка, что у worktree-cleanup.
+# Невлитая, чужой ref, команда в цепочке — вопрос, как раньше. Простой `-d` безопасен сам: git не удалит невлитое.
+BRANCH_WHY=""
+merged_branches_only() {
+  local LC_ALL=C re dir tok ref b h mb ch del=0 hcwd
+  local -a toks names
+  re='^ *git( +-C +([A-Za-z0-9_./~-]+))? +branch( +[A-Za-z0-9_./-]+)+ *$'
+  [[ "$ORIGINAL_CMD" =~ $re ]] || { BRANCH_WHY="команда не одна простая git [-C <папка>] branch -D <ветка>"; return 1; }
+  dir=${BASH_REMATCH[2]}
+  hcwd=$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
+  case "$dir" in
+    '') dir=$hcwd ;;
+    '~') dir=$HOME ;;
+    '~/'*) dir="$HOME/${dir#'~/'}" ;;
+    /*) ;;
+    *) [ -n "$hcwd" ] && dir="$hcwd/$dir" ;;
+  esac
+  [ -n "$dir" ] && git -C "$dir" rev-parse --git-dir >/dev/null 2>&1 || { BRANCH_WHY="папка $dir не git-репозиторий"; return 1; }
+  read -r -a toks <<<"${ORIGINAL_CMD#*branch }"
+  names=()
+  for tok in "${toks[@]}"; do
+    case "$tok" in
+      -D | -d | --delete | -f | --force | -Df | -fD | -df | -fd) case "$tok" in *[dD]* | --delete) del=1 ;; esac ;;
+      -*) BRANCH_WHY="флаг $tok не из списка разрешённых"; return 1 ;;
+      *..* | *.lock | */) BRANCH_WHY="имя $tok не похоже на ветку"; return 1 ;;
+      *) names+=("$tok") ;;
+    esac
+  done
+  [ "$del" = 1 ] && [ "${#names[@]}" -gt 0 ] || { BRANCH_WHY="не названо ни одной ветки"; return 1; }
+  for ref in origin/main origin/master ""; do
+    [ -n "$ref" ] && git -C "$dir" rev-parse -q --verify "refs/remotes/$ref^{commit}" >/dev/null && break
+  done
+  [ -n "$ref" ] || { BRANCH_WHY="в $dir нет origin/main и origin/master"; return 1; }
+  for b in "${names[@]}"; do
+    h=$(git -C "$dir" rev-parse -q --verify "refs/heads/$b^{commit}") || { BRANCH_WHY="локальной ветки $b нет"; return 1; }
+    git -C "$dir" merge-base --is-ancestor "$h" "$ref" 2>/dev/null && continue
+    ch=$(git -C "$dir" cherry "$ref" "$h" 2>/dev/null) && [ -n "$ch" ] && ! printf '%s\n' "$ch" | grep -q '^+' && continue
+    mb=$(git -C "$dir" merge-base "$ref" "$h" 2>/dev/null) \
+      && ! git -C "$dir" diff --quiet "$mb" "$h" 2>/dev/null \
+      && git -C "$dir" diff -z --name-only "$mb" "$h" 2>/dev/null | xargs -0 git -C "$dir" diff --quiet "$ref" "$h" -- >/dev/null 2>&1 \
+      && continue
+    BRANCH_WHY="ветка $b не влита в $ref: в ней есть правки, которых там нет"
+    return 1
+  done
+}
+# Ищем по тексту без кавычек и с границей, как у docker: `bash -c 'git branch -D x'`, `(git branch -D x)`,
+# `git -c k=v branch "-D" x` шелл выполнит так же.
+BRANCH_SEG=$(printf '%s\n' "$DOCKER_SCAN" | grep -E '(^|[^[:alnum:]_.-])git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+branch([[:space:]]|$)')
+if [ -n "$BRANCH_SEG" ] && { printf '%s\n' "$BRANCH_SEG" | grep -qE '[[:space:]]-[a-zA-Z]*D' \
+  || { printf '%s\n' "$BRANCH_SEG" | grep -qE '[[:space:]](-[a-zA-Z]*d[a-zA-Z]*|--delete)([[:space:]]|$)' \
+    && printf '%s\n' "$BRANCH_SEG" | grep -qE '[[:space:]](-[a-zA-Z]*f[a-zA-Z]*|--force)([[:space:]]|$)'; }; } \
+  && ! merged_branches_only; then
+  emit ask "⚠️ Удаление ветки с силой ($BRANCH_WHY). Влитую в origin/main ветку удаляй одной командой git [-C <папка>] branch -D <ветка> без кавычек и цепочек."
+fi
+
+if printf '%s' "$SCAN" | grep -qiE '(systemctl restart|systemctl stop|systemctl disable|reboot|shutdown|git push +([^|;]* )?(--force|-f)( |$)|git reset +--hard|git clean +-[a-z]*f|git checkout +-- +\.)'; then
   emit ask "⚠️ Команда останавливает сервис, переписывает историю или стирает незакоммиченное. Проверь цель перед подтверждением."
 fi
 

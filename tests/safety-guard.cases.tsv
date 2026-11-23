@@ -61,3 +61,11 @@ deny	rm -f ~/x.bakery
 deny	rm -f ~/backup.bak/important
 deny	ssh my-server rm -f ~/.claude.json
 deny	ssh my-server 'rm -f ~/a.bak-1; rm -f ~/b'
+deny	git branch -D feature/x
+deny	git branch --delete --force feature/x
+allow	git branch -d feature/x
+deny	bash -c 'git branch -D feature/x'
+deny	ssh host 'git branch -D feature/x'
+deny	(git branch -D feature/x)
+deny	git -c core.pager=cat branch -D feature/x
+deny	git branch "-D" feature/x
