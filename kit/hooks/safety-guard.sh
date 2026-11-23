@@ -31,14 +31,27 @@ CMD=$(printf '%s' "$CMD" | awk '
     }
     print line
   }')
-# Strip a heredoc only for a plain file-writing cat command. Other bodies may be executable.
+# Тело heredoc вырезаем, только когда его получает команда, для которой это текст, а не код.
+# Первая строка остаётся в проверке целиком, команды после разделителя — тоже.
+# С 23.11.2026 кроме `cat > файл` это `tee файл`, `git commit -F -` и `gh pr|issue create|edit|comment
+# --body-file -`: сообщение коммита или описание PR со словами «git branch -D» получало отказ. Цепочка
+# `cd x && git commit -F - <<'EOF'` тоже подходит: судим по команде, к которой привязан heredoc. Нельзя:
+# конвейер (`cat <<'EOF' | bash`), подстановки, второй heredoc, разделитель без кавычек (тогда шелл
+# раскрывает `$(…)` в теле).
 FIRST_LINE=${ORIGINAL_CMD%%$'\n'*}
 inert_heredoc() {
-  [[ "$FIRST_LINE" == *'<<'* && "$FIRST_LINE" == *'>'* ]] || return 1
-  [[ "$FIRST_LINE" != *'|'* && "$FIRST_LINE" != *';'* && "$FIRST_LINE" != *'&&'* && "$FIRST_LINE" != *'||'* && "$FIRST_LINE" != *'`'* && "$FIRST_LINE" != *'$('* && "$FIRST_LINE" != *'<('* && "$FIRST_LINE" != *'>('* ]] || return 1
+  local seg rest
+  [[ "$FIRST_LINE" == *'<<'* ]] || return 1
+  rest=${FIRST_LINE//||/ }
+  [[ "$rest" != *'|'* && "$FIRST_LINE" != *'`'* && "$FIRST_LINE" != *'$('* && "$FIRST_LINE" != *'<('* && "$FIRST_LINE" != *'>('* ]] || return 1
   [[ "${FIRST_LINE#*<<}" != *'<<'* ]] || return 1
   [[ "$FIRST_LINE" == *"<<'"* || "$FIRST_LINE" == *'<<"'* || "$FIRST_LINE" == *"<<-'"* || "$FIRST_LINE" == *'<<-"'* ]] || return 1
-  printf '%s' "$FIRST_LINE" | grep -Eq '^[[:space:]]*cat[[:space:]]'
+  seg=$(printf '%s' "$FIRST_LINE" | sed -E 's/\|\||&&|;/\n/g' | grep -F '<<')
+  if printf '%s' "$seg" | grep -Eq '^[[:space:]]*cat[[:space:]]'; then
+    [[ "$seg" == *'>'* ]]
+    return
+  fi
+  printf '%s' "$seg" | grep -Eq '^[[:space:]]*(tee( +-a)? +[^[:space:]<>-][^[:space:]<>]*|git( +-C +[^[:space:]]+)? +commit( +[^[:space:]]+)*( +-F +-| +--file(=| +)-)|gh +(pr|issue) +(create|edit|comment)( +[^[:space:]]+)* +--body-file +-)[[:space:]]+<<'
 }
 inert_heredoc || CMD=$ORIGINAL_CMD
 # Перенос строки через `\` шелл склеивает: `docker \<перевод строки> rm -f x` — одна команда (27.10.2026).
